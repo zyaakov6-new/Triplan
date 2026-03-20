@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import BottomSheet from './BottomSheet'
 import Icon from './Icon'
@@ -10,10 +10,20 @@ const TYPES = [
   { id: 'transport', label: 'Transport', emoji: '🚌' },
 ]
 
-export default function NewStopModal({ dayId, nextOrder, onClose, onCreated }) {
-  const [form, setForm] = useState({ name: '', type: 'attraction', time_slot: '', note: '', lat: '', lng: '', cost: '' })
+export default function EditStopModal({ stop, onClose, onUpdated, onDeleted }) {
+  const [form, setForm] = useState({
+    name: stop.name || '',
+    type: stop.type || 'attraction',
+    time_slot: stop.time_slot || '',
+    note: stop.note || '',
+    lat: stop.lat != null ? String(stop.lat) : '',
+    lng: stop.lng != null ? String(stop.lng) : '',
+    cost: stop.cost != null ? String(stop.cost) : '',
+  })
   const [loading, setLoading] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const [error, setError] = useState('')
+  const [confirmDelete, setConfirmDelete] = useState(false)
   const [placeQuery, setPlaceQuery] = useState('')
   const [placeResults, setPlaceResults] = useState([])
   const [searchingPlace, setSearchingPlace] = useState(false)
@@ -26,7 +36,7 @@ export default function NewStopModal({ dayId, nextOrder, onClose, onCreated }) {
     setSearchingPlace(true)
     try {
       const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=5&addressdetails=1`,
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=5`,
         { headers: { 'Accept-Language': 'en' } }
       )
       const data = await res.json()
@@ -45,7 +55,6 @@ export default function NewStopModal({ dayId, nextOrder, onClose, onCreated }) {
   const selectPlace = (place) => {
     setForm(f => ({
       ...f,
-      name: f.name || place.display_name.split(',')[0],
       lat: parseFloat(place.lat).toFixed(6),
       lng: parseFloat(place.lon).toFixed(6),
     }))
@@ -53,11 +62,10 @@ export default function NewStopModal({ dayId, nextOrder, onClose, onCreated }) {
     setPlaceResults([])
   }
 
-  const handleCreate = async () => {
+  const handleUpdate = async () => {
     if (!form.name.trim()) { setError('Name is required'); return }
     setLoading(true); setError('')
-    const { data, error: err } = await supabase.from('stops').insert({
-      day_id: dayId,
+    const { data, error: err } = await supabase.from('stops').update({
       name: form.name.trim(),
       type: form.type,
       time_slot: form.time_slot || null,
@@ -65,16 +73,23 @@ export default function NewStopModal({ dayId, nextOrder, onClose, onCreated }) {
       lat: form.lat ? parseFloat(form.lat) : null,
       lng: form.lng ? parseFloat(form.lng) : null,
       cost: form.cost ? parseFloat(form.cost) : null,
-      sort_order: nextOrder,
-    }).select().single()
+    }).eq('id', stop.id).select().single()
     if (err) { setError(err.message); setLoading(false); return }
-    setLoading(false); onCreated(data)
+    setLoading(false); onUpdated(data)
+  }
+
+  const handleDelete = async () => {
+    if (!confirmDelete) { setConfirmDelete(true); return }
+    setDeleting(true)
+    await supabase.from('stops').delete().eq('id', stop.id)
+    setDeleting(false)
+    onDeleted(stop.id)
   }
 
   return (
-    <BottomSheet onClose={onClose} title="Add stop">
+    <BottomSheet onClose={onClose} title="Edit stop">
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        {/* Type selector */}
+        {/* Type */}
         <div>
           <label style={lbl}>Type</label>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
@@ -90,41 +105,28 @@ export default function NewStopModal({ dayId, nextOrder, onClose, onCreated }) {
 
         <div>
           <label style={lbl}>Name *</label>
-          <input className="input" placeholder="e.g. Louvre Museum" value={form.name} onChange={set('name')} />
+          <input className="input" value={form.name} onChange={set('name')} />
         </div>
 
         {/* Place search */}
         <div>
-          <label style={lbl}>
-            <Icon name="search" size={11} color="var(--ink-light)" style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
-            Search location
-          </label>
+          <label style={lbl}>Update location</label>
           <div style={{ position: 'relative' }}>
-            <input
-              className="input"
-              placeholder="Search a place to auto-fill coordinates…"
-              value={placeQuery}
-              onChange={handlePlaceInput}
-              autoComplete="off"
-            />
-            {searchingPlace && (
-              <div style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 12, color: 'var(--ink-muted)' }}>…</div>
-            )}
+            <input className="input" placeholder="Search a new location…" value={placeQuery} onChange={handlePlaceInput} autoComplete="off" />
+            {searchingPlace && <div style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 12, color: 'var(--ink-muted)' }}>…</div>}
             {placeResults.length > 0 && (
               <div className="place-results">
                 {placeResults.map((p, i) => (
                   <div key={i} className="place-result-item" onClick={() => selectPlace(p)}>
-                    <div style={{ fontWeight: 500, fontSize: 13, color: 'var(--ink)', marginBottom: 1 }}>{p.display_name.split(',')[0]}</div>
+                    <div style={{ fontWeight: 500, fontSize: 13, color: 'var(--ink)' }}>{p.display_name.split(',')[0]}</div>
                     <div style={{ fontSize: 11, color: 'var(--ink-muted)' }}>{p.display_name.split(',').slice(1, 3).join(',').trim()}</div>
                   </div>
                 ))}
               </div>
             )}
           </div>
-          {(form.lat && form.lng) && (
-            <p style={{ fontSize: 11, color: 'var(--teal)', marginTop: 5 }}>
-              📍 {parseFloat(form.lat).toFixed(4)}, {parseFloat(form.lng).toFixed(4)}
-            </p>
+          {form.lat && form.lng && (
+            <p style={{ fontSize: 11, color: 'var(--teal)', marginTop: 5 }}>📍 {parseFloat(form.lat).toFixed(4)}, {parseFloat(form.lng).toFixed(4)}</p>
           )}
         </div>
 
@@ -134,23 +136,30 @@ export default function NewStopModal({ dayId, nextOrder, onClose, onCreated }) {
             <input className="input" type="time" value={form.time_slot} onChange={set('time_slot')} />
           </div>
           <div>
-            <label style={lbl}>
-              <Icon name="dollar" size={11} color="var(--ink-light)" style={{ display: 'inline', marginRight: 3, verticalAlign: 'middle' }} />
-              Cost
-            </label>
+            <label style={lbl}>Cost</label>
             <input className="input" placeholder="0.00" value={form.cost} onChange={set('cost')} inputMode="decimal" />
           </div>
         </div>
 
         <div>
           <label style={lbl}>Note</label>
-          <input className="input" placeholder="Pre-booked tickets, reservation name…" value={form.note} onChange={set('note')} />
+          <input className="input" placeholder="Notes…" value={form.note} onChange={set('note')} />
         </div>
 
         {error && <p style={{ fontSize: 13, color: '#C00', padding: '8px 12px', background: '#FEE', borderRadius: 8 }}>{error}</p>}
 
-        <button className="btn btn-accent" style={{ width: '100%' }} onClick={handleCreate} disabled={loading}>
-          {loading ? 'Adding…' : 'Add stop'} {!loading && <Icon name="arrow_right" size={16} color="white" />}
+        <button className="btn btn-accent" style={{ width: '100%' }} onClick={handleUpdate} disabled={loading}>
+          {loading ? 'Saving…' : 'Save changes'}
+        </button>
+
+        <button
+          className={confirmDelete ? 'btn btn-danger' : 'btn btn-ghost'}
+          style={{ width: '100%' }}
+          onClick={handleDelete}
+          disabled={deleting}
+        >
+          <Icon name="trash" size={14} color={confirmDelete ? '#b91c1c' : 'var(--ink-muted)'} />
+          {deleting ? 'Deleting…' : confirmDelete ? 'Tap again to confirm delete' : 'Delete stop'}
         </button>
       </div>
     </BottomSheet>

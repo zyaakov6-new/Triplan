@@ -3,14 +3,28 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import NewTripModal from '../components/NewTripModal'
+import EditTripModal from '../components/EditTripModal'
 import Icon from '../components/Icon'
+
+function useDarkMode() {
+  const [dark, setDark] = useState(() => localStorage.getItem('theme') === 'dark')
+  const toggle = () => {
+    const next = !dark
+    setDark(next)
+    localStorage.setItem('theme', next ? 'dark' : 'light')
+    document.documentElement.setAttribute('data-theme', next ? 'dark' : '')
+  }
+  return { dark, toggle }
+}
 
 export default function HomePage() {
   const { user, profile, signOut } = useAuth()
   const navigate = useNavigate()
+  const { dark, toggle: toggleDark } = useDarkMode()
   const [trips, setTrips] = useState([])
   const [loading, setLoading] = useState(true)
   const [showNew, setShowNew] = useState(false)
+  const [editingTrip, setEditingTrip] = useState(null)
   const [joinToken, setJoinToken] = useState('')
   const [joining, setJoining] = useState(false)
   const [joinError, setJoinError] = useState('')
@@ -19,7 +33,6 @@ export default function HomePage() {
 
   const fetchTrips = async () => {
     setLoading(true)
-    // Get trips where user is owner or member
     const { data } = await supabase
       .from('trips')
       .select('*, trip_members!inner(user_id)')
@@ -45,28 +58,40 @@ export default function HomePage() {
     return e ? `${s} – ${e}` : s
   }
 
+  const handleTripUpdated = (updated) => {
+    setTrips(prev => prev.map(t => t.id === updated.id ? updated : t))
+    setEditingTrip(null)
+  }
+
+  const handleTripDeleted = (id) => {
+    setTrips(prev => prev.filter(t => t.id !== id))
+    setEditingTrip(null)
+  }
+
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: 'var(--cream)' }}>
-      {/* Header */}
       <div style={{ padding: 'calc(var(--safe-top) + 20px) 20px 0', background: 'var(--white)', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
               <div style={{ width: 28, height: 28, background: 'var(--ink)', borderRadius: 7, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Icon name="globe" size={14} color="white" />
+                <Icon name="globe" size={14} color="var(--cream)" />
               </div>
               <span style={{ fontFamily: 'var(--font-display)', fontSize: 19, letterSpacing: '-0.02em' }}>Triplan</span>
             </div>
-            <p style={{ fontSize: 13, color: 'var(--ink-muted)' }}>
-              Hey {profile?.name || 'there'} 👋
-            </p>
+            <p style={{ fontSize: 13, color: 'var(--ink-muted)' }}>Hey {profile?.name || 'there'} 👋</p>
           </div>
-          <button onClick={signOut} style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--cream)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-            <Icon name="logout" size={16} color="var(--ink-muted)" />
-          </button>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button onClick={toggleDark}
+              style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--cream)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: '1px solid var(--border)' }}>
+              <Icon name={dark ? 'sun' : 'moon'} size={16} color="var(--ink-muted)" />
+            </button>
+            <button onClick={signOut}
+              style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--cream)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+              <Icon name="logout" size={16} color="var(--ink-muted)" />
+            </button>
+          </div>
         </div>
-
-        {/* Join via invite */}
         <div style={{ display: 'flex', gap: 8, paddingBottom: 16 }}>
           <input className="input" style={{ flex: 1, fontSize: 14, padding: '10px 14px' }} placeholder="Paste invite code to join a trip…" value={joinToken} onChange={e => setJoinToken(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleJoin()} />
           <button className="btn btn-ghost btn-sm" onClick={handleJoin} disabled={joining || !joinToken.trim()}>
@@ -76,11 +101,21 @@ export default function HomePage() {
         {joinError && <p style={{ fontSize: 12, color: '#C00', marginBottom: 10, marginTop: -8 }}>{joinError}</p>}
       </div>
 
-      {/* Trip list */}
       <div className="scroll-y" style={{ flex: 1, padding: '20px 20px 100px' }}>
         {loading ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {[1,2].map(i => <div key={i} className="skeleton" style={{ height: 96, borderRadius: 'var(--radius)' }} />)}
+            {[1, 2, 3].map(i => (
+              <div key={i} className="card" style={{ overflow: 'hidden' }}>
+                <div className="skeleton" style={{ height: 80, borderRadius: 0 }} />
+                <div style={{ padding: '12px 16px', display: 'flex', gap: 12 }}>
+                  <div className="skeleton-circle" style={{ width: 44, height: 44, flexShrink: 0 }} />
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8, justifyContent: 'center' }}>
+                    <div className="skeleton-text" style={{ width: '60%' }} />
+                    <div className="skeleton-text" style={{ width: '40%', height: 11 }} />
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         ) : trips.length === 0 ? (
           <div style={{ textAlign: 'center', paddingTop: 60 }}>
@@ -94,43 +129,63 @@ export default function HomePage() {
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {trips.map(trip => (
-              <button key={trip.id} onClick={() => navigate(`/trip/${trip.id}`)}
-                className="card"
-                style={{ padding: '18px 20px', display: 'flex', alignItems: 'center', gap: 16, width: '100%', textAlign: 'left', cursor: 'pointer', transition: 'transform 0.15s, box-shadow 0.15s' }}
-                onTouchStart={e => e.currentTarget.style.transform = 'scale(0.985)'}
-                onTouchEnd={e => e.currentTarget.style.transform = ''}>
-                <div style={{ width: 52, height: 52, borderRadius: 14, background: 'var(--accent-pale)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26, flexShrink: 0 }}>
-                  {trip.cover_emoji || '✈️'}
-                </div>
-                <div style={{ flex: 1, overflow: 'hidden' }}>
-                  <p style={{ fontFamily: 'var(--font-display)', fontSize: 17, fontWeight: 500, color: 'var(--ink)', marginBottom: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {trip.name}
-                  </p>
-                  <p style={{ fontSize: 13, color: 'var(--ink-muted)' }}>
-                    {[trip.destination, formatDates(trip)].filter(Boolean).join(' · ') || 'No dates set'}
-                  </p>
-                </div>
-                <Icon name="chevron_right" size={18} color="var(--sand-dark)" />
-              </button>
+              <TripCard key={trip.id} trip={trip} formatDates={formatDates}
+                onClick={() => navigate(`/trip/${trip.id}`)}
+                onEdit={e => { e.stopPropagation(); setEditingTrip(trip) }}
+              />
             ))}
           </div>
         )}
       </div>
 
-      {/* FAB */}
       <button onClick={() => setShowNew(true)}
         style={{ position: 'fixed', bottom: 'calc(var(--safe-bottom) + 28px)', right: 24, width: 56, height: 56, borderRadius: '50%', background: 'var(--ink)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 20px rgba(26,22,18,0.3)', zIndex: 100, cursor: 'pointer', transition: 'transform 0.15s', border: 'none' }}
         onTouchStart={e => e.currentTarget.style.transform = 'scale(0.9)'}
         onTouchEnd={e => e.currentTarget.style.transform = ''}>
-        <Icon name="plus" size={22} color="white" />
+        <Icon name="plus" size={22} color="var(--cream)" />
       </button>
 
-      {showNew && (
-        <NewTripModal
-          onClose={() => setShowNew(false)}
-          onCreated={(trip) => { setShowNew(false); fetchTrips(); navigate(`/trip/${trip.id}`) }}
-        />
-      )}
+      {showNew && <NewTripModal onClose={() => setShowNew(false)} onCreated={(trip) => { setShowNew(false); fetchTrips(); navigate(`/trip/${trip.id}`) }} />}
+      {editingTrip && <EditTripModal trip={editingTrip} onClose={() => setEditingTrip(null)} onUpdated={handleTripUpdated} onDeleted={handleTripDeleted} />}
     </div>
+  )
+}
+
+function TripCard({ trip, formatDates, onClick, onEdit }) {
+  return (
+    <button onClick={onClick} className="card"
+      style={{ width: '100%', textAlign: 'left', cursor: 'pointer', overflow: 'hidden', transition: 'transform 0.15s' }}
+      onTouchStart={e => e.currentTarget.style.transform = 'scale(0.985)'}
+      onTouchEnd={e => e.currentTarget.style.transform = ''}>
+      {trip.cover_photo_url ? (
+        <div style={{ position: 'relative', height: 110, overflow: 'hidden' }}>
+          <img src={trip.cover_photo_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 30%, rgba(26,22,18,0.65))' }} />
+          <div style={{ position: 'absolute', bottom: 10, left: 14, right: 50 }}>
+            <p style={{ fontFamily: 'var(--font-display)', fontSize: 17, fontWeight: 500, color: '#fff', marginBottom: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{trip.cover_emoji} {trip.name}</p>
+            <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.78)' }}>{[trip.destination, formatDates(trip)].filter(Boolean).join(' · ') || 'No dates set'}</p>
+          </div>
+          <button onClick={onEdit} style={{ position: 'absolute', top: 8, right: 8, width: 30, height: 30, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: '1px solid rgba(255,255,255,0.3)' }}>
+            <Icon name="edit" size={13} color="white" />
+          </button>
+        </div>
+      ) : (
+        <div style={{ padding: '18px 20px', display: 'flex', alignItems: 'center', gap: 16 }}>
+          <div style={{ width: 52, height: 52, borderRadius: 14, background: 'var(--accent-pale)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26, flexShrink: 0 }}>
+            {trip.cover_emoji || '✈️'}
+          </div>
+          <div style={{ flex: 1, overflow: 'hidden' }}>
+            <p style={{ fontFamily: 'var(--font-display)', fontSize: 17, fontWeight: 500, color: 'var(--ink)', marginBottom: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{trip.name}</p>
+            <p style={{ fontSize: 13, color: 'var(--ink-muted)' }}>{[trip.destination, formatDates(trip)].filter(Boolean).join(' · ') || 'No dates set'}</p>
+          </div>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <button onClick={onEdit} style={{ width: 30, height: 30, borderRadius: '50%', background: 'var(--cream)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+              <Icon name="edit" size={13} color="var(--ink-muted)" />
+            </button>
+            <Icon name="chevron_right" size={18} color="var(--sand-dark)" />
+          </div>
+        </div>
+      )}
+    </button>
   )
 }

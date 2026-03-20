@@ -1,10 +1,17 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './hooks/useAuth'
+import { useEffect } from 'react'
 import AuthPage from './pages/AuthPage'
 import HomePage from './pages/HomePage'
 import TripDetailPage from './pages/TripDetailPage'
 import JoinPage from './pages/JoinPage'
 import './index.css'
+
+// Apply saved theme on load
+;(function () {
+  const saved = localStorage.getItem('theme')
+  if (saved === 'dark') document.documentElement.setAttribute('data-theme', 'dark')
+})()
 
 function AppRoutes() {
   const { user, loading } = useAuth()
