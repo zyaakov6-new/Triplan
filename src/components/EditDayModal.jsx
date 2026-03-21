@@ -9,6 +9,7 @@ export default function EditDayModal({ day, onClose, onUpdated, onDeleted }) {
     trip_date: day.trip_date || '',
     physical_note: day.physical_note || '',
     logistics_note: day.logistics_note || '',
+    journal: day.journal || '',
   })
   const [loading, setLoading] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -24,6 +25,7 @@ export default function EditDayModal({ day, onClose, onUpdated, onDeleted }) {
       trip_date: form.trip_date || null,
       physical_note: form.physical_note.trim() || null,
       logistics_note: form.logistics_note.trim() || null,
+      journal: form.journal.trim() || null,
     }).eq('id', day.id).select().single()
     if (err) { setError(err.message); setLoading(false); return }
     setLoading(false); onUpdated(data)
@@ -55,6 +57,10 @@ export default function EditDayModal({ day, onClose, onUpdated, onDeleted }) {
         <div>
           <label style={lbl}>Logistics reminders</label>
           <textarea className="input" value={form.logistics_note} onChange={set('logistics_note')} rows={2} style={{ resize: 'none' }} placeholder="Remember passport, book tickets in advance…" />
+        </div>
+        <div>
+          <label style={lbl}>✍️ Journal / Notes</label>
+          <textarea className="input" value={form.journal} onChange={set('journal')} rows={3} style={{ resize: 'none' }} placeholder="How was the day? Any memories, tips, or thoughts…" />
         </div>
 
         {error && <p style={{ fontSize: 13, color: '#C00', padding: '8px 12px', background: '#FEE', borderRadius: 8 }}>{error}</p>}

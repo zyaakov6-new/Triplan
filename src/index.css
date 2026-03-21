@@ -280,3 +280,134 @@ a { text-decoration: none; color: inherit; }
   .card { box-shadow: none !important; border: 1px solid #ddd !important; }
 }
 .print-only { display: none; }
+
+/* ── Confetti ── */
+@keyframes confettiFall {
+  0%   { transform: translateY(-10px) rotate(0deg); opacity: 1; }
+  80%  { opacity: 1; }
+  100% { transform: translateY(105vh) rotate(720deg); opacity: 0; }
+}
+@keyframes confettiWiggle {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(8px); }
+  75% { transform: translateX(-8px); }
+}
+
+/* ── Search bar ── */
+.search-bar-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.search-bar-wrap .search-icon {
+  position: absolute;
+  left: 12px;
+  pointer-events: none;
+}
+.search-bar-wrap .input {
+  padding-left: 36px;
+}
+.search-clear {
+  position: absolute;
+  right: 10px;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: var(--sand);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+}
+
+/* ── Agenda / Timeline view ── */
+.agenda-day-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0 6px;
+  margin-top: 12px;
+}
+.agenda-day-header:first-child { margin-top: 0; }
+.agenda-time-row {
+  display: flex;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  align-items: flex-start;
+}
+.agenda-time-row:last-child { border-bottom: none; }
+.agenda-time {
+  font-size: 12px;
+  color: var(--ink-muted);
+  font-variant-numeric: tabular-nums;
+  width: 44px;
+  flex-shrink: 0;
+  padding-top: 2px;
+}
+
+/* ── Trip stats ── */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.stat-cell {
+  background: var(--cream);
+  border-radius: var(--radius-sm);
+  padding: 10px 10px 8px;
+  text-align: center;
+}
+.stat-value {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.1;
+}
+.stat-label {
+  font-size: 10px;
+  color: var(--ink-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 3px;
+}
+
+/* ── Countdown banner ── */
+.countdown-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 100px;
+  background: var(--accent-pale);
+  border: 1px solid rgba(196,98,45,0.25);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+/* ── View toggle (cards / agenda) ── */
+.view-toggle {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.view-toggle-btn {
+  padding: 7px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-muted);
+  background: var(--white);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.12s;
+  border-right: 1px solid var(--border);
+}
+.view-toggle-btn:last-child { border-right: none; }
+.view-toggle-btn.active {
+  background: var(--ink);
+  color: var(--cream);
+}

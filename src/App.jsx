@@ -5,6 +5,7 @@ import AuthPage from './pages/AuthPage'
 import HomePage from './pages/HomePage'
 import TripDetailPage from './pages/TripDetailPage'
 import JoinPage from './pages/JoinPage'
+import ViewPage from './pages/ViewPage'
 import './index.css'
 
 // Apply saved theme on load
@@ -37,6 +38,7 @@ function AppRoutes() {
       <Route path="/" element={<HomePage />} />
       <Route path="/trip/:id" element={<TripDetailPage />} />
       <Route path="/join/:token" element={<JoinPage />} />
+      <Route path="/view/:token" element={<ViewPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )
