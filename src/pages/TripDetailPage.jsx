@@ -12,6 +12,9 @@ import EditTripModal from '../components/EditTripModal'
 import PackingList from '../components/PackingList'
 import PhotoLightbox from '../components/PhotoLightbox'
 import Icon from '../components/Icon'
+import { THEMES, getThemeVars } from '../lib/themes'
+import { getDayDistance, optimizeRoute } from '../lib/tripUtils'
+import BeautifulPrintView from '../components/BeautifulPrintView'
 
 const TYPE_META = {
   attraction: { emoji: '🏛', label: 'Attraction', color: '#C4622D' },
@@ -205,10 +208,66 @@ export default function TripDetailPage() {
   const [lightbox, setLightbox] = useState(null)   // { photos: [], idx: 0 }
   const [showConfetti, setShowConfetti] = useState(false)
   const [showStats, setShowStats] = useState(false)
+  const [syncFlash, setSyncFlash] = useState(false)
+  const [showPdfPreview, setShowPdfPreview] = useState(false)
 
   const TABS = ['map', 'days', 'pack']
 
   useEffect(() => { fetchAll() }, [id])
+
+  useEffect(() => {
+    if (!id) return
+    const channel = supabase
+      .channel(`trip-rt-${id}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'stops' }, (payload) => {
+        const stop = payload.new
+        setDays(prev => {
+          const day = prev.find(d => d.id === stop.day_id)
+          if (!day || day.stops.find(s => s.id === stop.id)) return prev
+          return prev.map(d => d.id === stop.day_id
+            ? { ...d, stops: [...d.stops, stop].sort((a, b) => a.sort_order - b.sort_order) }
+            : d)
+        })
+        setSyncFlash(true); setTimeout(() => setSyncFlash(false), 2000)
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'stops' }, (payload) => {
+        const stop = payload.new
+        setDays(prev => {
+          const sourceDay = prev.find(d => d.stops.find(s => s.id === stop.id))
+          if (!sourceDay) return prev
+          if (stop.day_id !== sourceDay.id) {
+            return prev.map(d => {
+              if (d.id === sourceDay.id) return { ...d, stops: d.stops.filter(s => s.id !== stop.id) }
+              if (d.id === stop.day_id) return { ...d, stops: [...d.stops, stop].sort((a, b) => a.sort_order - b.sort_order) }
+              return d
+            })
+          }
+          return prev.map(d => ({ ...d, stops: d.stops.map(s => s.id === stop.id ? { ...s, ...stop } : s) }))
+        })
+        setSyncFlash(true); setTimeout(() => setSyncFlash(false), 2000)
+      })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'stops' }, (payload) => {
+        setDays(prev => prev.map(d => ({ ...d, stops: d.stops.filter(s => s.id !== payload.old.id) })))
+        setSyncFlash(true); setTimeout(() => setSyncFlash(false), 2000)
+      })
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'trip_days', filter: `trip_id=eq.${id}` }, (payload) => {
+        setDays(prev => {
+          if (prev.find(d => d.id === payload.new.id)) return prev
+          return [...prev, { ...payload.new, stops: [] }].sort((a, b) => a.day_number - b.day_number)
+        })
+        setSyncFlash(true); setTimeout(() => setSyncFlash(false), 2000)
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'trip_days', filter: `trip_id=eq.${id}` }, (payload) => {
+        setDays(prev => prev.map(d => d.id === payload.new.id ? { ...d, ...payload.new } : d))
+        setSyncFlash(true); setTimeout(() => setSyncFlash(false), 2000)
+      })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'trip_days', filter: `trip_id=eq.${id}` }, (payload) => {
+        setDays(prev => prev.filter(d => d.id !== payload.old.id))
+        setSyncFlash(true); setTimeout(() => setSyncFlash(false), 2000)
+      })
+      .subscribe()
+    return () => { supabase.removeChannel(channel) }
+  }, [id])
 
   const fetchAll = async () => {
     setLoading(true)
@@ -343,6 +402,13 @@ export default function TripDetailPage() {
     await Promise.all(newStops.map((s, i) => supabase.from('stops').update({ sort_order: i }).eq('id', s.id)))
   }
 
+  const handleOptimizeRoute = async (dayId) => {
+    const day = days.find(d => d.id === dayId)
+    if (!day) return
+    const optimized = optimizeRoute(day.stops)
+    await handleReorderStops(dayId, optimized)
+  }
+
   const handleUploadPhoto = async (dayId, files) => {
     for (const file of Array.from(files)) {
       const ext = file.name.split('.').pop()
@@ -367,7 +433,7 @@ export default function TripDetailPage() {
     setCopiedView(true); setTimeout(() => setCopiedView(false), 2200)
   }
 
-  const handleExportPDF = () => { window.print() }
+  const handleExportPDF = () => setShowPdfPreview(true)
 
   const handleExportIcal = () => {
     const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Triplan//Trip//EN', 'CALSCALE:GREGORIAN']
@@ -465,35 +531,18 @@ export default function TripDetailPage() {
     </div>
   )
 
+  const theme = THEMES[trip?.color_theme] || THEMES.terracotta
+  const themeVars = getThemeVars(trip?.color_theme)
+
   return (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden', ...themeVars }}>
 
       {/* ── Print view ── */}
+      {!showPdfPreview && (
       <div className="print-only" style={{ padding: 32 }}>
-        <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 28, marginBottom: 4 }}>{trip.cover_emoji} {trip.name}</h1>
-        <p style={{ color: '#666', marginBottom: 24 }}>{trip.destination}</p>
-        {days.map(day => (
-          <div key={day.id} style={{ marginBottom: 32, pageBreakInside: 'avoid' }}>
-            <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 4, borderBottom: '2px solid #333', paddingBottom: 4 }}>Day {day.day_number}: {day.city}</h2>
-            {day.trip_date && <p style={{ color: '#666', fontSize: 13, marginBottom: 12 }}>{new Date(day.trip_date).toLocaleDateString('en', { weekday: 'long', month: 'long', day: 'numeric' })}</p>}
-            {day.stops.map((s, i) => {
-              const m = TYPE_META[s.type] || TYPE_META.attraction
-              return (
-                <div key={s.id} style={{ display: 'flex', gap: 10, marginBottom: 10, padding: '8px 0', borderBottom: '1px solid #eee' }}>
-                  <span style={{ fontSize: 16 }}>{m.emoji}</span>
-                  <div>
-                    <strong>{i + 1}. {s.name}</strong>
-                    {s.time_slot && <span style={{ color: '#666', marginLeft: 8 }}>{s.time_slot}</span>}
-                    {s.cost && <span style={{ color: '#666', marginLeft: 8 }}>${s.cost}</span>}
-                    {s.note && <p style={{ color: '#888', fontSize: 12, marginTop: 2 }}>{s.note}</p>}
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        ))}
-        {totalBudget > 0 && <p style={{ fontWeight: 700, fontSize: 16, borderTop: '2px solid #333', paddingTop: 12 }}>Total: ${totalBudget.toFixed(2)}</p>}
+        <BeautifulPrintView trip={trip} days={days} themeColor={theme.accent} />
       </div>
+      )}
 
       {/* ── Top bar ── */}
       <div className="no-print" style={{ flexShrink: 0, background: 'var(--white)', borderBottom: '1px solid var(--border)', paddingTop: 'calc(var(--safe-top) + 12px)' }}>
@@ -519,6 +568,16 @@ export default function TripDetailPage() {
                 </p>
               )}
               {countdown && <span className="countdown-badge">{countdown}</span>}
+              <span style={{ fontSize: 10, color: 'var(--teal)', display: 'inline-flex', alignItems: 'center', gap: 3, padding: '2px 7px', borderRadius: 100, background: 'var(--teal-light)', border: '1px solid rgba(45,107,107,0.2)' }}>
+                <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--teal)' }} />
+                Live
+              </span>
+              {syncFlash && (
+                <span style={{ fontSize: 11, color: 'var(--teal)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--teal)', display: 'inline-block', animation: 'syncPulse 1s infinite' }} />
+                  Live
+                </span>
+              )}
             </div>
           </div>
           <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
@@ -711,6 +770,7 @@ export default function TripDetailPage() {
                     onEditDay={() => setEditingDay(day)}
                     onReorderStops={(newStops) => handleReorderStops(day.id, newStops)}
                     onLightbox={(p, i) => setLightbox({ photos: p, idx: i })}
+                    onOptimize={() => handleOptimizeRoute(day.id)}
                   />
                 ))}
                 <button className="btn btn-ghost" style={{ width: '100%', marginTop: 8 }} onClick={() => setShowNewDay(true)}>
@@ -852,12 +912,35 @@ export default function TripDetailPage() {
       )}
 
       {showConfetti && <Confetti onDone={() => setShowConfetti(false)} />}
+
+      {showPdfPreview && (
+        <div className="pdf-preview-overlay no-print">
+          <div className="pdf-preview-toolbar">
+            <button onClick={() => setShowPdfPreview(false)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--white)', cursor: 'pointer', fontSize: 14, color: 'var(--ink-light)' }}>
+              <Icon name="chevron_left" size={16} color="var(--ink-muted)" /> Back
+            </button>
+            <span style={{ flex: 1, fontFamily: 'var(--font-display)', fontSize: 16, textAlign: 'center' }}>PDF Preview</span>
+            <button onClick={() => window.print()} className="btn btn-accent btn-sm">
+              <Icon name="download" size={14} color="white" /> Save as PDF
+            </button>
+          </div>
+          <div className="pdf-preview-content">
+            <BeautifulPrintView trip={trip} days={days} themeColor={theme.accent} />
+          </div>
+        </div>
+      )}
+
+      {showPdfPreview && (
+        <div className="print-only pdf-print-content">
+          <BeautifulPrintView trip={trip} days={days} themeColor={theme.accent} />
+        </div>
+      )}
     </div>
   )
 }
 
 // ── DayCard ───────────────────────────────────────────────────────────────────
-function DayCard({ day, photos, votes, onToggleStop, onVote, onAddStop, onOpenSheet, onUploadPhoto, onEditStop, onEditDay, onReorderStops, onLightbox }) {
+function DayCard({ day, photos, votes, onToggleStop, onVote, onAddStop, onOpenSheet, onUploadPhoto, onEditStop, onEditDay, onReorderStops, onLightbox, onOptimize }) {
   const [expanded, setExpanded] = useState(true)
   const fileRef = useRef(null)
   const [draggedIdx, setDraggedIdx] = useState(null)
@@ -865,6 +948,7 @@ function DayCard({ day, photos, votes, onToggleStop, onVote, onAddStop, onOpenSh
 
   const doneCount = day.stops.filter(s => s.done).length
   const dayBudget = day.stops.reduce((sum, s) => sum + (s.cost || 0), 0)
+  const dayDist = getDayDistance(day.stops)
 
   const handleDragStart = (e, idx) => { setDraggedIdx(idx); e.dataTransfer.effectAllowed = 'move' }
   const handleDragOver = (e, idx) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; if (idx !== dragOverIdx) setDragOverIdx(idx) }
@@ -895,6 +979,7 @@ function DayCard({ day, photos, votes, onToggleStop, onVote, onAddStop, onOpenSh
               {day.trip_date ? new Date(day.trip_date).toLocaleDateString('en', { weekday: 'short', month: 'short', day: 'numeric' }) : ''}
               {day.stops.length > 0 ? `${day.trip_date ? ' · ' : ''}${doneCount}/${day.stops.length} done` : 'No stops yet'}
               {dayBudget > 0 && ` · $${dayBudget.toFixed(0)}`}
+              {dayDist > 0.1 && ` · ~${dayDist.toFixed(1)} km`}
             </p>
           </div>
           <div style={{ transform: expanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
@@ -906,6 +991,13 @@ function DayCard({ day, photos, votes, onToggleStop, onVote, onAddStop, onOpenSh
             <button onClick={e => { e.stopPropagation(); onOpenSheet() }}
               style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--cream)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
               <Icon name="info" size={14} color="var(--ink-muted)" />
+            </button>
+          )}
+          {day.stops.filter(s => s.lat && s.lng).length >= 2 && (
+            <button onClick={e => { e.stopPropagation(); onOptimize() }}
+              title="Optimize route"
+              style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--cream)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+              <Icon name="navigate" size={13} color="var(--ink-muted)" />
             </button>
           )}
           <button onClick={onEditDay}

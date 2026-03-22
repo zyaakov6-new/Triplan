@@ -3,12 +3,13 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import BottomSheet from './BottomSheet'
 import Icon from './Icon'
+import { THEMES } from '../lib/themes'
 
 const EMOJIS = ['✈️','🏖️','🏔️','🗺️','🚢','🚂','🏕️','🌍','🌴','🎒']
 
 export default function NewTripModal({ onClose, onCreated }) {
   const { user } = useAuth()
-  const [form, setForm] = useState({ name: '', destination: '', date_start: '', date_end: '', cover_emoji: '✈️' })
+  const [form, setForm] = useState({ name: '', destination: '', date_start: '', date_end: '', cover_emoji: '✈️', color_theme: 'terracotta' })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -19,7 +20,7 @@ export default function NewTripModal({ onClose, onCreated }) {
     setLoading(true); setError('')
     const { data, error: err } = await supabase
       .from('trips')
-      .insert({ owner_id: user.id, name: form.name.trim(), destination: form.destination.trim(), date_start: form.date_start || null, date_end: form.date_end || null, cover_emoji: form.cover_emoji })
+      .insert({ owner_id: user.id, name: form.name.trim(), destination: form.destination.trim(), date_start: form.date_start || null, date_end: form.date_end || null, cover_emoji: form.cover_emoji, color_theme: form.color_theme })
       .select().single()
     if (err) { setError(err.message); setLoading(false); return }
     // Add owner as member too
@@ -31,6 +32,20 @@ export default function NewTripModal({ onClose, onCreated }) {
   return (
     <BottomSheet onClose={onClose} title="New trip">
       <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+        {/* Color theme */}
+        <div>
+          <label style={lbl}>Color theme</label>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {Object.values(THEMES).map(t => (
+              <button key={t.id} onClick={() => setForm(f => ({ ...f, color_theme: t.id }))}
+                title={t.label}
+                style={{ width: 36, height: 36, borderRadius: '50%', background: t.swatch, border: `3px solid ${form.color_theme === t.id ? '#1A1612' : 'transparent'}`, outline: form.color_theme === t.id ? `2px solid ${t.swatch}` : 'none', outlineOffset: 2, cursor: 'pointer', transition: 'all 0.15s' }}>
+              </button>
+            ))}
+          </div>
+          <p style={{ fontSize: 11, color: 'var(--ink-muted)', marginTop: 6 }}>{THEMES[form.color_theme]?.label || 'Terracotta'}</p>
+        </div>
+
         {/* Emoji picker */}
         <div>
           <label style={lbl}>Vibe</label>

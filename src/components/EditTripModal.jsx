@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import BottomSheet from './BottomSheet'
 import Icon from './Icon'
+import { THEMES } from '../lib/themes'
 
 const EMOJIS = ['✈️','🏖️','🏔️','🗺️','🚢','🚂','🏕️','🌍','🌴','🎒']
 const BOOKING_TYPES = [
@@ -22,6 +23,7 @@ export default function EditTripModal({ trip, onClose, onUpdated, onDeleted }) {
     date_end: trip.date_end || '',
     cover_emoji: trip.cover_emoji || '✈️',
     booking_links: trip.booking_links || [],
+    color_theme: trip.color_theme || 'terracotta',
   })
   const [coverPhoto, setCoverPhoto] = useState(trip.cover_photo_url || null)
   const [uploadingCover, setUploadingCover] = useState(false)
@@ -67,6 +69,7 @@ export default function EditTripModal({ trip, onClose, onUpdated, onDeleted }) {
       cover_emoji: form.cover_emoji,
       booking_links: form.booking_links,
       cover_photo_url: coverPhoto,
+      color_theme: form.color_theme,
     }).eq('id', trip.id).select().single()
     if (err) { setError(err.message); setLoading(false); return }
     setLoading(false); onUpdated(data)
@@ -104,6 +107,20 @@ export default function EditTripModal({ trip, onClose, onUpdated, onDeleted }) {
           </div>
           <input ref={coverFileRef} type="file" accept="image/*" style={{ display: 'none' }}
             onChange={e => e.target.files[0] && handleCoverUpload(e.target.files[0])} />
+        </div>
+
+        {/* Color theme */}
+        <div>
+          <label style={lbl}>Color theme</label>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {Object.values(THEMES).map(t => (
+              <button key={t.id} onClick={() => setForm(f => ({ ...f, color_theme: t.id }))}
+                title={t.label}
+                style={{ width: 36, height: 36, borderRadius: '50%', background: t.swatch, border: `3px solid ${form.color_theme === t.id ? '#1A1612' : 'transparent'}`, outline: form.color_theme === t.id ? `2px solid ${t.swatch}` : 'none', outlineOffset: 2, cursor: 'pointer', transition: 'all 0.15s' }}>
+              </button>
+            ))}
+          </div>
+          <p style={{ fontSize: 11, color: 'var(--ink-muted)', marginTop: 6 }}>{THEMES[form.color_theme]?.label || 'Terracotta'}</p>
         </div>
 
         {/* Emoji */}
