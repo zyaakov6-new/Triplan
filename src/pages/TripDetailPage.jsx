@@ -121,8 +121,93 @@ function AgendaView({ days, onDirections }) {
   )
 }
 
+// ── Gas Calculator ────────────────────────────────────────────────────────────
+function GasCalculator({ days, unitKm, showGasCalc, setShowGasCalc, gasEfficiency, setGasEfficiency, gasPrice, setGasPrice }) {
+  const totalDistKm = days.reduce((sum, d) => sum + getDayDistance(d.stops), 0)
+  const totalDist = unitKm ? totalDistKm : totalDistKm * 0.621371
+  const unit = unitKm ? 'km' : 'mi'
+
+  const eff = parseFloat(gasEfficiency)
+  const price = parseFloat(gasPrice)
+  let gasCost = null
+  if (eff > 0 && price > 0) {
+    if (totalDistKm > 0) {
+      gasCost = unitKm
+        ? (totalDistKm * eff / 100) * price           // L/100km
+        : (totalDistKm * 0.621371 / eff) * price      // mpg
+    }
+  }
+
+  return (
+    <div style={{ marginBottom: 12, background: 'var(--white)', borderRadius: 12, border: '1px solid var(--border)' }}>
+      <button onClick={() => setShowGasCalc(v => !v)}
+        style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 14px', background: 'none', cursor: 'pointer' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 16 }}>⛽</span>
+          <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink-light)' }}>Gas Cost Calculator</span>
+          {totalDist > 0 && (
+            <span style={{ fontSize: 12, color: 'var(--ink-muted)' }}>· {totalDist.toFixed(0)} {unit}</span>
+          )}
+        </div>
+        <div style={{ transform: showGasCalc ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
+          <Icon name="chevron_down" size={14} color="var(--sand-dark)" />
+        </div>
+      </button>
+
+      {showGasCalc && (
+        <div className="anim-up" style={{ padding: '0 14px 14px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {totalDistKm === 0 && (
+            <p style={{ fontSize: 12, color: 'var(--ink-muted)', background: 'var(--cream)', padding: '8px 10px', borderRadius: 8 }}>
+              📍 Add locations to your stops to enable distance tracking
+            </p>
+          )}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 500, color: 'var(--ink-muted)', display: 'block', marginBottom: 4 }}>
+                {unitKm ? 'Consumption (L/100km)' : 'Fuel economy (mpg)'}
+              </label>
+              <input className="input" style={{ fontSize: 13 }}
+                placeholder={unitKm ? 'e.g. 8.5' : 'e.g. 30'}
+                value={gasEfficiency}
+                onChange={e => setGasEfficiency(e.target.value)}
+                inputMode="decimal"
+              />
+            </div>
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 500, color: 'var(--ink-muted)', display: 'block', marginBottom: 4 }}>
+                {unitKm ? 'Price / liter ($)' : 'Price / gallon ($)'}
+              </label>
+              <input className="input" style={{ fontSize: 13 }}
+                placeholder={unitKm ? 'e.g. 1.80' : 'e.g. 3.50'}
+                value={gasPrice}
+                onChange={e => setGasPrice(e.target.value)}
+                inputMode="decimal"
+              />
+            </div>
+          </div>
+          {gasCost !== null ? (
+            <div style={{ padding: '10px 14px', background: 'var(--accent-pale)', borderRadius: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ fontSize: 22 }}>⛽</span>
+              <div>
+                <p style={{ fontSize: 12, color: 'var(--accent)', fontWeight: 600 }}>Estimated fuel cost</p>
+                <p style={{ fontSize: 22, fontWeight: 700, color: 'var(--accent)', fontFamily: 'var(--font-display)' }}>${gasCost.toFixed(2)}</p>
+              </div>
+              <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
+                <p style={{ fontSize: 11, color: 'var(--ink-muted)' }}>{totalDist.toFixed(0)} {unit}</p>
+                <p style={{ fontSize: 11, color: 'var(--ink-muted)' }}>{unitKm ? `${eff} L/100km` : `${eff} mpg`}</p>
+              </div>
+            </div>
+          ) : (eff > 0 || price > 0) ? (
+            <p style={{ fontSize: 12, color: 'var(--ink-muted)' }}>Fill in both fields to calculate</p>
+          ) : null}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── TripStats ─────────────────────────────────────────────────────────────────
-function TripStatsCard({ days, unitKm, showGasCalc, setShowGasCalc, gasEfficiency, setGasEfficiency, gasPrice, setGasPrice }) {
+function TripStatsCard({ days, unitKm }) {
   const allStops = days.flatMap(d => d.stops)
   const total = allStops.length
   const done = allStops.filter(s => s.done).length
@@ -135,21 +220,6 @@ function TripStatsCard({ days, unitKm, showGasCalc, setShowGasCalc, gasEfficienc
   const totalDistKm = days.reduce((sum, d) => sum + getDayDistance(d.stops), 0)
   const totalDist = unitKm ? totalDistKm : totalDistKm * 0.621371
   const unit = unitKm ? 'km' : 'mi'
-
-  // Gas cost calculation
-  const eff = parseFloat(gasEfficiency)
-  const price = parseFloat(gasPrice)
-  let gasCost = null
-  if (totalDistKm > 0 && eff > 0 && price > 0) {
-    if (unitKm) {
-      // L/100km: cost = (distKm * eff / 100) * pricePerLiter
-      gasCost = (totalDistKm * eff / 100) * price
-    } else {
-      // mpg: cost = (distMiles / eff) * pricePerGallon
-      const totalMiles = totalDistKm * 0.621371
-      gasCost = (totalMiles / eff) * price
-    }
-  }
 
   return (
     <div style={{ marginBottom: 12, padding: '14px 14px 10px', background: 'var(--white)', borderRadius: 14, border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
@@ -197,56 +267,6 @@ function TripStatsCard({ days, unitKm, showGasCalc, setShowGasCalc, gasEfficienc
         </p>
       )}
 
-      {/* Gas calculator */}
-      {totalDist > 0 && (
-        <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--border)' }}>
-          <button onClick={() => setShowGasCalc(v => !v)}
-            style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', cursor: 'pointer', padding: 0 }}>
-            <Icon name="gas" size={13} color="var(--accent)" />
-            <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--accent)' }}>⛽ Gas Cost Calculator</span>
-            <span style={{ fontSize: 11, color: 'var(--ink-muted)', marginLeft: 2 }}>({totalDist.toFixed(0)} {unit})</span>
-          </button>
-          {showGasCalc && (
-            <div className="anim-up" style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                <div>
-                  <label style={{ fontSize: 11, fontWeight: 500, color: 'var(--ink-muted)', display: 'block', marginBottom: 4 }}>
-                    {unitKm ? 'Consumption (L/100km)' : 'Fuel economy (mpg)'}
-                  </label>
-                  <input className="input" style={{ fontSize: 13 }}
-                    placeholder={unitKm ? '8.5' : '30'}
-                    value={gasEfficiency}
-                    onChange={e => setGasEfficiency(e.target.value)}
-                    inputMode="decimal"
-                  />
-                </div>
-                <div>
-                  <label style={{ fontSize: 11, fontWeight: 500, color: 'var(--ink-muted)', display: 'block', marginBottom: 4 }}>
-                    {unitKm ? 'Price per liter ($)' : 'Price per gallon ($)'}
-                  </label>
-                  <input className="input" style={{ fontSize: 13 }}
-                    placeholder={unitKm ? '1.80' : '3.50'}
-                    value={gasPrice}
-                    onChange={e => setGasPrice(e.target.value)}
-                    inputMode="decimal"
-                  />
-                </div>
-              </div>
-              {gasCost !== null ? (
-                <div style={{ padding: '10px 14px', background: 'var(--accent-pale)', borderRadius: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ fontSize: 20 }}>⛽</span>
-                  <div>
-                    <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--accent)' }}>Estimated fuel cost</p>
-                    <p style={{ fontSize: 20, fontWeight: 700, color: 'var(--accent)', fontFamily: 'var(--font-display)' }}>${gasCost.toFixed(2)}</p>
-                  </div>
-                </div>
-              ) : (
-                <p style={{ fontSize: 11, color: 'var(--ink-muted)' }}>Enter values above to calculate estimated fuel cost</p>
-              )}
-            </div>
-          )}
-        </div>
-      )}
     </div>
   )
 }
@@ -745,9 +765,9 @@ export default function TripDetailPage() {
                 </button>
               )}
             </div>
-            <button onClick={toggleUnit} title="Switch km/miles"
-              style={{ padding: '6px 10px', borderRadius: 8, fontSize: 11, fontWeight: 600, border: '1px solid var(--border)', background: 'var(--cream)', color: 'var(--ink-muted)', cursor: 'pointer', flexShrink: 0, whiteSpace: 'nowrap' }}>
-              {unitKm ? 'km' : 'mi'}
+            <button onClick={toggleUnit} title="Switch between km and miles"
+              style={{ padding: '6px 10px', borderRadius: 8, fontSize: 11, fontWeight: 600, border: '1px solid var(--border)', background: 'var(--cream)', color: 'var(--ink-muted)', cursor: 'pointer', flexShrink: 0, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 4 }}>
+              📏 {unitKm ? 'km' : 'mi'}
             </button>
             <div className="view-toggle">
               <button className={`view-toggle-btn ${dayView === 'cards' ? 'active' : ''}`} onClick={() => setDayView('cards')}>
@@ -775,7 +795,7 @@ export default function TripDetailPage() {
                 </div>
               </button>
             )}
-            {showStats && <div className="anim-up" style={{ marginBottom: 12 }}><TripStatsCard days={days} unitKm={unitKm} showGasCalc={showGasCalc} setShowGasCalc={setShowGasCalc} gasEfficiency={gasEfficiency} setGasEfficiency={setGasEfficiency} gasPrice={gasPrice} setGasPrice={setGasPrice} /></div>}
+            {showStats && <div className="anim-up" style={{ marginBottom: 12 }}><TripStatsCard days={days} unitKm={unitKm} /></div>}
 
             {/* Booking links */}
             {trip.booking_links && trip.booking_links.length > 0 && (
@@ -813,6 +833,20 @@ export default function TripDetailPage() {
                   <p style={{ fontSize: 18, fontWeight: 700, color: 'var(--teal)', fontFamily: 'var(--font-display)' }}>${totalBudget.toFixed(2)}</p>
                 </div>
               </div>
+            )}
+
+            {/* ⛽ Gas Calculator — always visible when there are days */}
+            {days.length > 0 && (
+              <GasCalculator
+                days={days}
+                unitKm={unitKm}
+                showGasCalc={showGasCalc}
+                setShowGasCalc={setShowGasCalc}
+                gasEfficiency={gasEfficiency}
+                setGasEfficiency={setGasEfficiency}
+                gasPrice={gasPrice}
+                setGasPrice={setGasPrice}
+              />
             )}
 
             {filteredDays.length === 0 && searchQuery ? (
