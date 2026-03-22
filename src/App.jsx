@@ -8,10 +8,15 @@ import JoinPage from './pages/JoinPage'
 import ViewPage from './pages/ViewPage'
 import './index.css'
 
-// Apply saved theme on load
+// Apply saved theme on load (supports 'light', 'dark', 'system')
 ;(function () {
-  const saved = localStorage.getItem('theme')
-  if (saved === 'dark') document.documentElement.setAttribute('data-theme', 'dark')
+  const mode = localStorage.getItem('themeMode') || (localStorage.getItem('theme') === 'dark' ? 'dark' : 'light')
+  if (mode === 'dark') {
+    document.documentElement.setAttribute('data-theme', 'dark')
+  } else if (mode === 'system') {
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches)
+      document.documentElement.setAttribute('data-theme', 'dark')
+  }
 })()
 
 function AppRoutes() {

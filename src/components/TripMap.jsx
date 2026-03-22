@@ -19,8 +19,8 @@ export default function TripMap({ stops = [], onSelect }) {
     const map = new maplibregl.Map({
       container: containerRef.current,
       style: MAP_STYLE,
-      center: [12.4922, 41.8902], // default: Rome
-      zoom: 5,
+      center: [0, 20], // world view — fitBounds handles actual stops
+      zoom: 2,
       attributionControl: false,
     })
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right')

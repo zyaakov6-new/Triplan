@@ -83,8 +83,8 @@ function AgendaView({ days, onDirections }) {
           <div key={day.id} style={{ marginBottom: 8 }}>
             {/* Day header */}
             <div className="agenda-day-header">
-              <div style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--ink)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <span style={{ fontSize: 8, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase' }}>Day</span>
+              <div style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--accent)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <span style={{ fontSize: 8, color: 'rgba(255,255,255,0.65)', textTransform: 'uppercase' }}>Day</span>
                 <span style={{ fontSize: 12, fontWeight: 700, color: 'white', lineHeight: 1 }}>{day.day_number}</span>
               </div>
               <div>
@@ -122,7 +122,7 @@ function AgendaView({ days, onDirections }) {
 }
 
 // ── TripStats ─────────────────────────────────────────────────────────────────
-function TripStatsCard({ days }) {
+function TripStatsCard({ days, unitKm, showGasCalc, setShowGasCalc, gasEfficiency, setGasEfficiency, gasPrice, setGasPrice }) {
   const allStops = days.flatMap(d => d.stops)
   const total = allStops.length
   const done = allStops.filter(s => s.done).length
@@ -130,6 +130,26 @@ function TripStatsCard({ days }) {
   const cities = [...new Set(days.map(d => d.city).filter(Boolean))]
   const avgPerDay = days.length > 0 ? budget / days.length : 0
   const topStop = allStops.reduce((max, s) => (s.cost || 0) > (max?.cost || 0) ? s : max, null)
+
+  // Total trip distance in km across all days
+  const totalDistKm = days.reduce((sum, d) => sum + getDayDistance(d.stops), 0)
+  const totalDist = unitKm ? totalDistKm : totalDistKm * 0.621371
+  const unit = unitKm ? 'km' : 'mi'
+
+  // Gas cost calculation
+  const eff = parseFloat(gasEfficiency)
+  const price = parseFloat(gasPrice)
+  let gasCost = null
+  if (totalDistKm > 0 && eff > 0 && price > 0) {
+    if (unitKm) {
+      // L/100km: cost = (distKm * eff / 100) * pricePerLiter
+      gasCost = (totalDistKm * eff / 100) * price
+    } else {
+      // mpg: cost = (distMiles / eff) * pricePerGallon
+      const totalMiles = totalDistKm * 0.621371
+      gasCost = (totalMiles / eff) * price
+    }
+  }
 
   return (
     <div style={{ marginBottom: 12, padding: '14px 14px 10px', background: 'var(--white)', borderRadius: 14, border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
@@ -164,11 +184,68 @@ function TripStatsCard({ days }) {
           <div className="stat-value">{cities.length}</div>
           <div className="stat-label">Cities</div>
         </div>
+        {totalDist > 0 && (
+          <div className="stat-cell">
+            <div className="stat-value" style={{ fontSize: 15 }}>{totalDist.toFixed(0)}</div>
+            <div className="stat-label">Total {unit}</div>
+          </div>
+        )}
       </div>
       {topStop?.cost > 0 && (
         <p style={{ fontSize: 11, color: 'var(--ink-muted)', marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--border)' }}>
           💸 Priciest stop: <strong>{topStop.name}</strong> · ${topStop.cost}
         </p>
+      )}
+
+      {/* Gas calculator */}
+      {totalDist > 0 && (
+        <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--border)' }}>
+          <button onClick={() => setShowGasCalc(v => !v)}
+            style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', cursor: 'pointer', padding: 0 }}>
+            <Icon name="gas" size={13} color="var(--accent)" />
+            <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--accent)' }}>⛽ Gas Cost Calculator</span>
+            <span style={{ fontSize: 11, color: 'var(--ink-muted)', marginLeft: 2 }}>({totalDist.toFixed(0)} {unit})</span>
+          </button>
+          {showGasCalc && (
+            <div className="anim-up" style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                <div>
+                  <label style={{ fontSize: 11, fontWeight: 500, color: 'var(--ink-muted)', display: 'block', marginBottom: 4 }}>
+                    {unitKm ? 'Consumption (L/100km)' : 'Fuel economy (mpg)'}
+                  </label>
+                  <input className="input" style={{ fontSize: 13 }}
+                    placeholder={unitKm ? '8.5' : '30'}
+                    value={gasEfficiency}
+                    onChange={e => setGasEfficiency(e.target.value)}
+                    inputMode="decimal"
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: 11, fontWeight: 500, color: 'var(--ink-muted)', display: 'block', marginBottom: 4 }}>
+                    {unitKm ? 'Price per liter ($)' : 'Price per gallon ($)'}
+                  </label>
+                  <input className="input" style={{ fontSize: 13 }}
+                    placeholder={unitKm ? '1.80' : '3.50'}
+                    value={gasPrice}
+                    onChange={e => setGasPrice(e.target.value)}
+                    inputMode="decimal"
+                  />
+                </div>
+              </div>
+              {gasCost !== null ? (
+                <div style={{ padding: '10px 14px', background: 'var(--accent-pale)', borderRadius: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 20 }}>⛽</span>
+                  <div>
+                    <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--accent)' }}>Estimated fuel cost</p>
+                    <p style={{ fontSize: 20, fontWeight: 700, color: 'var(--accent)', fontFamily: 'var(--font-display)' }}>${gasCost.toFixed(2)}</p>
+                  </div>
+                </div>
+              ) : (
+                <p style={{ fontSize: 11, color: 'var(--ink-muted)' }}>Enter values above to calculate estimated fuel cost</p>
+              )}
+            </div>
+          )}
+        </div>
       )}
     </div>
   )
@@ -210,6 +287,10 @@ export default function TripDetailPage() {
   const [showStats, setShowStats] = useState(false)
   const [syncFlash, setSyncFlash] = useState(false)
   const [showPdfPreview, setShowPdfPreview] = useState(false)
+  const [unitKm, setUnitKm] = useState(() => localStorage.getItem('unit') !== 'miles')
+  const [showGasCalc, setShowGasCalc] = useState(false)
+  const [gasEfficiency, setGasEfficiency] = useState('')   // mpg or L/100km
+  const [gasPrice, setGasPrice] = useState('')              // per gallon or per liter
 
   const TABS = ['map', 'days', 'pack']
 
@@ -495,6 +576,12 @@ export default function TripDetailPage() {
   const handleTripUpdated = (updated) => { setTrip(updated); setShowEditTrip(false) }
   const handleTripDeleted = () => { navigate('/') }
 
+  const toggleUnit = () => {
+    const next = !unitKm
+    setUnitKm(next)
+    localStorage.setItem('unit', next ? 'km' : 'miles')
+  }
+
   if (loading) return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <div style={{ background: 'var(--white)', borderBottom: '1px solid var(--border)', padding: 'calc(var(--safe-top) + 12px) 16px 0', flexShrink: 0 }}>
@@ -560,25 +647,19 @@ export default function TripDetailPage() {
             <p style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {trip.cover_emoji} {trip.name}
             </p>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'nowrap', overflow: 'hidden' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
               {trip.date_start && (
-                <p style={{ fontSize: 12, color: 'var(--ink-muted)', flexShrink: 0 }}>
+                <p style={{ fontSize: 12, color: 'var(--ink-muted)' }}>
                   {new Date(trip.date_start).toLocaleDateString('en', { month: 'short', day: 'numeric' })}
                   {trip.date_end ? ` – ${new Date(trip.date_end).toLocaleDateString('en', { month: 'short', day: 'numeric' })}` : ''}
                 </p>
               )}
-              {countdown && <span className="countdown-badge">{countdown}</span>}
               <span style={{ fontSize: 10, color: 'var(--teal)', display: 'inline-flex', alignItems: 'center', gap: 3, padding: '2px 7px', borderRadius: 100, background: 'var(--teal-light)', border: '1px solid rgba(45,107,107,0.2)' }}>
-                <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--teal)' }} />
-                Live
+                <span style={{ width: 5, height: 5, borderRadius: '50%', background: syncFlash ? 'var(--accent)' : 'var(--teal)', transition: 'background 0.3s' }} />
+                {syncFlash ? 'Syncing' : 'Live'}
               </span>
-              {syncFlash && (
-                <span style={{ fontSize: 11, color: 'var(--teal)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--teal)', display: 'inline-block', animation: 'syncPulse 1s infinite' }} />
-                  Live
-                </span>
-              )}
             </div>
+            {countdown && <span className="countdown-badge" style={{ marginTop: 3, display: 'inline-block' }}>{countdown}</span>}
           </div>
           <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
             <button onClick={handleExportPDF} style={{ width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', background: 'var(--cream)', cursor: 'pointer' }} title="Export PDF">
@@ -612,8 +693,7 @@ export default function TripDetailPage() {
       {/* ── Map view ── */}
       {tab === 'map' && (
         <div className={`no-print ${tabDir === 'left' ? 'tab-content' : 'tab-content-back'}`}
-          style={{ flex: 1, position: 'relative', overflow: 'hidden' }}
-          onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+          style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
           <TripMap stops={mapStops} onSelect={() => {}} />
           {days.length > 0 && (
             <div style={{ position: 'absolute', top: 12, left: 0, right: 0, zIndex: 10, overflowX: 'auto', display: 'flex', gap: 8, padding: '0 16px' }}
@@ -665,6 +745,10 @@ export default function TripDetailPage() {
                 </button>
               )}
             </div>
+            <button onClick={toggleUnit} title="Switch km/miles"
+              style={{ padding: '6px 10px', borderRadius: 8, fontSize: 11, fontWeight: 600, border: '1px solid var(--border)', background: 'var(--cream)', color: 'var(--ink-muted)', cursor: 'pointer', flexShrink: 0, whiteSpace: 'nowrap' }}>
+              {unitKm ? 'km' : 'mi'}
+            </button>
             <div className="view-toggle">
               <button className={`view-toggle-btn ${dayView === 'cards' ? 'active' : ''}`} onClick={() => setDayView('cards')}>
                 <Icon name="grid" size={13} color={dayView === 'cards' ? 'var(--cream)' : 'var(--ink-muted)'} />
@@ -691,7 +775,7 @@ export default function TripDetailPage() {
                 </div>
               </button>
             )}
-            {showStats && <div className="anim-up" style={{ marginBottom: 12 }}><TripStatsCard days={days} /></div>}
+            {showStats && <div className="anim-up" style={{ marginBottom: 12 }}><TripStatsCard days={days} unitKm={unitKm} showGasCalc={showGasCalc} setShowGasCalc={setShowGasCalc} gasEfficiency={gasEfficiency} setGasEfficiency={setGasEfficiency} gasPrice={gasPrice} setGasPrice={setGasPrice} /></div>}
 
             {/* Booking links */}
             {trip.booking_links && trip.booking_links.length > 0 && (
@@ -761,6 +845,7 @@ export default function TripDetailPage() {
                     day={day}
                     photos={photos[day.id] || []}
                     votes={votes}
+                    unitKm={unitKm}
                     onToggleStop={toggleDone}
                     onVote={handleVote}
                     onAddStop={() => { setAddStopForDay(day); setShowNewStop(true) }}
@@ -940,7 +1025,7 @@ export default function TripDetailPage() {
 }
 
 // ── DayCard ───────────────────────────────────────────────────────────────────
-function DayCard({ day, photos, votes, onToggleStop, onVote, onAddStop, onOpenSheet, onUploadPhoto, onEditStop, onEditDay, onReorderStops, onLightbox, onOptimize }) {
+function DayCard({ day, photos, votes, unitKm = true, onToggleStop, onVote, onAddStop, onOpenSheet, onUploadPhoto, onEditStop, onEditDay, onReorderStops, onLightbox, onOptimize }) {
   const [expanded, setExpanded] = useState(true)
   const fileRef = useRef(null)
   const [draggedIdx, setDraggedIdx] = useState(null)
@@ -948,7 +1033,8 @@ function DayCard({ day, photos, votes, onToggleStop, onVote, onAddStop, onOpenSh
 
   const doneCount = day.stops.filter(s => s.done).length
   const dayBudget = day.stops.reduce((sum, s) => sum + (s.cost || 0), 0)
-  const dayDist = getDayDistance(day.stops)
+  const dayDistKm = getDayDistance(day.stops)
+  const dayDist = unitKm ? dayDistKm : dayDistKm * 0.621371
 
   const handleDragStart = (e, idx) => { setDraggedIdx(idx); e.dataTransfer.effectAllowed = 'move' }
   const handleDragOver = (e, idx) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; if (idx !== dragOverIdx) setDragOverIdx(idx) }
@@ -969,8 +1055,8 @@ function DayCard({ day, photos, votes, onToggleStop, onVote, onAddStop, onOpenSh
       <div style={{ width: '100%', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12 }}>
         <button onClick={() => setExpanded(e => !e)}
           style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1, background: 'none', cursor: 'pointer', textAlign: 'left' }}>
-          <div style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--ink)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Day</span>
+          <div style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--accent)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.65)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Day</span>
             <span style={{ fontSize: 15, fontWeight: 700, color: 'white', lineHeight: 1 }}>{day.day_number}</span>
           </div>
           <div style={{ flex: 1, overflow: 'hidden' }}>
@@ -979,7 +1065,7 @@ function DayCard({ day, photos, votes, onToggleStop, onVote, onAddStop, onOpenSh
               {day.trip_date ? new Date(day.trip_date).toLocaleDateString('en', { weekday: 'short', month: 'short', day: 'numeric' }) : ''}
               {day.stops.length > 0 ? `${day.trip_date ? ' · ' : ''}${doneCount}/${day.stops.length} done` : 'No stops yet'}
               {dayBudget > 0 && ` · $${dayBudget.toFixed(0)}`}
-              {dayDist > 0.1 && ` · ~${dayDist.toFixed(1)} km`}
+              {dayDist > 0.1 && ` · ~${dayDist.toFixed(1)} ${unitKm ? 'km' : 'mi'}`}
             </p>
           </div>
           <div style={{ transform: expanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>

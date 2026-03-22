@@ -26,11 +26,10 @@ export default function NewStopModal({ dayId, nextOrder, onClose, onCreated }) {
     setSearchingPlace(true)
     try {
       const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=5&addressdetails=1`,
-        { headers: { 'Accept-Language': 'en' } }
+        `https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=8&lang=en`
       )
       const data = await res.json()
-      setPlaceResults(data)
+      setPlaceResults(data.features || [])
     } catch { setPlaceResults([]) }
     setSearchingPlace(false)
   }
@@ -39,17 +38,20 @@ export default function NewStopModal({ dayId, nextOrder, onClose, onCreated }) {
     const val = e.target.value
     setPlaceQuery(val)
     clearTimeout(searchTimer.current)
-    searchTimer.current = setTimeout(() => searchPlaces(val), 500)
+    searchTimer.current = setTimeout(() => searchPlaces(val), 400)
   }
 
-  const selectPlace = (place) => {
+  const selectPlace = (feature) => {
+    const [lon, lat] = feature.geometry.coordinates
+    const p = feature.properties
+    const label = [p.name, p.city || p.state, p.country].filter(Boolean).join(', ')
     setForm(f => ({
       ...f,
-      name: f.name || place.display_name.split(',')[0],
-      lat: parseFloat(place.lat).toFixed(6),
-      lng: parseFloat(place.lon).toFixed(6),
+      name: f.name || p.name || label,
+      lat: parseFloat(lat).toFixed(6),
+      lng: parseFloat(lon).toFixed(6),
     }))
-    setPlaceQuery(place.display_name.split(',').slice(0, 2).join(','))
+    setPlaceQuery(label)
     setPlaceResults([])
   }
 
@@ -112,12 +114,16 @@ export default function NewStopModal({ dayId, nextOrder, onClose, onCreated }) {
             )}
             {placeResults.length > 0 && (
               <div className="place-results">
-                {placeResults.map((p, i) => (
-                  <div key={i} className="place-result-item" onClick={() => selectPlace(p)}>
-                    <div style={{ fontWeight: 500, fontSize: 13, color: 'var(--ink)', marginBottom: 1 }}>{p.display_name.split(',')[0]}</div>
-                    <div style={{ fontSize: 11, color: 'var(--ink-muted)' }}>{p.display_name.split(',').slice(1, 3).join(',').trim()}</div>
-                  </div>
-                ))}
+                {placeResults.map((feature, i) => {
+                  const p = feature.properties
+                  const subtitle = [p.city || p.state, p.country].filter(Boolean).join(', ')
+                  return (
+                    <div key={i} className="place-result-item" onClick={() => selectPlace(feature)}>
+                      <div style={{ fontWeight: 500, fontSize: 13, color: 'var(--ink)', marginBottom: 1 }}>{p.name}</div>
+                      {subtitle && <div style={{ fontSize: 11, color: 'var(--ink-muted)' }}>{subtitle}</div>}
+                    </div>
+                  )
+                })}
               </div>
             )}
           </div>

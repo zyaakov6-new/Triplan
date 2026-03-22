@@ -38,11 +38,10 @@ export default function EditStopModal({ stop, days = [], onClose, onUpdated, onD
     setSearchingPlace(true)
     try {
       const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=5`,
-        { headers: { 'Accept-Language': 'en' } }
+        `https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=8&lang=en`
       )
       const data = await res.json()
-      setPlaceResults(data)
+      setPlaceResults(data.features || [])
     } catch { setPlaceResults([]) }
     setSearchingPlace(false)
   }
@@ -51,16 +50,19 @@ export default function EditStopModal({ stop, days = [], onClose, onUpdated, onD
     const val = e.target.value
     setPlaceQuery(val)
     clearTimeout(searchTimer.current)
-    searchTimer.current = setTimeout(() => searchPlaces(val), 500)
+    searchTimer.current = setTimeout(() => searchPlaces(val), 400)
   }
 
-  const selectPlace = (place) => {
+  const selectPlace = (feature) => {
+    const [lon, lat] = feature.geometry.coordinates
+    const p = feature.properties
+    const label = [p.name, p.city || p.state, p.country].filter(Boolean).join(', ')
     setForm(f => ({
       ...f,
-      lat: parseFloat(place.lat).toFixed(6),
-      lng: parseFloat(place.lon).toFixed(6),
+      lat: parseFloat(lat).toFixed(6),
+      lng: parseFloat(lon).toFixed(6),
     }))
-    setPlaceQuery(place.display_name.split(',').slice(0, 2).join(','))
+    setPlaceQuery(label)
     setPlaceResults([])
   }
 
@@ -126,12 +128,17 @@ export default function EditStopModal({ stop, days = [], onClose, onUpdated, onD
             {searchingPlace && <div style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 12, color: 'var(--ink-muted)' }}>…</div>}
             {placeResults.length > 0 && (
               <div className="place-results">
-                {placeResults.map((p, i) => (
-                  <div key={i} className="place-result-item" onClick={() => selectPlace(p)}>
-                    <div style={{ fontWeight: 500, fontSize: 13, color: 'var(--ink)' }}>{p.display_name.split(',')[0]}</div>
-                    <div style={{ fontSize: 11, color: 'var(--ink-muted)' }}>{p.display_name.split(',').slice(1, 3).join(',').trim()}</div>
-                  </div>
-                ))}
+                {placeResults.map((feature, i) => {
+                  const p = feature.properties
+                  const subtitle = [p.city || p.state, p.country].filter(Boolean).join(', ')
+                  return (
+                    <div key={i} className="place-result-item" onClick={() => selectPlace(feature)}>
+                      <div style={{ fontWeight: 500, fontSize: 13, color: 'var(--ink)' }}>{p.name}</div>
+                      {subtitle && <div style={{ fontSize: 11, color: 'var(--ink-muted)' }}>{subtitle}</div>}
+                    </div>
+                  )
+                })}
+
               </div>
             )}
           </div>
@@ -174,8 +181,8 @@ export default function EditStopModal({ stop, days = [], onClose, onUpdated, onD
                 {days.filter(d => d.id !== stop.day_id).map(d => (
                   <button key={d.id} onClick={() => handleMoveToDay(d.id)} disabled={moving}
                     style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 10, border: '1px solid var(--border)', background: 'var(--cream)', cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s' }}>
-                    <div style={{ width: 30, height: 30, borderRadius: 8, background: 'var(--ink)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <span style={{ fontSize: 8, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase' }}>Day</span>
+                    <div style={{ width: 30, height: 30, borderRadius: 8, background: 'var(--accent)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <span style={{ fontSize: 8, color: 'rgba(255,255,255,0.65)', textTransform: 'uppercase' }}>Day</span>
                       <span style={{ fontSize: 12, fontWeight: 700, color: 'white', lineHeight: 1 }}>{d.day_number}</span>
                     </div>
                     <div>

@@ -54,6 +54,8 @@ export const Icon = ({ name, size = 20, color = 'currentColor', style }) => {
     move: <svg viewBox="0 0 24 24" {...s} {...p}><polyline points="5 9 2 12 5 15"/><polyline points="9 5 12 2 15 5"/><polyline points="15 19 12 22 9 19"/><polyline points="19 9 22 12 19 15"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="12" y1="2" x2="12" y2="22"/></svg>,
     ical: <svg viewBox="0 0 24 24" {...s} {...p}><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/></svg>,
     share: <svg viewBox="0 0 24 24" {...s} {...p}><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>,
+    monitor: <svg viewBox="0 0 24 24" {...s} {...p}><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>,
+    gas: <svg viewBox="0 0 24 24" {...s} {...p}><path d="M3 22V6a2 2 0 012-2h8a2 2 0 012 2v16"/><path d="M3 11h12"/><path d="M15 6h2a2 2 0 012 2v3a2 2 0 002 2v0a2 2 0 002-2V9l-3-3"/><line x1="3" y1="22" x2="15" y2="22"/></svg>,
   }
   return icons[name] || null
 }

@@ -6,21 +6,46 @@ import NewTripModal from '../components/NewTripModal'
 import EditTripModal from '../components/EditTripModal'
 import Icon from '../components/Icon'
 
-function useDarkMode() {
-  const [dark, setDark] = useState(() => localStorage.getItem('theme') === 'dark')
-  const toggle = () => {
-    const next = !dark
-    setDark(next)
-    localStorage.setItem('theme', next ? 'dark' : 'light')
-    document.documentElement.setAttribute('data-theme', next ? 'dark' : '')
+// Three-way: 'light' → 'dark' → 'system'
+function applyThemeMode(mode) {
+  if (mode === 'dark') {
+    document.documentElement.setAttribute('data-theme', 'dark')
+  } else if (mode === 'light') {
+    document.documentElement.setAttribute('data-theme', '')
+  } else {
+    // system
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+    document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : '')
   }
-  return { dark, toggle }
+}
+
+function useThemeMode() {
+  const [mode, setMode] = useState(() => localStorage.getItem('themeMode') || 'light')
+
+  useEffect(() => {
+    applyThemeMode(mode)
+    if (mode === 'system') {
+      const mq = window.matchMedia('(prefers-color-scheme: dark)')
+      const handler = () => applyThemeMode('system')
+      mq.addEventListener('change', handler)
+      return () => mq.removeEventListener('change', handler)
+    }
+  }, [mode])
+
+  const cycle = () => {
+    const next = mode === 'light' ? 'dark' : mode === 'dark' ? 'system' : 'light'
+    setMode(next)
+    localStorage.setItem('themeMode', next)
+    applyThemeMode(next)
+  }
+
+  return { mode, cycle }
 }
 
 export default function HomePage() {
   const { user, profile, signOut } = useAuth()
   const navigate = useNavigate()
-  const { dark, toggle: toggleDark } = useDarkMode()
+  const { mode, cycle: cycleTheme } = useThemeMode()
   const [trips, setTrips] = useState([])
   const [loading, setLoading] = useState(true)
   const [showNew, setShowNew] = useState(false)
@@ -82,9 +107,9 @@ export default function HomePage() {
             <p style={{ fontSize: 13, color: 'var(--ink-muted)' }}>Hey {profile?.name || 'there'} 👋</p>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={toggleDark}
+            <button onClick={cycleTheme} title={`Theme: ${mode}`}
               style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--cream)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: '1px solid var(--border)' }}>
-              <Icon name={dark ? 'sun' : 'moon'} size={16} color="var(--ink-muted)" />
+              <Icon name={mode === 'dark' ? 'sun' : mode === 'system' ? 'monitor' : 'moon'} size={16} color="var(--ink-muted)" />
             </button>
             <button onClick={signOut}
               style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--cream)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
