@@ -5,7 +5,6 @@ import Icon from './Icon'
 
 export default function EditDayModal({ day, onClose, onUpdated, onDeleted }) {
   const [form, setForm] = useState({
-    city: day.city || '',
     trip_date: day.trip_date || '',
     physical_note: day.physical_note || '',
     logistics_note: day.logistics_note || '',
@@ -18,10 +17,8 @@ export default function EditDayModal({ day, onClose, onUpdated, onDeleted }) {
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }))
 
   const handleUpdate = async () => {
-    if (!form.city.trim()) { setError('City is required'); return }
     setLoading(true); setError('')
     const { data, error: err } = await supabase.from('trip_days').update({
-      city: form.city.trim(),
       trip_date: form.trip_date || null,
       physical_note: form.physical_note.trim() || null,
       logistics_note: form.logistics_note.trim() || null,
@@ -42,10 +39,6 @@ export default function EditDayModal({ day, onClose, onUpdated, onDeleted }) {
   return (
     <BottomSheet onClose={onClose} title={`Edit Day ${day.day_number}`}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <div>
-          <label style={lbl}>City *</label>
-          <input className="input" value={form.city} onChange={set('city')} />
-        </div>
         <div>
           <label style={lbl}>Date</label>
           <input className="input" type="date" value={form.trip_date} onChange={set('trip_date')} />

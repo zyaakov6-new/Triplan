@@ -17,11 +17,14 @@ import { getDayDistance, optimizeRoute } from '../lib/tripUtils'
 import BeautifulPrintView from '../components/BeautifulPrintView'
 
 const TYPE_META = {
-  attraction: { emoji: '🏛', label: 'Attraction', color: '#C4622D' },
-  food:       { emoji: '🍽', label: 'Restaurant',  color: '#2D6B6B' },
-  hotel:      { emoji: '🏨', label: 'Hotel',        color: '#5B3D8F' },
+  waypoint:   { emoji: '📍', label: 'Waypoint',     color: '#7A6E64' },
+  attraction: { emoji: '🏔️', label: 'Viewpoint',   color: '#C4622D' },
+  food:       { emoji: '🍽', label: 'Food & Water', color: '#2D6B6B' },
+  hotel:      { emoji: '⛺', label: 'Camp/Lodge',   color: '#5B3D8F' },
   transport:  { emoji: '🚌', label: 'Transport',    color: '#2D5C8E' },
 }
+
+const DAY_COLORS = ['#E05C3A','#2E9E6E','#5B6FE8','#E8A020','#B045C8','#2DA8C4','#C44B7A','#8B7355','#3D9E3D','#9B59B6']
 
 const BOOKING_TYPE_META = {
   flight: { emoji: '✈️', label: 'Flight' },
@@ -114,6 +117,69 @@ function AgendaView({ days, onDirections }) {
                 )
               })}
             </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+// ── Photos Tab ────────────────────────────────────────────────────────────────
+function PhotosTab({ days, photos, onLightbox, onUploadPhoto }) {
+  const fileRefs = useRef({})
+  const allPhotos = days.flatMap(d => (photos[d.id] || []).map(url => ({ url, dayId: d.id, dayNumber: d.day_number, color: d.color })))
+  const hasAny = allPhotos.length > 0
+
+  return (
+    <div className="scroll-y" style={{ flex: 1, padding: '12px 16px 100px' }}>
+      {!hasAny && (
+        <div style={{ textAlign: 'center', paddingTop: 48 }}>
+          <div style={{ fontSize: 40, marginBottom: 12 }}>📷</div>
+          <p style={{ fontFamily: 'var(--font-display)', fontSize: 18, marginBottom: 6 }}>No photos yet</p>
+          <p style={{ color: 'var(--ink-muted)', fontSize: 14 }}>Upload photos from each day to build your trip album</p>
+        </div>
+      )}
+      {days.map(day => {
+        const dayPhotos = photos[day.id] || []
+        return (
+          <div key={day.id} style={{ marginBottom: 20 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ width: 28, height: 28, borderRadius: 7, background: day.color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: 'white' }}>{day.day_number}</span>
+                </div>
+                <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink-light)' }}>
+                  {day.trip_date ? new Date(day.trip_date).toLocaleDateString('en', { weekday: 'short', month: 'short', day: 'numeric' }) : `Day ${day.day_number}`}
+                </span>
+                {dayPhotos.length > 0 && <span style={{ fontSize: 11, color: 'var(--ink-muted)' }}>({dayPhotos.length})</span>}
+              </div>
+              <button
+                onClick={() => fileRefs.current[day.id]?.click()}
+                className="btn btn-ghost btn-sm" style={{ padding: '5px 10px', fontSize: 12 }}>
+                + Add
+              </button>
+              <input
+                ref={el => fileRefs.current[day.id] = el}
+                type="file" accept="image/*" multiple style={{ display: 'none' }}
+                onChange={e => onUploadPhoto(day.id, e.target.files)}
+              />
+            </div>
+            {dayPhotos.length > 0 ? (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 4 }}>
+                {dayPhotos.map((url, i) => (
+                  <div key={i} onClick={() => onLightbox(dayPhotos, i)}
+                    style={{ aspectRatio: '1', borderRadius: 8, overflow: 'hidden', background: 'var(--cream-dark)', cursor: 'pointer', borderTop: `3px solid ${day.color}` }}>
+                    <img src={url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="lazy" />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div onClick={() => fileRefs.current[day.id]?.click()}
+                style={{ border: '1.5px dashed var(--sand)', borderRadius: 10, padding: '16px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+                <Icon name="image" size={20} color="var(--sand-dark)" />
+                <p style={{ fontSize: 12, color: 'var(--ink-muted)' }}>Add photos for Day {day.day_number}</p>
+              </div>
+            )}
           </div>
         )
       })}
@@ -288,9 +354,9 @@ export default function TripDetailPage() {
 
   const [tab, setTab] = useState('map')
   const [tabDir, setTabDir] = useState('left')
-  const [dayView, setDayView] = useState('cards')   // 'cards' | 'agenda'
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedDay, setSelectedDay] = useState(null)
+  const [openDayId, setOpenDayId] = useState(null)   // accordion: which day is expanded
   const [openDaySheet, setOpenDaySheet] = useState(null)
   const [showNewDay, setShowNewDay] = useState(false)
   const [showNewStop, setShowNewStop] = useState(false)
@@ -312,7 +378,7 @@ export default function TripDetailPage() {
   const [gasEfficiency, setGasEfficiency] = useState('')   // mpg or L/100km
   const [gasPrice, setGasPrice] = useState('')              // per gallon or per liter
 
-  const TABS = ['map', 'days', 'pack']
+  const TABS = ['map', 'days', 'photos', 'pack']
 
   useEffect(() => { fetchAll() }, [id])
 
@@ -425,21 +491,25 @@ export default function TripDetailPage() {
     return `✈️ ${diff} day${diff !== 1 ? 's' : ''} to go`
   }, [trip])
 
+  // ── Days with colors ───────────────────────────────────────────────────────
+  const daysWithColors = useMemo(() =>
+    days.map((d, i) => ({ ...d, color: DAY_COLORS[i % DAY_COLORS.length] }))
+  , [days])
+
   // ── Filtered days (search) ─────────────────────────────────────────────────
   const filteredDays = useMemo(() => {
-    if (!searchQuery.trim()) return days
+    if (!searchQuery.trim()) return daysWithColors
     const q = searchQuery.toLowerCase()
-    return days.map(day => {
-      const cityMatch = day.city?.toLowerCase().includes(q)
+    return daysWithColors.map(day => {
       const filteredStops = day.stops.filter(s =>
         s.name?.toLowerCase().includes(q) ||
         s.note?.toLowerCase().includes(q) ||
         s.type?.toLowerCase().includes(q)
       )
-      if (!cityMatch && filteredStops.length === 0) return null
-      return { ...day, stops: cityMatch ? day.stops : filteredStops }
+      if (filteredStops.length === 0) return null
+      return { ...day, stops: filteredStops }
     }).filter(Boolean)
-  }, [days, searchQuery])
+  }, [daysWithColors, searchQuery])
 
   const changeTab = (newTab) => {
     const curIdx = TABS.indexOf(tab)
@@ -461,10 +531,15 @@ export default function TripDetailPage() {
     else if (dx > 60 && curIdx > 0) changeTab(TABS[curIdx - 1])
   }
 
-  const allStops = days.flatMap(d => d.stops.map(s => ({ ...s, dayCity: d.city })))
-  const mapStops = selectedDay
-    ? days.find(d => d.id === selectedDay.id)?.stops.filter(s => s.lat && s.lng) || []
-    : allStops.filter(s => s.lat && s.lng)
+  const allStops = days.flatMap(d => d.stops)
+  const mapDays = useMemo(() => {
+    const colored = daysWithColors.map(d => ({
+      ...d,
+      stops: d.stops.filter(s => s.lat && s.lng)
+    }))
+    if (selectedDay) return colored.filter(d => d.id === selectedDay.id)
+    return colored
+  }, [daysWithColors, selectedDay])
   const totalBudget = allStops.reduce((sum, s) => sum + (s.cost || 0), 0)
   const doneCount = allStops.filter(s => s.done).length
   const totalCount = allStops.length
@@ -697,13 +772,14 @@ export default function TripDetailPage() {
         {/* Tab bar */}
         <div style={{ display: 'flex', borderTop: '1px solid var(--border)' }}>
           {[
-            { id: 'map',  label: 'Map',  icon: 'map' },
-            { id: 'days', label: 'Days', icon: 'calendar' },
-            { id: 'pack', label: 'Pack', icon: 'package' },
+            { id: 'map',    label: 'Map',    icon: 'map' },
+            { id: 'days',   label: 'Days',   icon: 'calendar' },
+            { id: 'photos', label: 'Photos', icon: 'image' },
+            { id: 'pack',   label: 'Pack',   icon: 'package' },
           ].map(t => (
             <button key={t.id} onClick={() => changeTab(t.id)}
-              style={{ flex: 1, padding: '11px 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontSize: 14, fontWeight: tab === t.id ? 500 : 400, color: tab === t.id ? 'var(--accent)' : 'var(--ink-muted)', borderBottom: `2.5px solid ${tab === t.id ? 'var(--accent)' : 'transparent'}`, background: 'none', cursor: 'pointer', transition: 'color 0.15s' }}>
-              <Icon name={t.icon} size={15} color={tab === t.id ? 'var(--accent)' : 'var(--ink-muted)'} />
+              style={{ flex: 1, padding: '10px 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontSize: 12, fontWeight: tab === t.id ? 600 : 400, color: tab === t.id ? 'var(--accent)' : 'var(--ink-muted)', borderBottom: `2.5px solid ${tab === t.id ? 'var(--accent)' : 'transparent'}`, background: 'none', cursor: 'pointer', transition: 'color 0.15s' }}>
+              <Icon name={t.icon} size={14} color={tab === t.id ? 'var(--accent)' : 'var(--ink-muted)'} />
               {t.label}
             </button>
           ))}
@@ -714,18 +790,19 @@ export default function TripDetailPage() {
       {tab === 'map' && (
         <div className={`no-print ${tabDir === 'left' ? 'tab-content' : 'tab-content-back'}`}
           style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
-          <TripMap stops={mapStops} onSelect={() => {}} />
-          {days.length > 0 && (
+          <TripMap days={mapDays} onSelect={() => {}} />
+          {daysWithColors.length > 0 && (
             <div style={{ position: 'absolute', top: 12, left: 0, right: 0, zIndex: 10, overflowX: 'auto', display: 'flex', gap: 8, padding: '0 16px' }}
               className="scroll-y" onScroll={e => e.stopPropagation()}>
               <button onClick={() => setSelectedDay(null)}
                 style={{ padding: '7px 14px', borderRadius: 100, fontSize: 12, fontWeight: 500, flexShrink: 0, cursor: 'pointer', background: !selectedDay ? 'var(--ink)' : 'var(--white)', color: !selectedDay ? 'var(--cream)' : 'var(--ink-light)', border: !selectedDay ? 'none' : '1px solid var(--border)', boxShadow: 'var(--shadow-sm)', transition: 'all 0.15s' }}>
                 All days
               </button>
-              {days.map(d => (
+              {daysWithColors.map(d => (
                 <button key={d.id} onClick={() => setSelectedDay(selectedDay?.id === d.id ? null : d)}
-                  style={{ padding: '7px 14px', borderRadius: 100, fontSize: 12, fontWeight: 500, flexShrink: 0, cursor: 'pointer', background: selectedDay?.id === d.id ? 'var(--accent)' : 'var(--white)', color: selectedDay?.id === d.id ? 'white' : 'var(--ink-light)', border: selectedDay?.id === d.id ? 'none' : '1px solid var(--border)', boxShadow: 'var(--shadow-sm)', transition: 'all 0.15s', whiteSpace: 'nowrap' }}>
-                  Day {d.day_number} · {d.city}
+                  style={{ padding: '7px 14px', borderRadius: 100, fontSize: 12, fontWeight: 500, flexShrink: 0, cursor: 'pointer', background: selectedDay?.id === d.id ? d.color : 'var(--white)', color: selectedDay?.id === d.id ? 'white' : 'var(--ink-light)', border: selectedDay?.id === d.id ? 'none' : `2px solid ${d.color}30`, boxShadow: 'var(--shadow-sm)', transition: 'all 0.15s', whiteSpace: 'nowrap' }}>
+                  <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: selectedDay?.id === d.id ? 'white' : d.color, marginRight: 5 }} />
+                  Day {d.day_number}
                 </button>
               ))}
             </div>
@@ -748,14 +825,14 @@ export default function TripDetailPage() {
           style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
           onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
 
-          {/* Search + view toggle toolbar */}
+          {/* Search toolbar */}
           <div style={{ padding: '10px 16px 8px', background: 'var(--white)', borderBottom: '1px solid var(--border)', display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
             <div className="search-bar-wrap" style={{ flex: 1 }}>
               <div className="search-icon"><Icon name="search" size={14} color="var(--ink-muted)" /></div>
               <input
                 className="input"
                 style={{ fontSize: 14, padding: '9px 14px 9px 36px', height: 38 }}
-                placeholder="Search stops, cities…"
+                placeholder="Search stops…"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
               />
@@ -769,14 +846,6 @@ export default function TripDetailPage() {
               style={{ padding: '6px 10px', borderRadius: 8, fontSize: 11, fontWeight: 600, border: '1px solid var(--border)', background: 'var(--cream)', color: 'var(--ink-muted)', cursor: 'pointer', flexShrink: 0, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 4 }}>
               📏 {unitKm ? 'km' : 'mi'}
             </button>
-            <div className="view-toggle">
-              <button className={`view-toggle-btn ${dayView === 'cards' ? 'active' : ''}`} onClick={() => setDayView('cards')}>
-                <Icon name="grid" size={13} color={dayView === 'cards' ? 'var(--cream)' : 'var(--ink-muted)'} />
-              </button>
-              <button className={`view-toggle-btn ${dayView === 'agenda' ? 'active' : ''}`} onClick={() => setDayView('agenda')}>
-                <Icon name="list" size={13} color={dayView === 'agenda' ? 'var(--cream)' : 'var(--ink-muted)'} />
-              </button>
-            </div>
           </div>
 
           <div className="scroll-y" style={{ flex: 1, padding: '12px 16px 100px' }}>
@@ -857,38 +926,31 @@ export default function TripDetailPage() {
               </div>
             ) : days.length === 0 ? (
               <div style={{ textAlign: 'center', paddingTop: 48 }}>
-                <div style={{ fontSize: 40, marginBottom: 12 }}>📅</div>
+                <div style={{ fontSize: 40, marginBottom: 12 }}>🏔️</div>
                 <p style={{ fontFamily: 'var(--font-display)', fontSize: 18, marginBottom: 6 }}>No days yet</p>
                 <p style={{ color: 'var(--ink-muted)', fontSize: 14, marginBottom: 24 }}>Add your first day to start planning</p>
                 <button className="btn btn-accent" onClick={() => setShowNewDay(true)}>
                   <Icon name="plus" size={15} color="white" /> Add first day
                 </button>
               </div>
-            ) : dayView === 'agenda' ? (
-              <>
-                <AgendaView days={filteredDays} />
-                <button className="btn btn-ghost" style={{ width: '100%', marginTop: 12 }} onClick={() => setShowNewDay(true)}>
-                  <Icon name="plus" size={15} color="var(--ink-light)" /> Add day
-                </button>
-              </>
             ) : (
               <>
                 {filteredDays.map(day => (
                   <DayCard
                     key={day.id}
                     day={day}
-                    photos={photos[day.id] || []}
+                    dayColor={day.color}
                     votes={votes}
                     unitKm={unitKm}
+                    isOpen={openDayId === day.id}
+                    onToggleOpen={() => setOpenDayId(openDayId === day.id ? null : day.id)}
                     onToggleStop={toggleDone}
                     onVote={handleVote}
                     onAddStop={() => { setAddStopForDay(day); setShowNewStop(true) }}
                     onOpenSheet={() => setOpenDaySheet(day)}
-                    onUploadPhoto={(files) => handleUploadPhoto(day.id, files)}
                     onEditStop={(stop) => setEditingStop(stop)}
                     onEditDay={() => setEditingDay(day)}
                     onReorderStops={(newStops) => handleReorderStops(day.id, newStops)}
-                    onLightbox={(p, i) => setLightbox({ photos: p, idx: i })}
                     onOptimize={() => handleOptimizeRoute(day.id)}
                   />
                 ))}
@@ -899,6 +961,16 @@ export default function TripDetailPage() {
             )}
           </div>
         </div>
+      )}
+
+      {/* ── Photos view ── */}
+      {tab === 'photos' && (
+        <PhotosTab
+          days={daysWithColors}
+          photos={photos}
+          onLightbox={(p, i) => setLightbox({ photos: p, idx: i })}
+          onUploadPhoto={handleUploadPhoto}
+        />
       )}
 
       {/* ── Pack view ── */}
@@ -986,9 +1058,16 @@ export default function TripDetailPage() {
       )}
 
       {showNewDay && (
-        <NewDayModal tripId={id} nextDayNumber={days.length + 1}
+        <NewDayModal
+          tripId={id}
+          nextDayNumber={days.length + 1}
+          tripDateStart={trip?.date_start || ''}
+          tripDateEnd={trip?.date_end || ''}
           onClose={() => setShowNewDay(false)}
-          onCreated={(day) => { setShowNewDay(false); setDays(prev => [...prev, { ...day, stops: [] }]) }}
+          onCreated={(day) => {
+            setShowNewDay(false)
+            setDays(prev => [...prev, { ...day, stops: day.stops || [] }].sort((a, b) => a.day_number - b.day_number))
+          }}
         />
       )}
 
@@ -1059,9 +1138,7 @@ export default function TripDetailPage() {
 }
 
 // ── DayCard ───────────────────────────────────────────────────────────────────
-function DayCard({ day, photos, votes, unitKm = true, onToggleStop, onVote, onAddStop, onOpenSheet, onUploadPhoto, onEditStop, onEditDay, onReorderStops, onLightbox, onOptimize }) {
-  const [expanded, setExpanded] = useState(true)
-  const fileRef = useRef(null)
+function DayCard({ day, dayColor, votes, unitKm = true, isOpen, onToggleOpen, onToggleStop, onVote, onAddStop, onOpenSheet, onEditStop, onEditDay, onReorderStops, onOptimize }) {
   const [draggedIdx, setDraggedIdx] = useState(null)
   const [dragOverIdx, setDragOverIdx] = useState(null)
 
@@ -1069,6 +1146,7 @@ function DayCard({ day, photos, votes, unitKm = true, onToggleStop, onVote, onAd
   const dayBudget = day.stops.reduce((sum, s) => sum + (s.cost || 0), 0)
   const dayDistKm = getDayDistance(day.stops)
   const dayDist = unitKm ? dayDistKm : dayDistKm * 0.621371
+  const color = dayColor || 'var(--accent)'
 
   const handleDragStart = (e, idx) => { setDraggedIdx(idx); e.dataTransfer.effectAllowed = 'move' }
   const handleDragOver = (e, idx) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; if (idx !== dragOverIdx) setDragOverIdx(idx) }
@@ -1083,26 +1161,29 @@ function DayCard({ day, photos, votes, unitKm = true, onToggleStop, onVote, onAd
   }
   const handleDragEnd = () => { setDraggedIdx(null); setDragOverIdx(null) }
 
+  const dateLabel = day.trip_date
+    ? new Date(day.trip_date).toLocaleDateString('en', { weekday: 'short', month: 'short', day: 'numeric' })
+    : `Day ${day.day_number}`
+
   return (
-    <div className="card" style={{ marginBottom: 12, overflow: 'hidden' }}>
-      {/* Header */}
-      <div style={{ width: '100%', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12 }}>
-        <button onClick={() => setExpanded(e => !e)}
-          style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1, background: 'none', cursor: 'pointer', textAlign: 'left' }}>
-          <div style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--accent)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.65)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Day</span>
-            <span style={{ fontSize: 15, fontWeight: 700, color: 'white', lineHeight: 1 }}>{day.day_number}</span>
+    <div className="card" style={{ marginBottom: 8, overflow: 'hidden', borderLeft: `3px solid ${color}` }}>
+      {/* Header row — always visible, click to expand */}
+      <div style={{ width: '100%', padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
+        <button onClick={onToggleOpen}
+          style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, background: 'none', cursor: 'pointer', textAlign: 'left' }}>
+          <div style={{ width: 38, height: 38, borderRadius: 9, background: color, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <span style={{ fontSize: 8, color: 'rgba(255,255,255,0.65)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Day</span>
+            <span style={{ fontSize: 14, fontWeight: 700, color: 'white', lineHeight: 1 }}>{day.day_number}</span>
           </div>
           <div style={{ flex: 1, overflow: 'hidden' }}>
-            <p style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 500 }}>{day.city}</p>
+            <p style={{ fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 500 }}>{dateLabel}</p>
             <p style={{ fontSize: 12, color: 'var(--ink-muted)' }}>
-              {day.trip_date ? new Date(day.trip_date).toLocaleDateString('en', { weekday: 'short', month: 'short', day: 'numeric' }) : ''}
-              {day.stops.length > 0 ? `${day.trip_date ? ' · ' : ''}${doneCount}/${day.stops.length} done` : 'No stops yet'}
+              {day.stops.length > 0 ? `${doneCount}/${day.stops.length} stops` : 'No stops yet'}
               {dayBudget > 0 && ` · $${dayBudget.toFixed(0)}`}
-              {dayDist > 0.1 && ` · ~${dayDist.toFixed(1)} ${unitKm ? 'km' : 'mi'}`}
+              {dayDist > 0.1 && ` · ${dayDist.toFixed(1)} ${unitKm ? 'km' : 'mi'}`}
             </p>
           </div>
-          <div style={{ transform: expanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
+          <div style={{ transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
             <Icon name="chevron_down" size={16} color="var(--sand-dark)" />
           </div>
         </button>
@@ -1129,16 +1210,16 @@ function DayCard({ day, photos, votes, unitKm = true, onToggleStop, onVote, onAd
 
       {/* Progress bar */}
       {day.stops.length > 0 && (
-        <div style={{ height: 2, background: 'var(--cream-dark)', margin: '0 16px' }}>
-          <div style={{ height: '100%', width: `${(doneCount / day.stops.length) * 100}%`, background: 'var(--teal)', transition: 'width 0.3s' }} />
+        <div style={{ height: 2, background: 'var(--cream-dark)', margin: '0 14px' }}>
+          <div style={{ height: '100%', width: `${(doneCount / day.stops.length) * 100}%`, background: color, transition: 'width 0.3s' }} />
         </div>
       )}
 
-      {expanded && (
+      {isOpen && (
         <div className="anim-up">
           {/* Stops */}
           {day.stops.length > 0 && (
-            <div style={{ padding: '12px 16px 0' }}>
+            <div style={{ padding: '12px 14px 0' }}>
               {day.stops.map((stop, i) => {
                 const meta = TYPE_META[stop.type] || TYPE_META.attraction
                 const stopVotes = votes[stop.id] || { up: 0, down: 0, userVote: null }
@@ -1161,7 +1242,7 @@ function DayCard({ day, photos, votes, unitKm = true, onToggleStop, onVote, onAd
                     <div className="drag-handle" style={{ display: 'flex', alignItems: 'flex-start', paddingTop: 6 }}>
                       <Icon name="drag" size={14} color="var(--sand-dark)" />
                     </div>
-                    <div style={{ width: 30, height: 30, borderRadius: '50%', background: stop.done ? 'var(--cream-dark)' : 'var(--accent-pale)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 13, zIndex: 1 }}>
+                    <div style={{ width: 30, height: 30, borderRadius: '50%', background: stop.done ? 'var(--cream-dark)' : `${color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 13, zIndex: 1 }}>
                       {meta.emoji}
                     </div>
                     <div style={{ flex: 1, paddingTop: 4 }}>
@@ -1206,46 +1287,18 @@ function DayCard({ day, photos, votes, unitKm = true, onToggleStop, onVote, onAd
 
           {/* Add stop */}
           <button onClick={onAddStop}
-            style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '12px 16px', fontSize: 13, color: 'var(--accent)', fontWeight: 500, cursor: 'pointer', background: 'none', borderTop: day.stops.length > 0 ? '1px dashed var(--sand)' : 'none', marginTop: day.stops.length > 0 ? 12 : 4 }}>
-            <Icon name="plus" size={14} color="var(--accent)" />
+            style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '12px 14px', fontSize: 13, color: color, fontWeight: 500, cursor: 'pointer', background: 'none', borderTop: day.stops.length > 0 ? '1px dashed var(--sand)' : 'none', marginTop: day.stops.length > 0 ? 12 : 4 }}>
+            <Icon name="plus" size={14} color={color} />
             Add stop
           </button>
 
           {/* Journal note (read-only display) */}
           {day.journal && (
-            <div style={{ margin: '0 16px 14px', padding: '10px 12px', background: 'var(--cream)', borderRadius: 10, borderLeft: '3px solid var(--sand-dark)' }}>
+            <div style={{ margin: '0 14px 14px', padding: '10px 12px', background: 'var(--cream)', borderRadius: 10, borderLeft: `3px solid ${color}` }}>
               <p style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--ink-muted)', marginBottom: 4 }}>✍️ Journal</p>
               <p style={{ fontSize: 13, color: 'var(--ink-light)', lineHeight: 1.6 }}>{day.journal}</p>
             </div>
           )}
-
-          {/* Photos */}
-          <div style={{ padding: '0 16px 14px', borderTop: '1px solid var(--border)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 0 8px' }}>
-              <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--ink-light)' }}>📷 Photos {photos.length > 0 ? `(${photos.length})` : ''}</span>
-              <button onClick={() => fileRef.current?.click()} className="btn btn-ghost btn-sm" style={{ padding: '5px 10px', fontSize: 12 }}>+ Add</button>
-              <input ref={fileRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={e => onUploadPhoto(e.target.files)} />
-            </div>
-            {photos.length > 0 ? (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 4 }}>
-                {photos.map((url, i) => (
-                  <div key={i} onClick={() => onLightbox(photos, i)}
-                    style={{ aspectRatio: '1', borderRadius: 8, overflow: 'hidden', background: 'var(--cream-dark)', cursor: 'pointer', position: 'relative' }}>
-                    <img src={url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="lazy" />
-                    <div style={{ position: 'absolute', inset: 0, background: 'transparent', transition: 'background 0.15s' }}
-                      onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.15)'}
-                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'} />
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div onClick={() => fileRef.current?.click()}
-                style={{ border: '1.5px dashed var(--sand)', borderRadius: 10, padding: '16px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
-                <Icon name="image" size={22} color="var(--sand-dark)" />
-                <p style={{ fontSize: 12, color: 'var(--ink-muted)' }}>Add trip photos</p>
-              </div>
-            )}
-          </div>
         </div>
       )}
     </div>

@@ -4,10 +4,11 @@ import BottomSheet from './BottomSheet'
 import Icon from './Icon'
 
 const TYPES = [
-  { id: 'attraction', label: 'Attraction', emoji: '🏛' },
-  { id: 'food', label: 'Food', emoji: '🍽' },
-  { id: 'hotel', label: 'Hotel', emoji: '🏨' },
+  { id: 'attraction', label: 'Viewpoint', emoji: '🏔️' },
+  { id: 'food', label: 'Food/Water', emoji: '🍽' },
+  { id: 'hotel', label: 'Camp/Lodge', emoji: '⛺' },
   { id: 'transport', label: 'Transport', emoji: '🚌' },
+  { id: 'waypoint', label: 'Waypoint', emoji: '📍' },
 ]
 
 export default function NewStopModal({ dayId, nextOrder, onClose, onCreated }) {
@@ -79,7 +80,7 @@ export default function NewStopModal({ dayId, nextOrder, onClose, onCreated }) {
         {/* Type selector */}
         <div>
           <label style={lbl}>Type</label>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 6 }}>
             {TYPES.map(t => (
               <button key={t.id} onClick={() => setForm(f => ({ ...f, type: t.id }))}
                 style={{ padding: '10px 6px', borderRadius: 10, border: `2px solid ${form.type === t.id ? 'var(--accent)' : 'var(--border)'}`, background: form.type === t.id ? 'var(--accent-pale)' : 'var(--white)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, cursor: 'pointer', transition: 'all 0.15s' }}>
@@ -92,7 +93,7 @@ export default function NewStopModal({ dayId, nextOrder, onClose, onCreated }) {
 
         <div>
           <label style={lbl}>Name *</label>
-          <input className="input" placeholder="e.g. Louvre Museum" value={form.name} onChange={set('name')} />
+          <input className="input" placeholder="e.g. Eagle Peak Summit" value={form.name} onChange={set('name')} />
         </div>
 
         {/* Place search */}

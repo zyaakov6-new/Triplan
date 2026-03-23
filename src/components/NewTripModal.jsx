@@ -5,7 +5,7 @@ import BottomSheet from './BottomSheet'
 import Icon from './Icon'
 import { THEMES } from '../lib/themes'
 
-const EMOJIS = ['✈️','🏖️','🏔️','🗺️','🚢','🚂','🏕️','🌍','🌴','🎒']
+const EMOJIS = ['🏔️','🥾','🏕️','🎒','🛤️','🌲','🌄','🗺️','🚵','⛺','🌿','🦅']
 
 export default function NewTripModal({ onClose, onCreated }) {
   const { user } = useAuth()
@@ -32,18 +32,17 @@ export default function NewTripModal({ onClose, onCreated }) {
   return (
     <BottomSheet onClose={onClose} title="New trip">
       <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-        {/* Color theme */}
-        <div>
-          <label style={lbl}>Color theme</label>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        {/* Color theme — compact row */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--ink-muted)', whiteSpace: 'nowrap' }}>Theme:</span>
+          <div style={{ display: 'flex', gap: 6 }}>
             {Object.values(THEMES).map(t => (
               <button key={t.id} onClick={() => setForm(f => ({ ...f, color_theme: t.id }))}
                 title={t.label}
-                style={{ width: 36, height: 36, borderRadius: '50%', background: t.swatch, border: `3px solid ${form.color_theme === t.id ? '#1A1612' : 'transparent'}`, outline: form.color_theme === t.id ? `2px solid ${t.swatch}` : 'none', outlineOffset: 2, cursor: 'pointer', transition: 'all 0.15s' }}>
+                style={{ width: 24, height: 24, borderRadius: '50%', background: t.swatch, border: `2px solid ${form.color_theme === t.id ? '#1A1612' : 'transparent'}`, outline: form.color_theme === t.id ? `2px solid ${t.swatch}` : 'none', outlineOffset: 2, cursor: 'pointer', transition: 'all 0.15s' }}>
               </button>
             ))}
           </div>
-          <p style={{ fontSize: 11, color: 'var(--ink-muted)', marginTop: 6 }}>{THEMES[form.color_theme]?.label || 'Terracotta'}</p>
         </div>
 
         {/* Emoji picker */}
@@ -61,7 +60,7 @@ export default function NewTripModal({ onClose, onCreated }) {
 
         <div>
           <label style={lbl}>Trip name *</label>
-          <input className="input" placeholder="European Summer 2025" value={form.name} onChange={set('name')} />
+          <input className="input" placeholder="Rocky Mountains Trek 2025" value={form.name} onChange={set('name')} />
         </div>
 
         <div>
@@ -76,7 +75,7 @@ export default function NewTripModal({ onClose, onCreated }) {
           </div>
           <div>
             <label style={lbl}>End date</label>
-            <input className="input" type="date" value={form.date_end} onChange={set('date_end')} />
+            <input className="input" type="date" value={form.date_end} min={form.date_start || undefined} onChange={set('date_end')} />
           </div>
         </div>
 
