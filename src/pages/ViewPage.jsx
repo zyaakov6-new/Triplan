@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import PhotoLightbox from '../components/PhotoLightbox'
+import Icon from '../components/Icon'
 
 const TYPE_META = {
-  attraction: { emoji: '🏛', label: 'Attraction' },
-  food:       { emoji: '🍽', label: 'Restaurant' },
-  hotel:      { emoji: '🏨', label: 'Hotel' },
-  transport:  { emoji: '🚌', label: 'Transport' },
+  waypoint:   { icon: 'pin',       label: 'Waypoint' },
+  attraction: { icon: 'navigate',  label: 'Viewpoint' },
+  food:       { icon: 'food',      label: 'Food & Water' },
+  hotel:      { icon: 'hotel',     label: 'Camp/Lodge' },
+  transport:  { icon: 'transport', label: 'Transport' },
 }
 
 export default function ViewPage() {
@@ -26,7 +28,6 @@ export default function ViewPage() {
       if (err || !data) { setError(true); setLoading(false); return }
       setTrip(data)
 
-      // Fetch photos for each day
       const days = data.days || []
       const photoMap = {}
       for (const day of days) {
@@ -42,17 +43,17 @@ export default function ViewPage() {
 
   if (loading) return (
     <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 12 }}>
-      <div style={{ fontSize: 40 }}>✈️</div>
+      <Icon name="map" size={40} color="var(--sand-dark)" />
       <p style={{ color: 'var(--ink-muted)', fontSize: 14 }}>Loading trip…</p>
     </div>
   )
 
   if (error || !trip) return (
     <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 12 }}>
-      <div style={{ fontSize: 40 }}>😕</div>
+      <Icon name="info" size={40} color="var(--sand-dark)" />
       <p style={{ fontFamily: 'var(--font-display)', fontSize: 20 }}>Trip not found</p>
       <p style={{ color: 'var(--ink-muted)', fontSize: 14 }}>This link may be invalid or expired</p>
-      <a href="/" style={{ marginTop: 8, fontSize: 14, color: 'var(--accent)', fontWeight: 500 }}>← Back to Triplan</a>
+      <a href="/" style={{ marginTop: 8, fontSize: 14, color: 'var(--accent)', fontWeight: 500 }}>Back to Triplan</a>
     </div>
   )
 
@@ -72,18 +73,20 @@ export default function ViewPage() {
             <img src={trip.cover_photo_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.65))' }} />
             <div style={{ position: 'absolute', bottom: 14, left: 20, right: 20 }}>
-              <p style={{ fontFamily: 'var(--font-display)', fontSize: 22, color: 'white', fontWeight: 500, marginBottom: 2 }}>{trip.cover_emoji} {trip.name}</p>
+              <p style={{ fontFamily: 'var(--font-display)', fontSize: 22, color: 'white', fontWeight: 500, marginBottom: 2 }}>{trip.name}</p>
               <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.82)' }}>{[trip.destination, dateStr].filter(Boolean).join(' · ')}</p>
             </div>
           </div>
         ) : (
           <div style={{ padding: '20px 20px 12px' }}>
-            <p style={{ fontFamily: 'var(--font-display)', fontSize: 22 }}>{trip.cover_emoji} {trip.name}</p>
+            <p style={{ fontFamily: 'var(--font-display)', fontSize: 22 }}>{trip.name}</p>
             <p style={{ fontSize: 13, color: 'var(--ink-muted)', marginTop: 2 }}>{[trip.destination, dateStr].filter(Boolean).join(' · ')}</p>
           </div>
         )}
         <div style={{ padding: '8px 20px 12px', display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 12, color: 'var(--ink-muted)', background: 'var(--cream)', border: '1px solid var(--border)', padding: '4px 10px', borderRadius: 100 }}>👁 Read-only</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, color: 'var(--ink-muted)', background: 'var(--cream)', border: '1px solid var(--border)', padding: '4px 10px', borderRadius: 100 }}>
+            <Icon name="eye" size={12} color="var(--ink-muted)" /> Read-only
+          </span>
           <span style={{ fontSize: 12, color: 'var(--ink-muted)' }}>{days.length} day{days.length !== 1 ? 's' : ''} · {allStops.length} stop{allStops.length !== 1 ? 's' : ''}</span>
           {totalBudget > 0 && <span style={{ fontSize: 12, color: 'var(--teal)', fontWeight: 600 }}>${totalBudget.toFixed(0)} total</span>}
         </div>
@@ -106,10 +109,11 @@ export default function ViewPage() {
                   <span style={{ fontSize: 15, fontWeight: 700, color: 'white', lineHeight: 1 }}>{day.day_number}</span>
                 </div>
                 <div style={{ flex: 1 }}>
-                  <p style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 500 }}>{day.city}</p>
+                  <p style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 500 }}>
+                    {day.trip_date ? new Date(day.trip_date).toLocaleDateString('en', { weekday: 'short', month: 'short', day: 'numeric' }) : `Day ${day.day_number}`}
+                  </p>
                   <p style={{ fontSize: 12, color: 'var(--ink-muted)' }}>
-                    {day.trip_date ? new Date(day.trip_date).toLocaleDateString('en', { weekday: 'short', month: 'short', day: 'numeric' }) : ''}
-                    {stops.length > 0 ? `${day.trip_date ? ' · ' : ''}${stops.length} stop${stops.length !== 1 ? 's' : ''}` : 'No stops'}
+                    {stops.length > 0 ? `${stops.length} stop${stops.length !== 1 ? 's' : ''}` : 'No stops'}
                     {dayBudget > 0 && ` · $${dayBudget.toFixed(0)}`}
                   </p>
                 </div>
@@ -126,7 +130,9 @@ export default function ViewPage() {
                     return (
                       <div key={stop.id} style={{ display: 'flex', gap: 10, paddingBottom: i < stops.length - 1 ? 14 : 0, position: 'relative' }}>
                         {i < stops.length - 1 && <div style={{ position: 'absolute', left: 15, top: 30, bottom: 0, width: 1, background: 'var(--border)' }} />}
-                        <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'var(--accent-pale)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 13, zIndex: 1 }}>{meta.emoji}</div>
+                        <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'var(--accent-pale)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, zIndex: 1 }}>
+                          <Icon name={meta.icon} size={13} color="var(--accent)" />
+                        </div>
                         <div style={{ flex: 1, paddingTop: 4 }}>
                           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
                             <div>
@@ -137,9 +143,9 @@ export default function ViewPage() {
                               {stop.cost > 0 && <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--teal)', background: 'var(--teal-light)', padding: '1px 6px', borderRadius: 20, marginTop: 3, display: 'inline-block' }}>${stop.cost}</span>}
                             </div>
                             <a href={gmapsUrl} target="_blank" rel="noopener noreferrer"
-                              style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--cream)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2, color: 'var(--accent)', fontSize: 14 }}
+                              style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--cream)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 }}
                               title="Directions">
-                              🧭
+                              <Icon name="navigate" size={13} color="var(--accent)" />
                             </a>
                           </div>
                         </div>
@@ -152,7 +158,10 @@ export default function ViewPage() {
               {/* Photos */}
               {dayPhotos.length > 0 && (
                 <div style={{ padding: '0 16px 14px', borderTop: '1px solid var(--border)' }}>
-                  <p style={{ fontSize: 12, fontWeight: 500, color: 'var(--ink-light)', padding: '10px 0 8px' }}>📷 Photos ({dayPhotos.length})</p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 0 8px' }}>
+                    <Icon name="image" size={12} color="var(--ink-muted)" />
+                    <p style={{ fontSize: 12, fontWeight: 500, color: 'var(--ink-light)' }}>Photos ({dayPhotos.length})</p>
+                  </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 4 }}>
                     {dayPhotos.map((url, i) => (
                       <div key={i} onClick={() => setLightbox({ photos: dayPhotos, idx: i })}
@@ -167,7 +176,10 @@ export default function ViewPage() {
               {/* Journal */}
               {day.journal && (
                 <div style={{ padding: '12px 16px', borderTop: '1px solid var(--border)', background: 'var(--cream)' }}>
-                  <p style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--ink-muted)', marginBottom: 4 }}>✍️ Notes</p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                    <Icon name="edit" size={11} color="var(--ink-muted)" />
+                    <p style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--ink-muted)' }}>Notes</p>
+                  </div>
                   <p style={{ fontSize: 13, color: 'var(--ink-light)', lineHeight: 1.6 }}>{day.journal}</p>
                 </div>
               )}
@@ -178,7 +190,7 @@ export default function ViewPage() {
 
       {/* Footer */}
       <div style={{ padding: '12px 20px', background: 'var(--white)', borderTop: '1px solid var(--border)', textAlign: 'center', flexShrink: 0 }}>
-        <p style={{ fontSize: 12, color: 'var(--ink-muted)' }}>Shared via <span style={{ color: 'var(--accent)', fontWeight: 500 }}>Triplan</span> · <a href="/" style={{ color: 'var(--accent)' }}>Plan your own trip →</a></p>
+        <p style={{ fontSize: 12, color: 'var(--ink-muted)' }}>Shared via <span style={{ color: 'var(--accent)', fontWeight: 500 }}>Triplan</span> · <a href="/" style={{ color: 'var(--accent)' }}>Plan your own trip</a></p>
       </div>
 
       {lightbox && <PhotoLightbox photos={lightbox.photos} initialIndex={lightbox.idx} onClose={() => setLightbox(null)} />}

@@ -489,8 +489,8 @@ export default function TripDetailPage() {
     const start = new Date(trip.date_start); start.setHours(0, 0, 0, 0)
     const diff = Math.round((start - today) / (1000 * 60 * 60 * 24))
     if (diff < 0) return null
-    if (diff === 0) return '✈️ Trip starts today!'
-    return `✈️ ${diff} day${diff !== 1 ? 's' : ''} to go`
+    if (diff === 0) return 'Trip starts today!'
+    return `${diff} day${diff !== 1 ? 's' : ''} to go`
   }, [trip])
 
   // ── Days with colors ───────────────────────────────────────────────────────
@@ -742,7 +742,7 @@ export default function TripDetailPage() {
           </button>
           <div style={{ flex: 1, overflow: 'hidden' }}>
             <p style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {trip.cover_emoji} {trip.name}
+              {trip.name}
             </p>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
               {trip.date_start && (
@@ -956,11 +956,9 @@ export default function TripDetailPage() {
           <DayDetailView
             day={currentDay}
             dayColor={currentDay.color}
-            votes={votes}
             unitKm={unitKm}
             onBack={() => setDetailDay(null)}
             onToggleStop={toggleDone}
-            onVote={handleVote}
             onAddStop={() => { setAddStopForDay(currentDay); setShowNewStop(true) }}
             onOpenSheet={() => setOpenDaySheet(currentDay)}
             onEditStop={(stop) => setEditingStop(stop)}
@@ -1195,7 +1193,7 @@ function DayCard({ day, dayColor, unitKm = true, onOpen }) {
 }
 
 // ── Stop list shared between DayDetailView and other views ────────────────────
-function StopsList({ stops, votes, color, onToggleStop, onVote, onEditStop, onReorderStops }) {
+function StopsList({ stops, color, onToggleStop, onEditStop, onReorderStops }) {
   const [draggedIdx, setDraggedIdx] = useState(null)
   const [dragOverIdx, setDragOverIdx] = useState(null)
 
@@ -1216,7 +1214,6 @@ function StopsList({ stops, votes, color, onToggleStop, onVote, onEditStop, onRe
     <div>
       {stops.map((stop, i) => {
         const meta = TYPE_META[stop.type] || TYPE_META.attraction
-        const stopVotes = votes[stop.id] || { up: 0, down: 0, userVote: null }
         const gmapsUrl = stop.lat && stop.lng
           ? `https://www.google.com/maps/dir/?api=1&destination=${stop.lat},${stop.lng}`
           : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(stop.name)}`
@@ -1249,16 +1246,6 @@ function StopsList({ stops, votes, color, onToggleStop, onVote, onEditStop, onRe
                     )}
                   </div>
                   <div style={{ display: 'flex', gap: 6, marginTop: 6, alignItems: 'center' }}>
-                    <button className={`vote-btn ${stopVotes.userVote === 'up' ? 'active-up' : ''}`}
-                      onClick={() => onVote(stop.id, 'up')}>
-                      <Icon name="thumbs_up" size={11} color={stopVotes.userVote === 'up' ? 'var(--teal)' : 'var(--ink-muted)'} />
-                      {stopVotes.up || 0}
-                    </button>
-                    <button className={`vote-btn ${stopVotes.userVote === 'down' ? 'active-down' : ''}`}
-                      onClick={() => onVote(stop.id, 'down')}>
-                      <Icon name="thumbs_down" size={11} color={stopVotes.userVote === 'down' ? '#e55' : 'var(--ink-muted)'} />
-                      {stopVotes.down || 0}
-                    </button>
                     <a href={gmapsUrl} target="_blank" rel="noopener noreferrer"
                       style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 7px', borderRadius: 20, fontSize: 11, fontWeight: 500, border: '1px solid var(--border)', background: 'var(--cream)', color: 'var(--ink-muted)', textDecoration: 'none' }}>
                       <Icon name="navigate" size={10} color="var(--ink-muted)" /> Directions
@@ -1285,7 +1272,7 @@ function StopsList({ stops, votes, color, onToggleStop, onVote, onEditStop, onRe
 }
 
 // ── Day detail full-screen view ────────────────────────────────────────────────
-function DayDetailView({ day, dayColor, votes, unitKm, onBack, onToggleStop, onVote, onAddStop, onOpenSheet, onEditStop, onEditDay, onReorderStops, onOptimize }) {
+function DayDetailView({ day, dayColor, unitKm, onBack, onToggleStop, onAddStop, onOpenSheet, onEditStop, onEditDay, onReorderStops, onOptimize }) {
   const color = dayColor || 'var(--accent)'
   const doneCount = day.stops.filter(s => s.done).length
   const dayBudget = day.stops.reduce((sum, s) => sum + (s.cost || 0), 0)
@@ -1296,7 +1283,7 @@ function DayDetailView({ day, dayColor, votes, unitKm, onBack, onToggleStop, onV
     : `Day ${day.day_number}`
 
   return (
-    <div style={{ position: 'absolute', inset: 0, background: 'var(--bg)', zIndex: 50, display: 'flex', flexDirection: 'column' }}>
+    <div style={{ position: 'fixed', inset: 0, background: 'var(--bg)', zIndex: 50, display: 'flex', flexDirection: 'column' }}>
       {/* Header */}
       <div style={{ background: 'var(--white)', borderBottom: '1px solid var(--border)', flexShrink: 0, paddingTop: 'var(--safe-top)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px' }}>
@@ -1348,10 +1335,8 @@ function DayDetailView({ day, dayColor, votes, unitKm, onBack, onToggleStop, onV
         {day.stops.length > 0 ? (
           <StopsList
             stops={day.stops}
-            votes={votes}
             color={color}
             onToggleStop={onToggleStop}
-            onVote={onVote}
             onEditStop={onEditStop}
             onReorderStops={onReorderStops}
           />

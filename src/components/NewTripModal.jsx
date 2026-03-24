@@ -5,11 +5,9 @@ import BottomSheet from './BottomSheet'
 import Icon from './Icon'
 import { THEMES } from '../lib/themes'
 
-const EMOJIS = ['🏔️','🥾','🏕️','🎒','🛤️','🌲','🌄','🗺️','🚵','⛺','🌿','🦅']
-
 export default function NewTripModal({ onClose, onCreated }) {
   const { user } = useAuth()
-  const [form, setForm] = useState({ name: '', destination: '', date_start: '', date_end: '', cover_emoji: '✈️', color_theme: 'terracotta' })
+  const [form, setForm] = useState({ name: '', destination: '', date_start: '', date_end: '', color_theme: 'terracotta' })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -20,7 +18,7 @@ export default function NewTripModal({ onClose, onCreated }) {
     setLoading(true); setError('')
     const { data, error: err } = await supabase
       .from('trips')
-      .insert({ owner_id: user.id, name: form.name.trim(), destination: form.destination.trim(), date_start: form.date_start || null, date_end: form.date_end || null, cover_emoji: form.cover_emoji, color_theme: form.color_theme })
+      .insert({ owner_id: user.id, name: form.name.trim(), destination: form.destination.trim(), date_start: form.date_start || null, date_end: form.date_end || null, color_theme: form.color_theme })
       .select().single()
     if (err) { setError(err.message); setLoading(false); return }
     // Add owner as member too
@@ -40,19 +38,6 @@ export default function NewTripModal({ onClose, onCreated }) {
               <button key={t.id} onClick={() => setForm(f => ({ ...f, color_theme: t.id }))}
                 title={t.label}
                 style={{ width: 24, height: 24, borderRadius: '50%', background: t.swatch, border: `2px solid ${form.color_theme === t.id ? '#1A1612' : 'transparent'}`, outline: form.color_theme === t.id ? `2px solid ${t.swatch}` : 'none', outlineOffset: 2, cursor: 'pointer', transition: 'all 0.15s' }}>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Emoji picker */}
-        <div>
-          <label style={lbl}>Vibe</label>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            {EMOJIS.map(e => (
-              <button key={e} onClick={() => setForm(f => ({ ...f, cover_emoji: e }))}
-                style={{ width: 44, height: 44, borderRadius: 12, fontSize: 22, border: `2px solid ${form.cover_emoji === e ? 'var(--accent)' : 'var(--border)'}`, background: form.cover_emoji === e ? 'var(--accent-pale)' : 'var(--white)', transition: 'all 0.15s', cursor: 'pointer' }}>
-                {e}
               </button>
             ))}
           </div>

@@ -5,12 +5,11 @@ import BottomSheet from './BottomSheet'
 import Icon from './Icon'
 import { THEMES } from '../lib/themes'
 
-const EMOJIS = ['✈️','🏖️','🏔️','🗺️','🚢','🚂','🏕️','🌍','🌴','🎒']
 const BOOKING_TYPES = [
-  { id: 'flight', label: 'Flight', emoji: '✈️' },
-  { id: 'hotel', label: 'Hotel', emoji: '🏨' },
-  { id: 'car', label: 'Car', emoji: '🚗' },
-  { id: 'other', label: 'Other', emoji: '🔗' },
+  { id: 'flight', label: 'Flight', icon: 'transport' },
+  { id: 'hotel', label: 'Hotel', icon: 'hotel' },
+  { id: 'car', label: 'Car', icon: 'navigate' },
+  { id: 'other', label: 'Other', icon: 'external_link' },
 ]
 
 export default function EditTripModal({ trip, onClose, onUpdated, onDeleted }) {
@@ -21,7 +20,6 @@ export default function EditTripModal({ trip, onClose, onUpdated, onDeleted }) {
     destination: trip.destination || '',
     date_start: trip.date_start || '',
     date_end: trip.date_end || '',
-    cover_emoji: trip.cover_emoji || '✈️',
     booking_links: trip.booking_links || [],
     color_theme: trip.color_theme || 'terracotta',
   })
@@ -66,7 +64,6 @@ export default function EditTripModal({ trip, onClose, onUpdated, onDeleted }) {
       destination: form.destination.trim(),
       date_start: form.date_start || null,
       date_end: form.date_end || null,
-      cover_emoji: form.cover_emoji,
       booking_links: form.booking_links,
       cover_photo_url: coverPhoto,
       color_theme: form.color_theme,
@@ -123,19 +120,6 @@ export default function EditTripModal({ trip, onClose, onUpdated, onDeleted }) {
           <p style={{ fontSize: 11, color: 'var(--ink-muted)', marginTop: 6 }}>{THEMES[form.color_theme]?.label || 'Terracotta'}</p>
         </div>
 
-        {/* Emoji */}
-        <div>
-          <label style={lbl}>Vibe</label>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            {EMOJIS.map(e => (
-              <button key={e} onClick={() => setForm(f => ({ ...f, cover_emoji: e }))}
-                style={{ width: 44, height: 44, borderRadius: 12, fontSize: 22, border: `2px solid ${form.cover_emoji === e ? 'var(--accent)' : 'var(--border)'}`, background: form.cover_emoji === e ? 'var(--accent-pale)' : 'var(--white)', transition: 'all 0.15s', cursor: 'pointer' }}>
-                {e}
-              </button>
-            ))}
-          </div>
-        </div>
-
         <div>
           <label style={lbl}>Trip name *</label>
           <input className="input" value={form.name} onChange={set('name')} />
@@ -175,7 +159,7 @@ export default function EditTripModal({ trip, onClose, onUpdated, onDeleted }) {
                 {BOOKING_TYPES.map(t => (
                   <button key={t.id} onClick={() => setNewBooking(b => ({ ...b, type: t.id }))}
                     style={{ padding: '8px 4px', borderRadius: 8, border: `1.5px solid ${newBooking.type === t.id ? 'var(--accent)' : 'var(--border)'}`, background: newBooking.type === t.id ? 'var(--accent-pale)' : 'var(--white)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, cursor: 'pointer', fontSize: 10 }}>
-                    <span style={{ fontSize: 16 }}>{t.emoji}</span>
+                    <Icon name={t.icon} size={16} color={newBooking.type === t.id ? 'var(--accent)' : 'var(--ink-muted)'} />
                     <span style={{ fontWeight: 500, color: newBooking.type === t.id ? 'var(--accent)' : 'var(--ink-muted)' }}>{t.label}</span>
                   </button>
                 ))}
@@ -193,7 +177,7 @@ export default function EditTripModal({ trip, onClose, onUpdated, onDeleted }) {
                 const btype = BOOKING_TYPES.find(t => t.id === bl.type) || BOOKING_TYPES[3]
                 return (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: 'var(--cream)', borderRadius: 10, border: '1px solid var(--border)' }}>
-                    <span style={{ fontSize: 20 }}>{btype.emoji}</span>
+                    <Icon name={btype.icon} size={18} color="var(--ink-muted)" />
                     <div style={{ flex: 1, overflow: 'hidden' }}>
                       <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink)' }}>{bl.label}</p>
                       {bl.ref && <p style={{ fontSize: 11, color: 'var(--ink-muted)' }}>Ref: {bl.ref}</p>}

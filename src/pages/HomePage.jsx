@@ -187,7 +187,7 @@ function TripCard({ trip, formatDates, onClick, onEdit }) {
           <img src={trip.cover_photo_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 30%, rgba(26,22,18,0.65))' }} />
           <div style={{ position: 'absolute', bottom: 10, left: 14, right: 50 }}>
-            <p style={{ fontFamily: 'var(--font-display)', fontSize: 17, fontWeight: 500, color: '#fff', marginBottom: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{trip.cover_emoji} {trip.name}</p>
+            <p style={{ fontFamily: 'var(--font-display)', fontSize: 17, fontWeight: 500, color: '#fff', marginBottom: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{trip.name}</p>
             <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.78)' }}>{[trip.destination, formatDates(trip)].filter(Boolean).join(' · ') || 'No dates set'}</p>
           </div>
           <button onClick={onEdit} style={{ position: 'absolute', top: 8, right: 8, width: 30, height: 30, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: '1px solid rgba(255,255,255,0.3)' }}>
@@ -196,8 +196,8 @@ function TripCard({ trip, formatDates, onClick, onEdit }) {
         </div>
       ) : (
         <div style={{ padding: '18px 20px', display: 'flex', alignItems: 'center', gap: 16 }}>
-          <div style={{ width: 52, height: 52, borderRadius: 14, background: 'var(--accent-pale)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26, flexShrink: 0 }}>
-            {trip.cover_emoji || '✈️'}
+          <div style={{ width: 52, height: 52, borderRadius: 14, background: 'var(--accent-pale)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <Icon name="map" size={24} color="var(--accent)" />
           </div>
           <div style={{ flex: 1, overflow: 'hidden' }}>
             <p style={{ fontFamily: 'var(--font-display)', fontSize: 17, fontWeight: 500, color: 'var(--ink)', marginBottom: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{trip.name}</p>

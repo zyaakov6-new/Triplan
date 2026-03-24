@@ -3,8 +3,11 @@ export default function BeautifulPrintView({ trip, days, themeColor = '#C4622D' 
   const totalBudget = allStops.reduce((s, st) => s + (st.cost || 0), 0)
 
   const TYPE_META = {
-    attraction: { emoji: '🏛' }, food: { emoji: '🍽' },
-    hotel: { emoji: '🏨' }, transport: { emoji: '🚌' },
+    waypoint:   { symbol: '●' },
+    attraction: { symbol: '▲' },
+    food:       { symbol: '◆' },
+    hotel:      { symbol: '⌂' },
+    transport:  { symbol: '▶' },
   }
 
   const accentPale = themeColor + '18'
@@ -21,8 +24,10 @@ export default function BeautifulPrintView({ trip, days, themeColor = '#C4622D' 
 
       {/* Cover */}
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 18, marginBottom: 20 }}>
-        <div style={{ width: 72, height: 72, borderRadius: 18, background: accentPale, border: `2px solid ${accentMid}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 36, flexShrink: 0 }}>
-          {trip.cover_emoji || '✈️'}
+        <div style={{ width: 72, height: 72, borderRadius: 18, background: accentPale, border: `2px solid ${accentMid}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <div style={{ width: 36, height: 36, background: themeColor, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ fontSize: 18, color: 'white', fontWeight: 700 }}>T</span>
+          </div>
         </div>
         <div>
           <h1 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 30, fontWeight: 700, margin: '0 0 4px', lineHeight: 1.1 }}>{trip.name}</h1>
@@ -77,7 +82,7 @@ export default function BeautifulPrintView({ trip, days, themeColor = '#C4622D' 
                   return (
                     <div key={stop.id} style={{ display: 'flex', gap: 12, marginBottom: 0 }}>
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
-                        <div style={{ width: 28, height: 28, borderRadius: '50%', background: accentPale, border: `2px solid ${themeColor}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, zIndex: 1 }}>{meta.emoji}</div>
+                        <div style={{ width: 28, height: 28, borderRadius: '50%', background: accentPale, border: `2px solid ${themeColor}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: themeColor, zIndex: 1 }}>{meta.symbol}</div>
                         {i < (day.stops || []).length - 1 && <div style={{ width: 1.5, flex: 1, background: accentMid, minHeight: 12 }} />}
                       </div>
                       <div style={{ flex: 1, paddingTop: 4, paddingBottom: i < (day.stops || []).length - 1 ? 10 : 0 }}>
@@ -99,7 +104,7 @@ export default function BeautifulPrintView({ trip, days, themeColor = '#C4622D' 
             {/* Journal */}
             {day.journal && (
               <div style={{ marginTop: 12, padding: '10px 14px', background: '#F5F0E8', borderRadius: 8, borderLeft: `3px solid ${themeColor}` }}>
-                <p style={{ fontSize: 10, fontWeight: 600, color: '#7A6E64', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 4px' }}>✍️ Notes</p>
+                <p style={{ fontSize: 10, fontWeight: 600, color: '#7A6E64', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 4px' }}>Notes</p>
                 <p style={{ fontSize: 13, color: '#4A3F35', lineHeight: 1.6, margin: 0 }}>{day.journal}</p>
               </div>
             )}
