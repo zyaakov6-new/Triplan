@@ -23,7 +23,9 @@ export default function JoinPage() {
   return (
     <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 16, padding: 24 }}>
       {status === 'joining' && <>
-        <div style={{ fontSize: 40 }}>✈️</div>
+        <div style={{ width: 60, height: 60, borderRadius: '50%', background: 'var(--cream-dark)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Icon name="map" size={28} color="var(--ink-muted)" />
+        </div>
         <p style={{ fontFamily: 'var(--font-display)', fontSize: 20 }}>Joining trip…</p>
       </>}
       {status === 'success' && <>
@@ -33,7 +35,9 @@ export default function JoinPage() {
         <p style={{ fontFamily: 'var(--font-display)', fontSize: 20 }}>You're in! Redirecting…</p>
       </>}
       {status === 'error' && <>
-        <div style={{ fontSize: 40 }}>😕</div>
+        <div style={{ width: 60, height: 60, borderRadius: '50%', background: 'var(--accent-pale)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Icon name="close" size={28} color="var(--accent)" />
+        </div>
         <p style={{ fontFamily: 'var(--font-display)', fontSize: 20 }}>Invalid invite link</p>
         <button className="btn btn-ghost" onClick={() => navigate('/')}>Go home</button>
       </>}

@@ -62,7 +62,11 @@ function Confetti({ onDone }) {
           animation: `confettiFall ${p.duration}s ease-in ${p.delay}s forwards${p.wobble ? ', confettiWiggle 0.6s ease-in-out infinite' : ''}`,
         }} />
       ))}
-      <div style={{ position: 'absolute', top: '30%', left: '50%', transform: 'translateX(-50%)', fontSize: 48, animation: 'scaleIn 0.4s ease forwards', pointerEvents: 'none' }}>🎉</div>
+      <div style={{ position: 'absolute', top: '30%', left: '50%', transform: 'translateX(-50%)', animation: 'scaleIn 0.4s ease forwards', pointerEvents: 'none' }}>
+        <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--teal)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 0 12px rgba(45,107,107,0.2)' }}>
+          <Icon name="check" size={32} color="white" />
+        </div>
+      </div>
     </div>
   )
 }
@@ -112,7 +116,7 @@ function AgendaView({ days, onDirections }) {
                     </div>
                     <a href={gmapsUrl} target="_blank" rel="noopener noreferrer"
                       style={{ width: 30, height: 30, borderRadius: '50%', background: 'var(--cream)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 14 }}
-                      title="Directions">🧭</a>
+                      title="Directions"><Icon name="navigate" size={14} color="var(--accent)" /></a>
                   </div>
                 )
               })}
@@ -224,7 +228,7 @@ function GasCalculator({ days, unitKm, showGasCalc, setShowGasCalc, gasEfficienc
         <div className="anim-up" style={{ padding: '0 14px 14px', display: 'flex', flexDirection: 'column', gap: 10 }}>
           {totalDistKm === 0 && (
             <p style={{ fontSize: 12, color: 'var(--ink-muted)', background: 'var(--cream)', padding: '8px 10px', borderRadius: 8 }}>
-              📍 Add locations to your stops to enable distance tracking
+              Add locations to your stops to enable distance tracking
             </p>
           )}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>

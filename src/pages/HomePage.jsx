@@ -104,7 +104,7 @@ export default function HomePage() {
               </div>
               <span style={{ fontFamily: 'var(--font-display)', fontSize: 19, letterSpacing: '-0.02em' }}>Triplan</span>
             </div>
-            <p style={{ fontSize: 13, color: 'var(--ink-muted)' }}>Hey {profile?.name || 'there'} 👋</p>
+            <p style={{ fontSize: 13, color: 'var(--ink-muted)' }}>Hey {profile?.name || 'there'}</p>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
             <button onClick={cycleTheme} title={`Theme: ${mode}`}
@@ -144,7 +144,7 @@ export default function HomePage() {
           </div>
         ) : trips.length === 0 ? (
           <div style={{ textAlign: 'center', paddingTop: 60 }}>
-            <div style={{ fontSize: 52, marginBottom: 16 }}>🗺️</div>
+            <div style={{ marginBottom: 16 }}><Icon name="map" size={52} color="var(--sand-dark)" /></div>
             <p style={{ fontFamily: 'var(--font-display)', fontSize: 22, marginBottom: 8 }}>No trips yet</p>
             <p style={{ color: 'var(--ink-muted)', fontSize: 14, marginBottom: 28 }}>Start planning your next adventure</p>
             <button className="btn btn-accent" onClick={() => setShowNew(true)}>

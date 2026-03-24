@@ -144,7 +144,7 @@ export default function EditStopModal({ stop, days = [], onClose, onUpdated, onD
             )}
           </div>
           {form.lat && form.lng && (
-            <p style={{ fontSize: 11, color: 'var(--teal)', marginTop: 5 }}>📍 {parseFloat(form.lat).toFixed(4)}, {parseFloat(form.lng).toFixed(4)}</p>
+            <p style={{ fontSize: 11, color: 'var(--teal)', marginTop: 5 }}>{parseFloat(form.lat).toFixed(4)}, {parseFloat(form.lng).toFixed(4)}</p>
           )}
         </div>
 

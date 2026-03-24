@@ -52,7 +52,7 @@ export default function EditDayModal({ day, onClose, onUpdated, onDeleted }) {
           <textarea className="input" value={form.logistics_note} onChange={set('logistics_note')} rows={2} style={{ resize: 'none' }} placeholder="Remember passport, book tickets in advance…" />
         </div>
         <div>
-          <label style={lbl}>✍️ Journal / Notes</label>
+          <label style={lbl}>Journal / Notes</label>
           <textarea className="input" value={form.journal} onChange={set('journal')} rows={3} style={{ resize: 'none' }} placeholder="How was the day? Any memories, tips, or thoughts…" />
         </div>
 

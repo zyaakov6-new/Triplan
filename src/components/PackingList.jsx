@@ -128,7 +128,7 @@ export default function PackingList({ tripId }) {
       {/* Empty state */}
       {items.length === 0 && (
         <div style={{ textAlign: 'center', paddingTop: 40 }}>
-          <div style={{ fontSize: 44, marginBottom: 12 }}>🎒</div>
+          <div style={{ marginBottom: 12 }}><Icon name="package" size={44} color="var(--sand-dark)" /></div>
           <p style={{ fontFamily: 'var(--font-display)', fontSize: 18, marginBottom: 6 }}>Nothing packed yet</p>
           <p style={{ color: 'var(--ink-muted)', fontSize: 14 }}>Add items above or tap quick-add suggestions</p>
         </div>
@@ -147,7 +147,7 @@ export default function PackingList({ tripId }) {
       {checked.length > 0 && (
         <div>
           <p style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--ink-muted)', marginBottom: 10 }}>
-            ✅ Packed ({checked.length})
+            Packed ({checked.length})
           </p>
           {checked.map((item, i) => (
             <PackItem key={item.id} item={item} onToggle={toggleItem} onDelete={deleteItem} delay={i * 0.04} />

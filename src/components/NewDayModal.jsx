@@ -162,25 +162,25 @@ export default function NewDayModal({ tripId, nextDayNumber, tripDateStart, trip
 
         {/* Start location */}
         <LocationSearch
-          label="🟢 Start point"
+          label="Start point"
           value={startQuery}
           onChange={q => { setStartQuery(q); if (!q) { setStartLat(null); setStartLng(null) } }}
           onSelect={handleStartSelect}
           results={startResults}
           onClearResults={() => setStartResults([])}
         />
-        {startLat && <p style={{ fontSize: 11, color: 'var(--teal)', marginTop: -10 }}>📍 {startLat.toFixed(4)}, {startLng.toFixed(4)}</p>}
+        {startLat && <p style={{ fontSize: 11, color: 'var(--teal)', marginTop: -10 }}>{startLat.toFixed(4)}, {startLng.toFixed(4)}</p>}
 
         {/* End location */}
         <LocationSearch
-          label="🔴 End point"
+          label="End point"
           value={endQuery}
           onChange={q => { setEndQuery(q); if (!q) { setEndLat(null); setEndLng(null) } }}
           onSelect={handleEndSelect}
           results={endResults}
           onClearResults={() => setEndResults([])}
         />
-        {endLat && <p style={{ fontSize: 11, color: 'var(--teal)', marginTop: -10 }}>📍 {endLat.toFixed(4)}, {endLng.toFixed(4)}</p>}
+        {endLat && <p style={{ fontSize: 11, color: 'var(--teal)', marginTop: -10 }}>{endLat.toFixed(4)}, {endLng.toFixed(4)}</p>}
 
         {error && <p style={{ fontSize: 13, color: '#C00', padding: '8px 12px', background: '#FEE', borderRadius: 8 }}>{error}</p>}
 

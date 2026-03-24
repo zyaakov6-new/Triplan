@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './hooks/useAuth'
 import { useEffect } from 'react'
+import Icon from './components/Icon'
 import AuthPage from './pages/AuthPage'
 import HomePage from './pages/HomePage'
 import TripDetailPage from './pages/TripDetailPage'
@@ -25,7 +26,7 @@ function AppRoutes() {
   if (loading) return (
     <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ textAlign: 'center' }}>
-        <div style={{ fontSize: 36, marginBottom: 12 }}>✈️</div>
+        <div style={{ marginBottom: 12 }}><Icon name="map" size={36} color="var(--sand-dark)" /></div>
         <p style={{ color: 'var(--ink-muted)', fontSize: 14, fontFamily: 'var(--font-body)' }}>Loading…</p>
       </div>
     </div>

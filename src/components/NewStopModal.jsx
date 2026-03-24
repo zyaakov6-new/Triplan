@@ -130,7 +130,7 @@ export default function NewStopModal({ dayId, nextOrder, onClose, onCreated }) {
           </div>
           {(form.lat && form.lng) && (
             <p style={{ fontSize: 11, color: 'var(--teal)', marginTop: 5 }}>
-              📍 {parseFloat(form.lat).toFixed(4)}, {parseFloat(form.lng).toFixed(4)}
+              {parseFloat(form.lat).toFixed(4)}, {parseFloat(form.lng).toFixed(4)}
             </p>
           )}
         </div>

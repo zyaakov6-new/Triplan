@@ -106,10 +106,16 @@ export default function AuthPage() {
         )}
 
         <div style={{ marginTop: 32, padding: '20px 0', borderTop: '1px solid var(--border)' }}>
-          {['🗺️ Interactive trip maps', '📅 Day-by-day planning', '👥 Collaborative with your group'].map((f, i) => (
+          {[
+            { icon: 'map',      text: 'Interactive trip maps' },
+            { icon: 'calendar', text: 'Day-by-day planning' },
+            { icon: 'users',    text: 'Collaborative with your group' },
+          ].map((f, i) => (
             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-              <span style={{ fontSize: 16 }}>{f.split(' ')[0]}</span>
-              <span style={{ fontSize: 13, color: 'var(--ink-muted)' }}>{f.split(' ').slice(1).join(' ')}</span>
+              <div style={{ width: 28, height: 28, borderRadius: 8, background: 'var(--accent-pale)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Icon name={f.icon} size={14} color="var(--accent)" />
+              </div>
+              <span style={{ fontSize: 13, color: 'var(--ink-muted)' }}>{f.text}</span>
             </div>
           ))}
         </div>

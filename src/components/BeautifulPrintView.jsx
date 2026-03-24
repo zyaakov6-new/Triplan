@@ -6,7 +6,7 @@ export default function BeautifulPrintView({ trip, days, themeColor = '#C4622D' 
     waypoint:   { symbol: '●' },
     attraction: { symbol: '▲' },
     food:       { symbol: '◆' },
-    hotel:      { symbol: '⌂' },
+    hotel:      { symbol: 'H' },
     transport:  { symbol: '▶' },
   }
 
