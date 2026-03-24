@@ -44,6 +44,7 @@ export default function TripMap({ days = [], onSelect }) {
       existingSources.forEach(id => { if (map.getSource(id)) map.removeSource(id) })
 
       const allValid = []
+      let globalStopIndex = 1
 
       days.forEach((day) => {
         const validStops = (day.stops || []).filter(s => s.lat && s.lng)
@@ -73,8 +74,9 @@ export default function TripMap({ days = [], onSelect }) {
           })
         }
 
-        // Draw pins numbered within this day
-        validStops.forEach((stop, i) => {
+        // Draw pins numbered globally across all days
+        validStops.forEach((stop) => {
+          const stopNum = globalStopIndex++
           const el = document.createElement('div')
           el.innerHTML = `
             <div style="
@@ -85,7 +87,7 @@ export default function TripMap({ days = [], onSelect }) {
               <svg width="30" height="38" viewBox="0 0 32 40" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M16 0C7.163 0 0 7.163 0 16c0 10 16 24 16 24S32 26 32 16C32 7.163 24.837 0 16 0z" fill="${dayColor}"/>
                 <circle cx="16" cy="16" r="6" fill="white" fill-opacity="0.9"/>
-                <text x="16" y="20" text-anchor="middle" font-size="9" font-weight="700" fill="${dayColor}" font-family="DM Sans,sans-serif">${i + 1}</text>
+                <text x="16" y="20" text-anchor="middle" font-size="9" font-weight="700" fill="${dayColor}" font-family="DM Sans,sans-serif">${stopNum}</text>
               </svg>
             </div>`
           el.style.cssText = 'width:30px;height:38px;'
@@ -93,15 +95,16 @@ export default function TripMap({ days = [], onSelect }) {
           el.addEventListener('mouseleave', () => el.querySelector('.map-pin').style.transform = '')
           el.addEventListener('click', () => {
             if (popupRef.current) popupRef.current.remove()
-            const typeEmoji = stop.type === 'food' ? '🍽' : stop.type === 'hotel' ? '⛺' : stop.type === 'transport' ? '🚌' : stop.type === 'waypoint' ? '📍' : '🏔️'
+            const typeLabel = stop.type === 'food' ? 'Food/Water' : stop.type === 'hotel' ? 'Camp/Lodge' : stop.type === 'transport' ? 'Transport' : stop.type === 'waypoint' ? 'Waypoint' : 'Viewpoint'
             const popup = new maplibregl.Popup({ closeButton: false, offset: [0, -42], maxWidth: '240px' })
               .setLngLat([stop.lng, stop.lat])
               .setHTML(`
                 <div style="font-family:'DM Sans',sans-serif;">
                   <div style="font-size:10px;font-weight:600;color:${dayColor};text-transform:uppercase;letter-spacing:0.06em;margin-bottom:3px">
-                    Day ${day.day_number} · Stop ${i + 1}
+                    Day ${day.day_number} · Stop ${stopNum}
                   </div>
-                  <div style="font-size:15px;font-weight:500;color:#1A1612;margin-bottom:2px">${typeEmoji} ${stop.name}</div>
+                  <div style="font-size:15px;font-weight:500;color:#1A1612;margin-bottom:2px">${stop.name}</div>
+                  <div style="font-size:11px;color:${dayColor};margin-bottom:2px">${typeLabel}</div>
                   ${stop.time_slot ? `<div style="font-size:12px;color:#7A6E64">${stop.time_slot}${stop.note ? ' · ' + stop.note : ''}</div>` : ''}
                 </div>`)
               .addTo(map)

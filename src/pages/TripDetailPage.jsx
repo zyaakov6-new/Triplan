@@ -17,20 +17,20 @@ import { getDayDistance, optimizeRoute } from '../lib/tripUtils'
 import BeautifulPrintView from '../components/BeautifulPrintView'
 
 const TYPE_META = {
-  waypoint:   { emoji: '📍', label: 'Waypoint',     color: '#7A6E64' },
-  attraction: { emoji: '🏔️', label: 'Viewpoint',   color: '#C4622D' },
-  food:       { emoji: '🍽', label: 'Food & Water', color: '#2D6B6B' },
-  hotel:      { emoji: '⛺', label: 'Camp/Lodge',   color: '#5B3D8F' },
-  transport:  { emoji: '🚌', label: 'Transport',    color: '#2D5C8E' },
+  waypoint:   { icon: 'pin',       label: 'Waypoint',     color: '#7A6E64' },
+  attraction: { icon: 'navigate',  label: 'Viewpoint',    color: '#C4622D' },
+  food:       { icon: 'food',      label: 'Food & Water', color: '#2D6B6B' },
+  hotel:      { icon: 'hotel',     label: 'Camp/Lodge',   color: '#5B3D8F' },
+  transport:  { icon: 'transport', label: 'Transport',    color: '#2D5C8E' },
 }
 
 const DAY_COLORS = ['#E05C3A','#2E9E6E','#5B6FE8','#E8A020','#B045C8','#2DA8C4','#C44B7A','#8B7355','#3D9E3D','#9B59B6']
 
 const BOOKING_TYPE_META = {
-  flight: { emoji: '✈️', label: 'Flight' },
-  hotel:  { emoji: '🏨', label: 'Hotel' },
-  car:    { emoji: '🚗', label: 'Car' },
-  other:  { emoji: '🔗', label: 'Link' },
+  flight: { icon: 'transport', label: 'Flight' },
+  hotel:  { icon: 'hotel',     label: 'Hotel' },
+  car:    { icon: 'navigate',  label: 'Car' },
+  other:  { icon: 'external_link', label: 'Link' },
 }
 
 // ── Confetti component ────────────────────────────────────────────────────────
@@ -104,7 +104,7 @@ function AgendaView({ days, onDirections }) {
                 return (
                   <div key={stop.id} className="agenda-time-row" style={{ padding: '10px 14px' }}>
                     <span className="agenda-time">{stop.time_slot || '—'}</span>
-                    <span style={{ fontSize: 16, flexShrink: 0, marginTop: 1 }}>{meta.emoji}</span>
+                    <Icon name={meta.icon} size={15} color={meta.color} />
                     <div style={{ flex: 1 }}>
                       <p style={{ fontSize: 14, fontWeight: 500, color: stop.done ? 'var(--ink-muted)' : 'var(--ink)', textDecoration: stop.done ? 'line-through' : 'none' }}>{stop.name}</p>
                       {stop.note && <p style={{ fontSize: 12, color: 'var(--ink-muted)', marginTop: 1 }}>{stop.note}</p>}
@@ -134,7 +134,7 @@ function PhotosTab({ days, photos, onLightbox, onUploadPhoto }) {
     <div className="scroll-y" style={{ flex: 1, padding: '12px 16px 100px' }}>
       {!hasAny && (
         <div style={{ textAlign: 'center', paddingTop: 48 }}>
-          <div style={{ fontSize: 40, marginBottom: 12 }}>📷</div>
+          <div style={{ marginBottom: 12 }}><Icon name="image" size={40} color="var(--sand-dark)" /></div>
           <p style={{ fontFamily: 'var(--font-display)', fontSize: 18, marginBottom: 6 }}>No photos yet</p>
           <p style={{ color: 'var(--ink-muted)', fontSize: 14 }}>Upload photos from each day to build your trip album</p>
         </div>
@@ -209,7 +209,7 @@ function GasCalculator({ days, unitKm, showGasCalc, setShowGasCalc, gasEfficienc
       <button onClick={() => setShowGasCalc(v => !v)}
         style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 14px', background: 'none', cursor: 'pointer' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 16 }}>⛽</span>
+          <Icon name="gas" size={16} color="var(--ink-muted)" />
           <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink-light)' }}>Gas Cost Calculator</span>
           {totalDist > 0 && (
             <span style={{ fontSize: 12, color: 'var(--ink-muted)' }}>· {totalDist.toFixed(0)} {unit}</span>
@@ -253,7 +253,7 @@ function GasCalculator({ days, unitKm, showGasCalc, setShowGasCalc, gasEfficienc
           </div>
           {gasCost !== null ? (
             <div style={{ padding: '10px 14px', background: 'var(--accent-pale)', borderRadius: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={{ fontSize: 22 }}>⛽</span>
+              <Icon name="gas" size={22} color="var(--accent)" />
               <div>
                 <p style={{ fontSize: 12, color: 'var(--accent)', fontWeight: 600 }}>Estimated fuel cost</p>
                 <p style={{ fontSize: 22, fontWeight: 700, color: 'var(--accent)', fontFamily: 'var(--font-display)' }}>${gasCost.toFixed(2)}</p>
@@ -328,9 +328,10 @@ function TripStatsCard({ days, unitKm }) {
         )}
       </div>
       {topStop?.cost > 0 && (
-        <p style={{ fontSize: 11, color: 'var(--ink-muted)', marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--border)' }}>
-          💸 Priciest stop: <strong>{topStop.name}</strong> · ${topStop.cost}
-        </p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: 'var(--ink-muted)', marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--border)' }}>
+          <Icon name="dollar" size={11} color="var(--ink-muted)" />
+          Priciest: <strong>{topStop.name}</strong> · ${topStop.cost}
+        </div>
       )}
 
     </div>
@@ -356,7 +357,8 @@ export default function TripDetailPage() {
   const [tabDir, setTabDir] = useState('left')
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedDay, setSelectedDay] = useState(null)
-  const [openDayId, setOpenDayId] = useState(null)   // accordion: which day is expanded
+  const [detailDay, setDetailDay] = useState(null)    // full-screen day detail view
+  const [daysSubTab, setDaysSubTab] = useState('route') // 'route' | 'stats' | 'gas'
   const [openDaySheet, setOpenDaySheet] = useState(null)
   const [showNewDay, setShowNewDay] = useState(false)
   const [showNewStop, setShowNewStop] = useState(false)
@@ -825,143 +827,149 @@ export default function TripDetailPage() {
           style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
           onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
 
-          {/* Search toolbar */}
-          <div style={{ padding: '10px 16px 8px', background: 'var(--white)', borderBottom: '1px solid var(--border)', display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
-            <div className="search-bar-wrap" style={{ flex: 1 }}>
-              <div className="search-icon"><Icon name="search" size={14} color="var(--ink-muted)" /></div>
-              <input
-                className="input"
-                style={{ fontSize: 14, padding: '9px 14px 9px 36px', height: 38 }}
-                placeholder="Search stops…"
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-              />
-              {searchQuery && (
-                <button className="search-clear" onClick={() => setSearchQuery('')}>
-                  <Icon name="close" size={10} color="var(--ink-muted)" />
+          {/* Sub-tab bar: Route | Stats | Gas */}
+          <div style={{ display: 'flex', background: 'var(--white)', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
+            {[
+              { id: 'route', label: 'Route',   icon: 'map' },
+              { id: 'stats', label: 'Stats',   icon: 'bar_chart' },
+              { id: 'gas',   label: 'Gas',     icon: 'gas' },
+            ].map(st => (
+              <button key={st.id} onClick={() => setDaysSubTab(st.id)}
+                style={{ flex: 1, padding: '10px 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, fontSize: 12, fontWeight: daysSubTab === st.id ? 600 : 400, color: daysSubTab === st.id ? 'var(--accent)' : 'var(--ink-muted)', borderBottom: `2px solid ${daysSubTab === st.id ? 'var(--accent)' : 'transparent'}`, background: 'none', cursor: 'pointer' }}>
+                <Icon name={st.icon} size={13} color={daysSubTab === st.id ? 'var(--accent)' : 'var(--ink-muted)'} />
+                {st.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Route sub-tab */}
+          {daysSubTab === 'route' && (
+            <>
+              {/* Search + unit toolbar */}
+              <div style={{ padding: '8px 14px', background: 'var(--white)', borderBottom: '1px solid var(--border)', display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
+                <div className="search-bar-wrap" style={{ flex: 1 }}>
+                  <div className="search-icon"><Icon name="search" size={14} color="var(--ink-muted)" /></div>
+                  <input className="input" style={{ fontSize: 13, padding: '8px 12px 8px 34px', height: 36 }}
+                    placeholder="Search stops…" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
+                  {searchQuery && <button className="search-clear" onClick={() => setSearchQuery('')}><Icon name="close" size={10} color="var(--ink-muted)" /></button>}
+                </div>
+                <button onClick={toggleUnit}
+                  style={{ padding: '5px 9px', borderRadius: 8, fontSize: 11, fontWeight: 600, border: '1px solid var(--border)', background: 'var(--cream)', color: 'var(--ink-muted)', cursor: 'pointer', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 3 }}>
+                  <Icon name="navigate" size={11} color="var(--ink-muted)" />
+                  {unitKm ? 'km' : 'mi'}
                 </button>
+              </div>
+
+              <div className="scroll-y" style={{ flex: 1, padding: '10px 14px 100px' }}>
+                {days.length === 0 ? (
+                  <div style={{ textAlign: 'center', paddingTop: 48 }}>
+                    <Icon name="map" size={40} color="var(--sand-dark)" />
+                    <p style={{ fontFamily: 'var(--font-display)', fontSize: 18, marginBottom: 6, marginTop: 12 }}>No days yet</p>
+                    <p style={{ color: 'var(--ink-muted)', fontSize: 14, marginBottom: 24 }}>Add your first day to start planning</p>
+                    <button className="btn btn-accent" onClick={() => setShowNewDay(true)}>
+                      <Icon name="plus" size={15} color="white" /> Add first day
+                    </button>
+                  </div>
+                ) : filteredDays.length === 0 && searchQuery ? (
+                  <div style={{ textAlign: 'center', paddingTop: 32 }}>
+                    <Icon name="search" size={32} color="var(--sand-dark)" />
+                    <p style={{ color: 'var(--ink-muted)', fontSize: 14, marginTop: 12 }}>No results for "<strong>{searchQuery}</strong>"</p>
+                    <button className="btn btn-ghost btn-sm" style={{ marginTop: 12 }} onClick={() => setSearchQuery('')}>Clear</button>
+                  </div>
+                ) : (
+                  <>
+                    {filteredDays.map(day => (
+                      <DayCard key={day.id} day={day} dayColor={day.color} unitKm={unitKm}
+                        onOpen={() => setDetailDay(day)} />
+                    ))}
+                    <button className="btn btn-ghost" style={{ width: '100%', marginTop: 6 }} onClick={() => setShowNewDay(true)}>
+                      <Icon name="plus" size={15} color="var(--ink-light)" /> Add day
+                    </button>
+                  </>
+                )}
+              </div>
+            </>
+          )}
+
+          {/* Stats sub-tab */}
+          {daysSubTab === 'stats' && (
+            <div className="scroll-y" style={{ flex: 1, padding: '14px 14px 100px' }}>
+              {days.length === 0 ? (
+                <p style={{ color: 'var(--ink-muted)', textAlign: 'center', paddingTop: 40, fontSize: 14 }}>Add days to see stats</p>
+              ) : (
+                <>
+                  {totalBudget > 0 && (
+                    <div style={{ marginBottom: 12, padding: '10px 14px', background: 'var(--teal-light)', borderRadius: 12, display: 'flex', alignItems: 'center', gap: 10, border: '1px solid rgba(45,107,107,0.2)' }}>
+                      <Icon name="wallet" size={18} color="var(--teal)" />
+                      <div style={{ flex: 1 }}>
+                        <p style={{ fontSize: 12, color: 'var(--teal)', fontWeight: 600 }}>Total budget</p>
+                        <p style={{ fontSize: 18, fontWeight: 700, color: 'var(--teal)', fontFamily: 'var(--font-display)' }}>${totalBudget.toFixed(2)}</p>
+                      </div>
+                    </div>
+                  )}
+                  <TripStatsCard days={days} unitKm={unitKm} />
+                  {trip.booking_links?.length > 0 && (
+                    <div style={{ marginTop: 8, padding: '12px 14px', background: 'var(--white)', borderRadius: 12, border: '1px solid var(--border)' }}>
+                      <p style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--ink-muted)', marginBottom: 10 }}>Bookings</p>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        {trip.booking_links.map((bl, i) => {
+                          const bm = BOOKING_TYPE_META[bl.type] || BOOKING_TYPE_META.other
+                          return (
+                            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                              <div style={{ width: 28, height: 28, borderRadius: 7, background: 'var(--cream)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                <Icon name={bm.icon} size={14} color="var(--accent)" />
+                              </div>
+                              <div style={{ flex: 1, overflow: 'hidden' }}>
+                                <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{bl.label}</p>
+                                {bl.ref && <p style={{ fontSize: 11, color: 'var(--ink-muted)' }}>Ref: {bl.ref}</p>}
+                              </div>
+                              {bl.url && <a href={bl.url} target="_blank" rel="noopener noreferrer" style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--cream)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Icon name="external_link" size={13} color="var(--accent)" /></a>}
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </div>
-            <button onClick={toggleUnit} title="Switch between km and miles"
-              style={{ padding: '6px 10px', borderRadius: 8, fontSize: 11, fontWeight: 600, border: '1px solid var(--border)', background: 'var(--cream)', color: 'var(--ink-muted)', cursor: 'pointer', flexShrink: 0, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 4 }}>
-              📏 {unitKm ? 'km' : 'mi'}
-            </button>
-          </div>
+          )}
 
-          <div className="scroll-y" style={{ flex: 1, padding: '12px 16px 100px' }}>
-
-            {/* Stats toggle */}
-            {days.length > 0 && allStops.length > 0 && (
-              <button onClick={() => setShowStats(v => !v)}
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '10px 14px', marginBottom: 8, background: 'var(--white)', borderRadius: 12, border: '1px solid var(--border)', cursor: 'pointer' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <Icon name="bar_chart" size={14} color="var(--accent)" />
-                  <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink-light)' }}>Trip Stats</span>
-                  <span style={{ fontSize: 12, color: 'var(--ink-muted)' }}>{days.length} days · {allStops.length} stops{totalBudget > 0 ? ` · $${totalBudget.toFixed(0)}` : ''}</span>
-                </div>
-                <div style={{ transform: showStats ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
-                  <Icon name="chevron_down" size={14} color="var(--sand-dark)" />
-                </div>
-              </button>
-            )}
-            {showStats && <div className="anim-up" style={{ marginBottom: 12 }}><TripStatsCard days={days} unitKm={unitKm} /></div>}
-
-            {/* Booking links */}
-            {trip.booking_links && trip.booking_links.length > 0 && (
-              <div style={{ marginBottom: 12, padding: '12px 14px', background: 'var(--white)', borderRadius: 12, border: '1px solid var(--border)' }}>
-                <p style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--ink-muted)', marginBottom: 10 }}>Bookings & Links</p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  {trip.booking_links.map((bl, i) => {
-                    const bm = BOOKING_TYPE_META[bl.type] || BOOKING_TYPE_META.other
-                    return (
-                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <span style={{ fontSize: 18 }}>{bm.emoji}</span>
-                        <div style={{ flex: 1, overflow: 'hidden' }}>
-                          <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{bl.label}</p>
-                          {bl.ref && <p style={{ fontSize: 11, color: 'var(--ink-muted)' }}>Ref: {bl.ref}</p>}
-                        </div>
-                        {bl.url && (
-                          <a href={bl.url} target="_blank" rel="noopener noreferrer"
-                            style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--cream)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                            <Icon name="external_link" size={14} color="var(--accent)" />
-                          </a>
-                        )}
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* Budget */}
-            {totalBudget > 0 && (
-              <div style={{ marginBottom: 12, padding: '10px 14px', background: 'var(--teal-light)', borderRadius: 12, display: 'flex', alignItems: 'center', gap: 10, border: '1px solid rgba(45,107,107,0.2)' }}>
-                <Icon name="wallet" size={18} color="var(--teal)" />
-                <div style={{ flex: 1 }}>
-                  <p style={{ fontSize: 12, color: 'var(--teal)', fontWeight: 600 }}>Total trip budget</p>
-                  <p style={{ fontSize: 18, fontWeight: 700, color: 'var(--teal)', fontFamily: 'var(--font-display)' }}>${totalBudget.toFixed(2)}</p>
-                </div>
-              </div>
-            )}
-
-            {/* ⛽ Gas Calculator — always visible when there are days */}
-            {days.length > 0 && (
+          {/* Gas sub-tab */}
+          {daysSubTab === 'gas' && (
+            <div className="scroll-y" style={{ flex: 1, padding: '14px 14px 100px' }}>
               <GasCalculator
-                days={days}
-                unitKm={unitKm}
-                showGasCalc={showGasCalc}
-                setShowGasCalc={setShowGasCalc}
-                gasEfficiency={gasEfficiency}
-                setGasEfficiency={setGasEfficiency}
-                gasPrice={gasPrice}
-                setGasPrice={setGasPrice}
+                days={days} unitKm={unitKm}
+                showGasCalc={showGasCalc} setShowGasCalc={setShowGasCalc}
+                gasEfficiency={gasEfficiency} setGasEfficiency={setGasEfficiency}
+                gasPrice={gasPrice} setGasPrice={setGasPrice}
               />
-            )}
-
-            {filteredDays.length === 0 && searchQuery ? (
-              <div style={{ textAlign: 'center', paddingTop: 32 }}>
-                <div style={{ fontSize: 32, marginBottom: 10 }}>🔍</div>
-                <p style={{ color: 'var(--ink-muted)', fontSize: 14 }}>No results for "<strong>{searchQuery}</strong>"</p>
-                <button className="btn btn-ghost btn-sm" style={{ marginTop: 12 }} onClick={() => setSearchQuery('')}>Clear search</button>
-              </div>
-            ) : days.length === 0 ? (
-              <div style={{ textAlign: 'center', paddingTop: 48 }}>
-                <div style={{ fontSize: 40, marginBottom: 12 }}>🏔️</div>
-                <p style={{ fontFamily: 'var(--font-display)', fontSize: 18, marginBottom: 6 }}>No days yet</p>
-                <p style={{ color: 'var(--ink-muted)', fontSize: 14, marginBottom: 24 }}>Add your first day to start planning</p>
-                <button className="btn btn-accent" onClick={() => setShowNewDay(true)}>
-                  <Icon name="plus" size={15} color="white" /> Add first day
-                </button>
-              </div>
-            ) : (
-              <>
-                {filteredDays.map(day => (
-                  <DayCard
-                    key={day.id}
-                    day={day}
-                    dayColor={day.color}
-                    votes={votes}
-                    unitKm={unitKm}
-                    isOpen={openDayId === day.id}
-                    onToggleOpen={() => setOpenDayId(openDayId === day.id ? null : day.id)}
-                    onToggleStop={toggleDone}
-                    onVote={handleVote}
-                    onAddStop={() => { setAddStopForDay(day); setShowNewStop(true) }}
-                    onOpenSheet={() => setOpenDaySheet(day)}
-                    onEditStop={(stop) => setEditingStop(stop)}
-                    onEditDay={() => setEditingDay(day)}
-                    onReorderStops={(newStops) => handleReorderStops(day.id, newStops)}
-                    onOptimize={() => handleOptimizeRoute(day.id)}
-                  />
-                ))}
-                <button className="btn btn-ghost" style={{ width: '100%', marginTop: 8 }} onClick={() => setShowNewDay(true)}>
-                  <Icon name="plus" size={15} color="var(--ink-light)" /> Add day
-                </button>
-              </>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       )}
+
+      {/* ── Day detail view (slides over everything) ── */}
+      {detailDay && (() => {
+        const currentDay = daysWithColors.find(d => d.id === detailDay.id) || detailDay
+        return (
+          <DayDetailView
+            day={currentDay}
+            dayColor={currentDay.color}
+            votes={votes}
+            unitKm={unitKm}
+            onBack={() => setDetailDay(null)}
+            onToggleStop={toggleDone}
+            onVote={handleVote}
+            onAddStop={() => { setAddStopForDay(currentDay); setShowNewStop(true) }}
+            onOpenSheet={() => setOpenDaySheet(currentDay)}
+            onEditStop={(stop) => setEditingStop(stop)}
+            onEditDay={() => setEditingDay(currentDay)}
+            onReorderStops={(newStops) => handleReorderStops(currentDay.id, newStops)}
+            onOptimize={() => handleOptimizeRoute(currentDay.id)}
+          />
+        )
+      })()}
 
       {/* ── Photos view ── */}
       {tab === 'photos' && (
@@ -989,7 +997,10 @@ export default function TripDetailPage() {
 
             {/* Invite link */}
             <div style={{ background: 'var(--cream)', borderRadius: 12, padding: 16 }}>
-              <p style={{ fontSize: 13, fontWeight: 500, marginBottom: 4 }}>✏️ Invite to edit</p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                <Icon name="edit" size={13} color="var(--ink)" />
+                <p style={{ fontSize: 13, fontWeight: 500 }}>Invite to edit</p>
+              </div>
               <p style={{ fontSize: 12, color: 'var(--ink-muted)', marginBottom: 12, lineHeight: 1.5 }}>Anyone with this link can view and edit the trip.</p>
               <div style={{ display: 'flex', gap: 8 }}>
                 <div style={{ flex: 1, background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 8, padding: '10px 12px', fontSize: 12, color: 'var(--ink-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -1004,7 +1015,10 @@ export default function TripDetailPage() {
 
             {/* Read-only link */}
             <div style={{ background: 'var(--cream)', borderRadius: 12, padding: 16 }}>
-              <p style={{ fontSize: 13, fontWeight: 500, marginBottom: 4 }}>👁 Read-only share link</p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                <Icon name="eye" size={13} color="var(--ink)" />
+                <p style={{ fontSize: 13, fontWeight: 500 }}>Read-only share link</p>
+              </div>
               <p style={{ fontSize: 12, color: 'var(--ink-muted)', marginBottom: 12, lineHeight: 1.5 }}>Share a view-only version — no login required.</p>
               <div style={{ display: 'flex', gap: 8 }}>
                 <div style={{ flex: 1, background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 8, padding: '10px 12px', fontSize: 12, color: 'var(--ink-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -1066,7 +1080,10 @@ export default function TripDetailPage() {
           onClose={() => setShowNewDay(false)}
           onCreated={(day) => {
             setShowNewDay(false)
-            setDays(prev => [...prev, { ...day, stops: day.stops || [] }].sort((a, b) => a.day_number - b.day_number))
+            setDays(prev => {
+              if (prev.find(d => d.id === day.id)) return prev  // realtime may have already added it
+              return [...prev, { ...day, stops: day.stops || [] }].sort((a, b) => a.day_number - b.day_number)
+            })
           }}
         />
       )}
@@ -1077,7 +1094,11 @@ export default function TripDetailPage() {
           onClose={() => { setShowNewStop(false); setAddStopForDay(null) }}
           onCreated={(stop) => {
             setShowNewStop(false); setAddStopForDay(null)
-            setDays(prev => prev.map(d => d.id === stop.day_id ? { ...d, stops: [...d.stops, stop] } : d))
+            setDays(prev => prev.map(d => {
+              if (d.id !== stop.day_id) return d
+              if (d.stops.find(s => s.id === stop.id)) return d  // realtime may have already added it
+              return { ...d, stops: [...d.stops, stop].sort((a, b) => a.sort_order - b.sort_order) }
+            }))
           }}
         />
       )}
@@ -1138,22 +1159,52 @@ export default function TripDetailPage() {
 }
 
 // ── DayCard ───────────────────────────────────────────────────────────────────
-function DayCard({ day, dayColor, votes, unitKm = true, isOpen, onToggleOpen, onToggleStop, onVote, onAddStop, onOpenSheet, onEditStop, onEditDay, onReorderStops, onOptimize }) {
-  const [draggedIdx, setDraggedIdx] = useState(null)
-  const [dragOverIdx, setDragOverIdx] = useState(null)
-
+// ── Compact day row (Route list) ─────────────────────────────────────────────
+function DayCard({ day, dayColor, unitKm = true, onOpen }) {
   const doneCount = day.stops.filter(s => s.done).length
   const dayBudget = day.stops.reduce((sum, s) => sum + (s.cost || 0), 0)
   const dayDistKm = getDayDistance(day.stops)
   const dayDist = unitKm ? dayDistKm : dayDistKm * 0.621371
   const color = dayColor || 'var(--accent)'
+  const dateLabel = day.trip_date
+    ? new Date(day.trip_date).toLocaleDateString('en', { weekday: 'short', month: 'short', day: 'numeric' })
+    : `Day ${day.day_number}`
+
+  return (
+    <button onClick={onOpen} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '11px 12px', background: 'var(--white)', borderRadius: 12, border: '1px solid var(--border)', marginBottom: 7, borderLeft: `4px solid ${color}`, cursor: 'pointer', textAlign: 'left' }}>
+      <div style={{ width: 34, height: 34, borderRadius: 8, background: color, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <span style={{ fontSize: 7, color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>DAY</span>
+        <span style={{ fontSize: 13, fontWeight: 700, color: 'white', lineHeight: 1 }}>{day.day_number}</span>
+      </div>
+      <div style={{ flex: 1, overflow: 'hidden' }}>
+        <p style={{ fontSize: 14, fontWeight: 500, color: 'var(--ink)' }}>{dateLabel}</p>
+        <p style={{ fontSize: 12, color: 'var(--ink-muted)', marginTop: 1 }}>
+          {day.stops.length > 0 ? `${doneCount}/${day.stops.length} stops` : 'No stops yet'}
+          {dayBudget > 0 && ` · $${dayBudget.toFixed(0)}`}
+          {dayDist > 0.1 && ` · ${dayDist.toFixed(1)} ${unitKm ? 'km' : 'mi'}`}
+        </p>
+      </div>
+      {day.stops.length > 0 && (
+        <div style={{ width: 32, height: 3, background: 'var(--cream-dark)', borderRadius: 2, flexShrink: 0 }}>
+          <div style={{ height: '100%', width: `${(doneCount / day.stops.length) * 100}%`, background: color, borderRadius: 2 }} />
+        </div>
+      )}
+      <Icon name="chevron_right" size={14} color="var(--sand-dark)" />
+    </button>
+  )
+}
+
+// ── Stop list shared between DayDetailView and other views ────────────────────
+function StopsList({ stops, votes, color, onToggleStop, onVote, onEditStop, onReorderStops }) {
+  const [draggedIdx, setDraggedIdx] = useState(null)
+  const [dragOverIdx, setDragOverIdx] = useState(null)
 
   const handleDragStart = (e, idx) => { setDraggedIdx(idx); e.dataTransfer.effectAllowed = 'move' }
-  const handleDragOver = (e, idx) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; if (idx !== dragOverIdx) setDragOverIdx(idx) }
+  const handleDragOver = (e, idx) => { e.preventDefault(); if (idx !== dragOverIdx) setDragOverIdx(idx) }
   const handleDrop = (e, idx) => {
     e.preventDefault()
     if (draggedIdx === null || draggedIdx === idx) { setDraggedIdx(null); setDragOverIdx(null); return }
-    const newStops = [...day.stops]
+    const newStops = [...stops]
     const [moved] = newStops.splice(draggedIdx, 1)
     newStops.splice(idx, 0, moved)
     onReorderStops(newStops.map((s, i) => ({ ...s, sort_order: i })))
@@ -1161,146 +1212,174 @@ function DayCard({ day, dayColor, votes, unitKm = true, isOpen, onToggleOpen, on
   }
   const handleDragEnd = () => { setDraggedIdx(null); setDragOverIdx(null) }
 
+  return (
+    <div>
+      {stops.map((stop, i) => {
+        const meta = TYPE_META[stop.type] || TYPE_META.attraction
+        const stopVotes = votes[stop.id] || { up: 0, down: 0, userVote: null }
+        const gmapsUrl = stop.lat && stop.lng
+          ? `https://www.google.com/maps/dir/?api=1&destination=${stop.lat},${stop.lng}`
+          : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(stop.name)}`
+        return (
+          <div key={stop.id} draggable
+            onDragStart={e => handleDragStart(e, i)}
+            onDragOver={e => handleDragOver(e, i)}
+            onDrop={e => handleDrop(e, i)}
+            onDragEnd={handleDragEnd}
+            style={{ display: 'flex', gap: 8, paddingBottom: i < stops.length - 1 ? 14 : 0, position: 'relative', opacity: draggedIdx === i ? 0.4 : 1, borderTop: dragOverIdx === i && draggedIdx !== i ? `2px solid ${color}` : '2px solid transparent', transition: 'opacity 0.15s, border-color 0.1s' }}>
+            {i < stops.length - 1 && (
+              <div style={{ position: 'absolute', left: 22, top: 30, bottom: 0, width: 1, background: 'var(--border)' }} />
+            )}
+            <div className="drag-handle" style={{ display: 'flex', alignItems: 'flex-start', paddingTop: 6 }}>
+              <Icon name="drag" size={14} color="var(--sand-dark)" />
+            </div>
+            <div style={{ width: 28, height: 28, borderRadius: '50%', background: stop.done ? 'var(--cream-dark)' : `${color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, zIndex: 1 }}>
+              <Icon name={meta.icon} size={13} color={stop.done ? 'var(--sand-dark)' : color} />
+            </div>
+            <div style={{ flex: 1, paddingTop: 3 }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 6 }}>
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontSize: 14, fontWeight: 500, color: stop.done ? 'var(--ink-muted)' : 'var(--ink)', textDecoration: stop.done ? 'line-through' : 'none', lineHeight: 1.3 }}>{stop.name}</p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2, flexWrap: 'wrap' }}>
+                    {(stop.time_slot || stop.note) && (
+                      <p style={{ fontSize: 12, color: 'var(--ink-muted)' }}>{[stop.time_slot, stop.note].filter(Boolean).join(' · ')}</p>
+                    )}
+                    {stop.cost > 0 && (
+                      <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--teal)', background: 'var(--teal-light)', padding: '1px 6px', borderRadius: 20 }}>${stop.cost}</span>
+                    )}
+                  </div>
+                  <div style={{ display: 'flex', gap: 6, marginTop: 6, alignItems: 'center' }}>
+                    <button className={`vote-btn ${stopVotes.userVote === 'up' ? 'active-up' : ''}`}
+                      onClick={() => onVote(stop.id, 'up')}>
+                      <Icon name="thumbs_up" size={11} color={stopVotes.userVote === 'up' ? 'var(--teal)' : 'var(--ink-muted)'} />
+                      {stopVotes.up || 0}
+                    </button>
+                    <button className={`vote-btn ${stopVotes.userVote === 'down' ? 'active-down' : ''}`}
+                      onClick={() => onVote(stop.id, 'down')}>
+                      <Icon name="thumbs_down" size={11} color={stopVotes.userVote === 'down' ? '#e55' : 'var(--ink-muted)'} />
+                      {stopVotes.down || 0}
+                    </button>
+                    <a href={gmapsUrl} target="_blank" rel="noopener noreferrer"
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 7px', borderRadius: 20, fontSize: 11, fontWeight: 500, border: '1px solid var(--border)', background: 'var(--cream)', color: 'var(--ink-muted)', textDecoration: 'none' }}>
+                      <Icon name="navigate" size={10} color="var(--ink-muted)" /> Directions
+                    </a>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: 4, alignItems: 'flex-start' }}>
+                  <button onClick={() => onEditStop(stop)}
+                    style={{ width: 22, height: 22, borderRadius: 6, border: '1px solid var(--border)', background: 'var(--cream)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0, marginTop: 2 }}>
+                    <Icon name="edit" size={11} color="var(--ink-muted)" />
+                  </button>
+                  <button onClick={() => onToggleStop(stop)}
+                    style={{ width: 22, height: 22, borderRadius: 6, border: `1.5px solid ${stop.done ? 'var(--teal)' : 'var(--border-strong)'}`, background: stop.done ? 'var(--teal)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, cursor: 'pointer', marginTop: 2, transition: 'all 0.15s' }}>
+                    {stop.done && <Icon name="check" size={12} color="white" />}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+// ── Day detail full-screen view ────────────────────────────────────────────────
+function DayDetailView({ day, dayColor, votes, unitKm, onBack, onToggleStop, onVote, onAddStop, onOpenSheet, onEditStop, onEditDay, onReorderStops, onOptimize }) {
+  const color = dayColor || 'var(--accent)'
+  const doneCount = day.stops.filter(s => s.done).length
+  const dayBudget = day.stops.reduce((sum, s) => sum + (s.cost || 0), 0)
+  const dayDistKm = getDayDistance(day.stops)
+  const dayDist = unitKm ? dayDistKm : dayDistKm * 0.621371
   const dateLabel = day.trip_date
-    ? new Date(day.trip_date).toLocaleDateString('en', { weekday: 'short', month: 'short', day: 'numeric' })
+    ? new Date(day.trip_date).toLocaleDateString('en', { weekday: 'long', month: 'long', day: 'numeric' })
     : `Day ${day.day_number}`
 
   return (
-    <div className="card" style={{ marginBottom: 8, overflow: 'hidden', borderLeft: `3px solid ${color}` }}>
-      {/* Header row — always visible, click to expand */}
-      <div style={{ width: '100%', padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
-        <button onClick={onToggleOpen}
-          style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, background: 'none', cursor: 'pointer', textAlign: 'left' }}>
-          <div style={{ width: 38, height: 38, borderRadius: 9, background: color, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <span style={{ fontSize: 8, color: 'rgba(255,255,255,0.65)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Day</span>
-            <span style={{ fontSize: 14, fontWeight: 700, color: 'white', lineHeight: 1 }}>{day.day_number}</span>
+    <div style={{ position: 'absolute', inset: 0, background: 'var(--bg)', zIndex: 50, display: 'flex', flexDirection: 'column' }}>
+      {/* Header */}
+      <div style={{ background: 'var(--white)', borderBottom: '1px solid var(--border)', flexShrink: 0, paddingTop: 'var(--safe-top)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px' }}>
+          <button onClick={onBack}
+            style={{ width: 34, height: 34, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', background: 'var(--cream)', cursor: 'pointer', flexShrink: 0 }}>
+            <Icon name="chevron_left" size={18} color="var(--ink)" />
+          </button>
+          <div style={{ width: 34, height: 34, borderRadius: 8, background: color, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <span style={{ fontSize: 7, color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase' }}>DAY</span>
+            <span style={{ fontSize: 13, fontWeight: 700, color: 'white', lineHeight: 1 }}>{day.day_number}</span>
           </div>
           <div style={{ flex: 1, overflow: 'hidden' }}>
-            <p style={{ fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 500 }}>{dateLabel}</p>
+            <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{dateLabel}</p>
             <p style={{ fontSize: 12, color: 'var(--ink-muted)' }}>
-              {day.stops.length > 0 ? `${doneCount}/${day.stops.length} stops` : 'No stops yet'}
+              {doneCount}/{day.stops.length} done
               {dayBudget > 0 && ` · $${dayBudget.toFixed(0)}`}
               {dayDist > 0.1 && ` · ${dayDist.toFixed(1)} ${unitKm ? 'km' : 'mi'}`}
             </p>
           </div>
-          <div style={{ transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
-            <Icon name="chevron_down" size={16} color="var(--sand-dark)" />
+          <div style={{ display: 'flex', gap: 5 }}>
+            {day.stops.filter(s => s.lat && s.lng).length >= 2 && (
+              <button onClick={onOptimize} title="Optimize route"
+                style={{ width: 30, height: 30, borderRadius: '50%', background: 'var(--cream)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                <Icon name="navigate" size={13} color="var(--ink-muted)" />
+              </button>
+            )}
+            {(day.physical_note || day.logistics_note || day.journal) && (
+              <button onClick={onOpenSheet}
+                style={{ width: 30, height: 30, borderRadius: '50%', background: 'var(--cream)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                <Icon name="info" size={13} color="var(--ink-muted)" />
+              </button>
+            )}
+            <button onClick={onEditDay}
+              style={{ width: 30, height: 30, borderRadius: '50%', background: 'var(--cream)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+              <Icon name="edit" size={13} color="var(--ink-muted)" />
+            </button>
           </div>
-        </button>
-        <div style={{ display: 'flex', gap: 6 }}>
-          {(day.physical_note || day.logistics_note || day.journal) && (
-            <button onClick={e => { e.stopPropagation(); onOpenSheet() }}
-              style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--cream)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-              <Icon name="info" size={14} color="var(--ink-muted)" />
-            </button>
-          )}
-          {day.stops.filter(s => s.lat && s.lng).length >= 2 && (
-            <button onClick={e => { e.stopPropagation(); onOptimize() }}
-              title="Optimize route"
-              style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--cream)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-              <Icon name="navigate" size={13} color="var(--ink-muted)" />
-            </button>
-          )}
-          <button onClick={onEditDay}
-            style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--cream)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-            <Icon name="edit" size={13} color="var(--ink-muted)" />
-          </button>
         </div>
+        {/* Progress bar */}
+        {day.stops.length > 0 && (
+          <div style={{ height: 3, background: 'var(--cream-dark)', margin: '0 14px 0' }}>
+            <div style={{ height: '100%', width: `${(doneCount / day.stops.length) * 100}%`, background: color, transition: 'width 0.3s' }} />
+          </div>
+        )}
       </div>
 
-      {/* Progress bar */}
-      {day.stops.length > 0 && (
-        <div style={{ height: 2, background: 'var(--cream-dark)', margin: '0 14px' }}>
-          <div style={{ height: '100%', width: `${(doneCount / day.stops.length) * 100}%`, background: color, transition: 'width 0.3s' }} />
-        </div>
-      )}
+      {/* Scrollable content */}
+      <div className="scroll-y" style={{ flex: 1, padding: '14px 14px 100px' }}>
+        {day.stops.length > 0 ? (
+          <StopsList
+            stops={day.stops}
+            votes={votes}
+            color={color}
+            onToggleStop={onToggleStop}
+            onVote={onVote}
+            onEditStop={onEditStop}
+            onReorderStops={onReorderStops}
+          />
+        ) : (
+          <div style={{ textAlign: 'center', paddingTop: 32, color: 'var(--ink-muted)' }}>
+            <Icon name="map" size={36} color="var(--sand-dark)" />
+            <p style={{ marginTop: 10, fontSize: 14 }}>No stops yet</p>
+          </div>
+        )}
 
-      {isOpen && (
-        <div className="anim-up">
-          {/* Stops */}
-          {day.stops.length > 0 && (
-            <div style={{ padding: '12px 14px 0' }}>
-              {day.stops.map((stop, i) => {
-                const meta = TYPE_META[stop.type] || TYPE_META.attraction
-                const stopVotes = votes[stop.id] || { up: 0, down: 0, userVote: null }
-                const isDragging = draggedIdx === i
-                const isDragOver = dragOverIdx === i && draggedIdx !== i
-                const gmapsUrl = stop.lat && stop.lng
-                  ? `https://www.google.com/maps/dir/?api=1&destination=${stop.lat},${stop.lng}`
-                  : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(stop.name)}`
+        {/* Add stop */}
+        <button onClick={onAddStop}
+          style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '12px 0', fontSize: 13, color: color, fontWeight: 500, cursor: 'pointer', background: 'none', borderTop: day.stops.length > 0 ? '1px dashed var(--sand)' : 'none', marginTop: day.stops.length > 0 ? 14 : 0 }}>
+          <Icon name="plus" size={14} color={color} />
+          Add stop
+        </button>
 
-                return (
-                  <div key={stop.id} draggable
-                    onDragStart={e => handleDragStart(e, i)}
-                    onDragOver={e => handleDragOver(e, i)}
-                    onDrop={e => handleDrop(e, i)}
-                    onDragEnd={handleDragEnd}
-                    style={{ display: 'flex', gap: 8, paddingBottom: i < day.stops.length - 1 ? 14 : 0, position: 'relative', opacity: isDragging ? 0.4 : 1, borderTop: isDragOver ? '2px solid var(--accent)' : '2px solid transparent', transition: 'opacity 0.15s, border-color 0.1s' }}>
-                    {i < day.stops.length - 1 && (
-                      <div style={{ position: 'absolute', left: 23, top: 30, bottom: 0, width: 1, background: 'var(--border)' }} />
-                    )}
-                    <div className="drag-handle" style={{ display: 'flex', alignItems: 'flex-start', paddingTop: 6 }}>
-                      <Icon name="drag" size={14} color="var(--sand-dark)" />
-                    </div>
-                    <div style={{ width: 30, height: 30, borderRadius: '50%', background: stop.done ? 'var(--cream-dark)' : `${color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 13, zIndex: 1 }}>
-                      {meta.emoji}
-                    </div>
-                    <div style={{ flex: 1, paddingTop: 4 }}>
-                      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
-                        <div style={{ flex: 1 }}>
-                          <p style={{ fontSize: 14, fontWeight: 500, color: stop.done ? 'var(--ink-muted)' : 'var(--ink)', textDecoration: stop.done ? 'line-through' : 'none', lineHeight: 1.3 }}>{stop.name}</p>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2, flexWrap: 'wrap' }}>
-                            {(stop.time_slot || stop.note) && (
-                              <p style={{ fontSize: 12, color: 'var(--ink-muted)' }}>{[stop.time_slot, stop.note].filter(Boolean).join(' · ')}</p>
-                            )}
-                            {stop.cost > 0 && (
-                              <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--teal)', background: 'var(--teal-light)', padding: '1px 6px', borderRadius: 20 }}>${stop.cost}</span>
-                            )}
-                          </div>
-                          <div style={{ display: 'flex', gap: 6, marginTop: 6, alignItems: 'center' }}>
-                            <button className={`vote-btn ${stopVotes.userVote === 'up' ? 'active-up' : ''}`} onClick={() => onVote(stop.id, 'up')}>👍 {stopVotes.up || 0}</button>
-                            <button className={`vote-btn ${stopVotes.userVote === 'down' ? 'active-down' : ''}`} onClick={() => onVote(stop.id, 'down')}>👎 {stopVotes.down || 0}</button>
-                            <a href={gmapsUrl} target="_blank" rel="noopener noreferrer"
-                              style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '3px 7px', borderRadius: 20, fontSize: 11, fontWeight: 500, border: '1px solid var(--border)', background: 'var(--cream)', color: 'var(--ink-muted)', textDecoration: 'none', transition: 'all 0.15s' }}
-                              title="Get directions">
-                              🧭 Directions
-                            </a>
-                          </div>
-                        </div>
-                        <div style={{ display: 'flex', gap: 4, alignItems: 'flex-start' }}>
-                          <button onClick={() => onEditStop(stop)}
-                            style={{ width: 22, height: 22, borderRadius: 6, border: '1px solid var(--border)', background: 'var(--cream)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0, marginTop: 2 }}>
-                            <Icon name="edit" size={11} color="var(--ink-muted)" />
-                          </button>
-                          <button onClick={() => onToggleStop(stop)}
-                            style={{ width: 22, height: 22, borderRadius: 6, border: `1.5px solid ${stop.done ? 'var(--teal)' : 'var(--border-strong)'}`, background: stop.done ? 'var(--teal)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, cursor: 'pointer', marginTop: 2, transition: 'all 0.15s' }}>
-                            {stop.done && <Icon name="check" size={12} color="white" />}
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )
-              })}
+        {/* Journal */}
+        {day.journal && (
+          <div style={{ marginTop: 10, padding: '10px 12px', background: 'var(--cream)', borderRadius: 10, borderLeft: `3px solid ${color}` }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+              <Icon name="edit" size={11} color="var(--ink-muted)" />
+              <span style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--ink-muted)' }}>Journal</span>
             </div>
-          )}
-
-          {/* Add stop */}
-          <button onClick={onAddStop}
-            style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '12px 14px', fontSize: 13, color: color, fontWeight: 500, cursor: 'pointer', background: 'none', borderTop: day.stops.length > 0 ? '1px dashed var(--sand)' : 'none', marginTop: day.stops.length > 0 ? 12 : 4 }}>
-            <Icon name="plus" size={14} color={color} />
-            Add stop
-          </button>
-
-          {/* Journal note (read-only display) */}
-          {day.journal && (
-            <div style={{ margin: '0 14px 14px', padding: '10px 12px', background: 'var(--cream)', borderRadius: 10, borderLeft: `3px solid ${color}` }}>
-              <p style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--ink-muted)', marginBottom: 4 }}>✍️ Journal</p>
-              <p style={{ fontSize: 13, color: 'var(--ink-light)', lineHeight: 1.6 }}>{day.journal}</p>
-            </div>
-          )}
-        </div>
-      )}
+            <p style={{ fontSize: 13, color: 'var(--ink-light)', lineHeight: 1.6 }}>{day.journal}</p>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

@@ -119,7 +119,7 @@ export default function NewDayModal({ tripId, nextDayNumber, tripDateStart, trip
         type: 'waypoint',
         lat: startLat, lng: startLng,
         sort_order: 0,
-        note: '🟢 Start',
+        note: 'Start point',
       }).select().single()
       if (s) insertedStops.push(s)
     }
@@ -130,7 +130,7 @@ export default function NewDayModal({ tripId, nextDayNumber, tripDateStart, trip
         type: 'waypoint',
         lat: endLat, lng: endLng,
         sort_order: 999,
-        note: '🔴 End',
+        note: 'End point',
       }).select().single()
       if (s) insertedStops.push(s)
     }

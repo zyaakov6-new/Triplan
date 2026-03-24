@@ -4,11 +4,11 @@ import BottomSheet from './BottomSheet'
 import Icon from './Icon'
 
 const TYPES = [
-  { id: 'attraction', label: 'Viewpoint', emoji: '🏔️' },
-  { id: 'food', label: 'Food/Water', emoji: '🍽' },
-  { id: 'hotel', label: 'Camp/Lodge', emoji: '⛺' },
-  { id: 'transport', label: 'Transport', emoji: '🚌' },
-  { id: 'waypoint', label: 'Waypoint', emoji: '📍' },
+  { id: 'attraction', label: 'Viewpoint',   icon: 'navigate' },
+  { id: 'food',       label: 'Food/Water',  icon: 'food' },
+  { id: 'hotel',      label: 'Camp/Lodge',  icon: 'hotel' },
+  { id: 'transport',  label: 'Transport',   icon: 'transport' },
+  { id: 'waypoint',   label: 'Waypoint',    icon: 'pin' },
 ]
 
 export default function NewStopModal({ dayId, nextOrder, onClose, onCreated }) {
@@ -83,9 +83,9 @@ export default function NewStopModal({ dayId, nextOrder, onClose, onCreated }) {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 6 }}>
             {TYPES.map(t => (
               <button key={t.id} onClick={() => setForm(f => ({ ...f, type: t.id }))}
-                style={{ padding: '10px 6px', borderRadius: 10, border: `2px solid ${form.type === t.id ? 'var(--accent)' : 'var(--border)'}`, background: form.type === t.id ? 'var(--accent-pale)' : 'var(--white)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, cursor: 'pointer', transition: 'all 0.15s' }}>
-                <span style={{ fontSize: 18 }}>{t.emoji}</span>
-                <span style={{ fontSize: 11, fontWeight: 500, color: form.type === t.id ? 'var(--accent)' : 'var(--ink-muted)' }}>{t.label}</span>
+                style={{ padding: '10px 4px', borderRadius: 10, border: `2px solid ${form.type === t.id ? 'var(--accent)' : 'var(--border)'}`, background: form.type === t.id ? 'var(--accent-pale)' : 'var(--white)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, cursor: 'pointer', transition: 'all 0.15s' }}>
+                <Icon name={t.icon} size={18} color={form.type === t.id ? 'var(--accent)' : 'var(--ink-muted)'} />
+                <span style={{ fontSize: 10, fontWeight: 500, color: form.type === t.id ? 'var(--accent)' : 'var(--ink-muted)', textAlign: 'center', lineHeight: 1.2 }}>{t.label}</span>
               </button>
             ))}
           </div>
