@@ -1283,7 +1283,7 @@ function DayDetailView({ day, dayColor, unitKm, onBack, onToggleStop, onAddStop,
     : `Day ${day.day_number}`
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'var(--bg)', zIndex: 50, display: 'flex', flexDirection: 'column' }}>
+    <div style={{ position: 'fixed', inset: 0, background: 'var(--cream)', zIndex: 50, display: 'flex', flexDirection: 'column' }}>
       {/* Header */}
       <div style={{ background: 'var(--white)', borderBottom: '1px solid var(--border)', flexShrink: 0, paddingTop: 'var(--safe-top)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px' }}>
