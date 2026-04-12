@@ -62,7 +62,7 @@ function Confetti({ onDone }) {
           animation: `confettiFall ${p.duration}s ease-in ${p.delay}s forwards${p.wobble ? ', confettiWiggle 0.6s ease-in-out infinite' : ''}`,
         }} />
       ))}
-      <div style={{ position: 'absolute', top: '30%', left: '50%', transform: 'translateX(-50%)', animation: 'scaleIn 0.4s ease forwards', pointerEvents: 'none' }}>
+      <div style={{ position: 'absolute', top: '30%', left: '50%', animation: 'confettiCheck 3.5s ease forwards', pointerEvents: 'none' }}>
         <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--teal)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 0 12px rgba(45,107,107,0.2)' }}>
           <Icon name="check" size={32} color="white" />
         </div>
@@ -355,7 +355,6 @@ export default function TripDetailPage() {
   const [days, setDays] = useState([])
   const [photos, setPhotos] = useState({})
   const [loading, setLoading] = useState(true)
-  const [votes, setVotes] = useState({})
 
   const [tab, setTab] = useState('map')
   const [tabDir, setTabDir] = useState('left')
@@ -467,22 +466,6 @@ export default function TripDetailPage() {
     }
     setPhotos(photoMap)
 
-    const allStopIds = daysData.flatMap(d => d.stops.map(s => s.id))
-    if (allStopIds.length > 0) {
-      const { data: voteData } = await supabase.from('stop_votes').select('*').in('stop_id', allStopIds)
-      if (voteData) {
-        const vMap = {}
-        for (const stopId of allStopIds) {
-          const sv = voteData.filter(v => v.stop_id === stopId)
-          vMap[stopId] = {
-            up: sv.filter(v => v.vote_type === 'up').length,
-            down: sv.filter(v => v.vote_type === 'down').length,
-            userVote: sv.find(v => v.user_id === user.id)?.vote_type || null,
-          }
-        }
-        setVotes(vMap)
-      }
-    }
     setLoading(false)
   }
 
@@ -566,17 +549,6 @@ export default function TripDetailPage() {
       }
       return updated
     })
-  }
-
-  const handleVote = async (stopId, voteType) => {
-    const current = votes[stopId] || { up: 0, down: 0, userVote: null }
-    if (current.userVote === voteType) {
-      await supabase.from('stop_votes').delete().eq('stop_id', stopId).eq('user_id', user.id)
-      setVotes(prev => ({ ...prev, [stopId]: { up: voteType === 'up' ? Math.max(0, current.up - 1) : current.up, down: voteType === 'down' ? Math.max(0, current.down - 1) : current.down, userVote: null } }))
-    } else {
-      await supabase.from('stop_votes').upsert({ stop_id: stopId, user_id: user.id, vote_type: voteType }, { onConflict: 'stop_id,user_id' })
-      setVotes(prev => ({ ...prev, [stopId]: { up: voteType === 'up' ? current.up + 1 : (current.userVote === 'up' ? Math.max(0, current.up - 1) : current.up), down: voteType === 'down' ? current.down + 1 : (current.userVote === 'down' ? Math.max(0, current.down - 1) : current.down), userVote: voteType } }))
-    }
   }
 
   const handleReorderStops = async (dayId, newStops) => {

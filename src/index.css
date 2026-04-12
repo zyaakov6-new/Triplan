@@ -292,6 +292,13 @@ a { text-decoration: none; color: inherit; }
   25% { transform: translateX(8px); }
   75% { transform: translateX(-8px); }
 }
+@keyframes confettiCheck {
+  0%   { opacity: 0; transform: translateX(-50%) scale(0.6); }
+  15%  { opacity: 1; transform: translateX(-50%) scale(1.05); }
+  25%  { transform: translateX(-50%) scale(1); }
+  75%  { opacity: 1; transform: translateX(-50%) scale(1); }
+  100% { opacity: 0; transform: translateX(-50%) scale(0.8); }
+}
 
 /* ── Search bar ── */
 .search-bar-wrap {
