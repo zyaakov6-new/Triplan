@@ -355,6 +355,8 @@ export default function TripDetailPage() {
   const [days, setDays] = useState([])
   const [photos, setPhotos] = useState({})
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
+  const [photoUploadError, setPhotoUploadError] = useState('')
 
   const [tab, setTab] = useState('map')
   const [tabDir, setTabDir] = useState('left')
@@ -443,29 +445,35 @@ export default function TripDetailPage() {
 
   const fetchAll = async () => {
     setLoading(true)
-    const [tripRes, daysRes, membersRes] = await Promise.all([
-      supabase.from('trips').select('*').eq('id', id).single(),
-      supabase.from('trip_days').select('*, stops(*)').eq('trip_id', id).order('day_number'),
-      supabase.from('trip_members').select('*, profiles(*)').eq('trip_id', id),
-    ])
-    if (tripRes.error) { navigate('/'); return }
-    setTrip(tripRes.data)
-    const daysData = (daysRes.data || []).map(d => ({
-      ...d,
-      stops: (d.stops || []).sort((a, b) => a.sort_order - b.sort_order),
-    }))
-    setDays(daysData)
-    setCollaborators(membersRes.data || [])
+    setLoadError(false)
+    try {
+      const [tripRes, daysRes, membersRes] = await Promise.all([
+        supabase.from('trips').select('*').eq('id', id).single(),
+        supabase.from('trip_days').select('*, stops(*)').eq('trip_id', id).order('day_number'),
+        supabase.from('trip_members').select('*, profiles(*)').eq('trip_id', id),
+      ])
+      if (tripRes.error) { navigate('/'); return }
+      setTrip(tripRes.data)
+      const daysData = (daysRes.data || []).map(d => ({
+        ...d,
+        stops: (d.stops || []).sort((a, b) => a.sort_order - b.sort_order),
+      }))
+      setDays(daysData)
+      setCollaborators(membersRes.data || [])
 
-    const photoMap = {}
-    for (const day of daysData) {
-      const { data: ph } = await supabase.from('trip_photos').select('*').eq('day_id', day.id).order('created_at')
-      if (ph?.length) {
-        photoMap[day.id] = ph.map(p => supabase.storage.from('trip-photos').getPublicUrl(p.storage_path).data.publicUrl)
-      }
+      const photoMap = {}
+      await Promise.all(daysData.map(async (day) => {
+        try {
+          const { data: ph } = await supabase.from('trip_photos').select('*').eq('day_id', day.id).order('created_at')
+          if (ph?.length) {
+            photoMap[day.id] = ph.map(p => supabase.storage.from('trip-photos').getPublicUrl(p.storage_path).data.publicUrl)
+          }
+        } catch { /* photo load failure is non-fatal */ }
+      }))
+      setPhotos(photoMap)
+    } catch {
+      setLoadError(true)
     }
-    setPhotos(photoMap)
-
     setLoading(false)
   }
 
@@ -553,7 +561,12 @@ export default function TripDetailPage() {
 
   const handleReorderStops = async (dayId, newStops) => {
     setDays(prev => prev.map(d => d.id === dayId ? { ...d, stops: newStops } : d))
-    await Promise.all(newStops.map((s, i) => supabase.from('stops').update({ sort_order: i }).eq('id', s.id)))
+    try {
+      await Promise.all(newStops.map((s, i) => supabase.from('stops').update({ sort_order: i }).eq('id', s.id)))
+    } catch {
+      // revert on failure
+      setDays(prev => prev.map(d => d.id === dayId ? { ...d, stops: d.stops } : d))
+    }
   }
 
   const handleOptimizeRoute = async (dayId) => {
@@ -564,15 +577,18 @@ export default function TripDetailPage() {
   }
 
   const handleUploadPhoto = async (dayId, files) => {
+    setPhotoUploadError('')
+    let failed = 0
     for (const file of Array.from(files)) {
       const ext = file.name.split('.').pop()
       const path = `${id}/${dayId}/${Date.now()}.${ext}`
       const { error: upErr } = await supabase.storage.from('trip-photos').upload(path, file)
-      if (upErr) continue
+      if (upErr) { failed++; continue }
       await supabase.from('trip_photos').insert({ day_id: dayId, uploaded_by: user.id, storage_path: path })
       const url = supabase.storage.from('trip-photos').getPublicUrl(path).data.publicUrl
       setPhotos(prev => ({ ...prev, [dayId]: [...(prev[dayId] || []), url] }))
     }
+    if (failed > 0) setPhotoUploadError(`${failed} photo${failed > 1 ? 's' : ''} failed to upload`)
   }
 
   const handleCopyInvite = () => {
@@ -688,6 +704,16 @@ export default function TripDetailPage() {
           </div>
         ))}
       </div>
+    </div>
+  )
+
+  if (loadError) return (
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, padding: 32 }}>
+      <Icon name="close" size={40} color="var(--sand-dark)" />
+      <p style={{ fontFamily: 'var(--font-display)', fontSize: 20 }}>Couldn't load trip</p>
+      <p style={{ color: 'var(--ink-muted)', fontSize: 14, textAlign: 'center' }}>Check your connection and try again</p>
+      <button className="btn btn-accent" onClick={() => fetchAll()}>Retry</button>
+      <button className="btn btn-ghost" onClick={() => navigate('/')}>Back to trips</button>
     </div>
   )
 
@@ -947,12 +973,20 @@ export default function TripDetailPage() {
 
       {/* ── Photos view ── */}
       {tab === 'photos' && (
-        <PhotosTab
-          days={daysWithColors}
-          photos={photos}
-          onLightbox={(p, i) => setLightbox({ photos: p, idx: i })}
-          onUploadPhoto={handleUploadPhoto}
-        />
+        <>
+          {photoUploadError && (
+            <div style={{ margin: '8px 16px 0', padding: '10px 14px', background: '#FEE', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+              <span style={{ fontSize: 13, color: '#C00' }}>{photoUploadError}</span>
+              <button onClick={() => setPhotoUploadError('')} style={{ color: '#C00', cursor: 'pointer', lineHeight: 1 }}><Icon name="close" size={14} color="#C00" /></button>
+            </div>
+          )}
+          <PhotosTab
+            days={daysWithColors}
+            photos={photos}
+            onLightbox={(p, i) => setLightbox({ photos: p, idx: i })}
+            onUploadPhoto={handleUploadPhoto}
+          />
+        </>
       )}
 
       {/* ── Pack view ── */}

@@ -19,7 +19,7 @@ export default function AuthPage() {
       if (err) setError(err.message)
     } else {
       const err = await signIn(form.email, form.password)
-      if (err) setError('Invalid email or password')
+      if (err) setError(err.message?.includes('Invalid') ? 'Invalid email or password' : (err.message || 'Sign in failed'))
     }
     setLoading(false)
   }

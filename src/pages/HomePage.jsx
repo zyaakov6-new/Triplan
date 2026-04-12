@@ -48,6 +48,7 @@ export default function HomePage() {
   const { mode, cycle: cycleTheme } = useThemeMode()
   const [trips, setTrips] = useState([])
   const [loading, setLoading] = useState(true)
+  const [fetchError, setFetchError] = useState(false)
   const [showNew, setShowNew] = useState(false)
   const [editingTrip, setEditingTrip] = useState(null)
   const [joinToken, setJoinToken] = useState('')
@@ -58,11 +59,13 @@ export default function HomePage() {
 
   const fetchTrips = async () => {
     setLoading(true)
-    const { data } = await supabase
+    setFetchError(false)
+    const { data, error } = await supabase
       .from('trips')
       .select('*, trip_members!inner(user_id)')
       .eq('trip_members.user_id', user.id)
       .order('created_at', { ascending: false })
+    if (error) { setFetchError(true); setLoading(false); return }
     setTrips(data || [])
     setLoading(false)
   }
@@ -141,6 +144,13 @@ export default function HomePage() {
                 </div>
               </div>
             ))}
+          </div>
+        ) : fetchError ? (
+          <div style={{ textAlign: 'center', paddingTop: 60 }}>
+            <div style={{ marginBottom: 16 }}><Icon name="close" size={44} color="var(--sand-dark)" /></div>
+            <p style={{ fontFamily: 'var(--font-display)', fontSize: 18, marginBottom: 8 }}>Couldn't load trips</p>
+            <p style={{ color: 'var(--ink-muted)', fontSize: 14, marginBottom: 24 }}>Check your connection and try again</p>
+            <button className="btn btn-accent" onClick={fetchTrips}>Retry</button>
           </div>
         ) : trips.length === 0 ? (
           <div style={{ textAlign: 'center', paddingTop: 60 }}>
