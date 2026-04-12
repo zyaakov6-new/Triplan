@@ -11,20 +11,32 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null)
-      if (session?.user) fetchProfile(session.user.id)
+      if (session?.user) fetchProfile(session.user.id, session.user)
       else setLoading(false)
     })
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
       setUser(session?.user ?? null)
-      if (session?.user) fetchProfile(session.user.id)
+      if (session?.user) fetchProfile(session.user.id, session.user)
       else { setProfile(null); setLoading(false) }
     })
     return () => subscription.unsubscribe()
   }, [])
 
-  const fetchProfile = async (id) => {
+  const fetchProfile = async (id, authUser) => {
     const { data } = await supabase.from('profiles').select('*').eq('id', id).single()
-    setProfile(data)
+    if (!data) {
+      // First-time OAuth sign-in — create profile from provider metadata
+      const name =
+        authUser?.user_metadata?.full_name ||
+        authUser?.user_metadata?.name ||
+        authUser?.email?.split('@')[0] ||
+        'Traveler'
+      const { data: created } = await supabase
+        .from('profiles').upsert({ id, name }).select().single()
+      setProfile(created)
+    } else {
+      setProfile(data)
+    }
     setLoading(false)
   }
 
@@ -41,10 +53,18 @@ export function AuthProvider({ children }) {
     return error
   }
 
+  const signInWithGoogle = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: window.location.origin },
+    })
+    return error
+  }
+
   const signOut = () => supabase.auth.signOut()
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, signUp, signIn, signOut, fetchProfile }}>
+    <AuthContext.Provider value={{ user, profile, loading, signUp, signIn, signInWithGoogle, signOut, fetchProfile }}>
       {children}
     </AuthContext.Provider>
   )
