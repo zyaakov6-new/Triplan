@@ -30,26 +30,30 @@ export default function EditStopModal({ stop, days = [], onClose, onUpdated, onD
   const [placeQuery, setPlaceQuery] = useState('')
   const [placeResults, setPlaceResults] = useState([])
   const [searchingPlace, setSearchingPlace] = useState(false)
+  const [searchError, setSearchError] = useState('')
   const searchTimer = useRef(null)
 
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }))
 
   const searchPlaces = async (q) => {
-    if (!q.trim() || q.trim().length < 3) { setPlaceResults([]); return }
-    setSearchingPlace(true)
+    if (!q.trim() || q.trim().length < 3) { setPlaceResults([]); setSearchError(''); return }
+    setSearchingPlace(true); setSearchError('')
     try {
       const res = await fetch(
         `https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=8&lang=en`
       )
+      if (!res.ok) throw new Error('Search unavailable')
       const data = await res.json()
       setPlaceResults(data.features || [])
-    } catch { setPlaceResults([]) }
+      if ((data.features || []).length === 0) setSearchError('No results found')
+    } catch { setPlaceResults([]); setSearchError('Location search unavailable') }
     setSearchingPlace(false)
   }
 
   const handlePlaceInput = (e) => {
     const val = e.target.value
     setPlaceQuery(val)
+    setSearchError('')
     clearTimeout(searchTimer.current)
     searchTimer.current = setTimeout(() => searchPlaces(val), 400)
   }
@@ -143,6 +147,9 @@ export default function EditStopModal({ stop, days = [], onClose, onUpdated, onD
               </div>
             )}
           </div>
+          {searchError && !placeResults.length && (
+            <p style={{ fontSize: 11, color: 'var(--ink-muted)', marginTop: 5 }}>{searchError}</p>
+          )}
           {form.lat && form.lng && (
             <p style={{ fontSize: 11, color: 'var(--teal)', marginTop: 5 }}>{parseFloat(form.lat).toFixed(4)}, {parseFloat(form.lng).toFixed(4)}</p>
           )}

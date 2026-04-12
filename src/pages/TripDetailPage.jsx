@@ -356,6 +356,7 @@ export default function TripDetailPage() {
   const [photos, setPhotos] = useState({})
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
+  const [accessDenied, setAccessDenied] = useState(false)
   const [photoUploadError, setPhotoUploadError] = useState('')
 
   const [tab, setTab] = useState('map')
@@ -380,6 +381,7 @@ export default function TripDetailPage() {
   const [showStats, setShowStats] = useState(false)
   const [syncFlash, setSyncFlash] = useState(false)
   const [showPdfPreview, setShowPdfPreview] = useState(false)
+  const [togglingStopId, setTogglingStopId] = useState(null)
   const [unitKm, setUnitKm] = useState(() => localStorage.getItem('unit') !== 'miles')
   const [showGasCalc, setShowGasCalc] = useState(false)
   const [gasEfficiency, setGasEfficiency] = useState('')   // mpg or L/100km
@@ -453,13 +455,17 @@ export default function TripDetailPage() {
         supabase.from('trip_members').select('*, profiles(*)').eq('trip_id', id),
       ])
       if (tripRes.error) { navigate('/'); return }
+      // Permission check — user must be a member of this trip
+      const members = membersRes.data || []
+      const isMember = members.some(m => m.user_id === user.id)
+      if (!isMember) { setAccessDenied(true); setLoading(false); return }
       setTrip(tripRes.data)
       const daysData = (daysRes.data || []).map(d => ({
         ...d,
         stops: (d.stops || []).sort((a, b) => a.sort_order - b.sort_order),
       }))
       setDays(daysData)
-      setCollaborators(membersRes.data || [])
+      setCollaborators(members)
 
       const photoMap = {}
       await Promise.all(daysData.map(async (day) => {
@@ -542,6 +548,8 @@ export default function TripDetailPage() {
   const totalCount = allStops.length
 
   const toggleDone = async (stop) => {
+    if (togglingStopId === stop.id) return   // prevent double-tap
+    setTogglingStopId(stop.id)
     const newDone = !stop.done
     await supabase.from('stops').update({ done: newDone }).eq('id', stop.id)
     setDays(prev => {
@@ -557,6 +565,7 @@ export default function TripDetailPage() {
       }
       return updated
     })
+    setTogglingStopId(null)
   }
 
   const handleReorderStops = async (dayId, newStops) => {
@@ -704,6 +713,17 @@ export default function TripDetailPage() {
           </div>
         ))}
       </div>
+    </div>
+  )
+
+  if (accessDenied) return (
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, padding: 32 }}>
+      <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--accent-pale)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Icon name="lock" size={28} color="var(--accent)" />
+      </div>
+      <p style={{ fontFamily: 'var(--font-display)', fontSize: 22, textAlign: 'center' }}>Access denied</p>
+      <p style={{ color: 'var(--ink-muted)', fontSize: 14, textAlign: 'center' }}>You're not a member of this trip. Ask the organiser for an invite link.</p>
+      <button className="btn btn-accent" onClick={() => navigate('/')}>Back to my trips</button>
     </div>
   )
 
@@ -961,6 +981,7 @@ export default function TripDetailPage() {
             unitKm={unitKm}
             onBack={() => setDetailDay(null)}
             onToggleStop={toggleDone}
+            togglingStopId={togglingStopId}
             onAddStop={() => { setAddStopForDay(currentDay); setShowNewStop(true) }}
             onOpenSheet={() => setOpenDaySheet(currentDay)}
             onEditStop={(stop) => setEditingStop(stop)}
@@ -1203,7 +1224,7 @@ function DayCard({ day, dayColor, unitKm = true, onOpen }) {
 }
 
 // ── Stop list shared between DayDetailView and other views ────────────────────
-function StopsList({ stops, color, onToggleStop, onEditStop, onReorderStops }) {
+function StopsList({ stops, color, onToggleStop, togglingStopId, onEditStop, onReorderStops }) {
   const [draggedIdx, setDraggedIdx] = useState(null)
   const [dragOverIdx, setDragOverIdx] = useState(null)
 
@@ -1268,7 +1289,8 @@ function StopsList({ stops, color, onToggleStop, onEditStop, onReorderStops }) {
                     <Icon name="edit" size={11} color="var(--ink-muted)" />
                   </button>
                   <button onClick={() => onToggleStop(stop)}
-                    style={{ width: 22, height: 22, borderRadius: 6, border: `1.5px solid ${stop.done ? 'var(--teal)' : 'var(--border-strong)'}`, background: stop.done ? 'var(--teal)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, cursor: 'pointer', marginTop: 2, transition: 'all 0.15s' }}>
+                    disabled={togglingStopId === stop.id}
+                    style={{ width: 22, height: 22, borderRadius: 6, border: `1.5px solid ${stop.done ? 'var(--teal)' : 'var(--border-strong)'}`, background: stop.done ? 'var(--teal)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, cursor: togglingStopId === stop.id ? 'default' : 'pointer', marginTop: 2, transition: 'all 0.15s', opacity: togglingStopId === stop.id ? 0.5 : 1 }}>
                     {stop.done && <Icon name="check" size={12} color="white" />}
                   </button>
                 </div>
@@ -1282,7 +1304,7 @@ function StopsList({ stops, color, onToggleStop, onEditStop, onReorderStops }) {
 }
 
 // ── Day detail full-screen view ────────────────────────────────────────────────
-function DayDetailView({ day, dayColor, unitKm, onBack, onToggleStop, onAddStop, onOpenSheet, onEditStop, onEditDay, onReorderStops, onOptimize }) {
+function DayDetailView({ day, dayColor, unitKm, onBack, onToggleStop, togglingStopId, onAddStop, onOpenSheet, onEditStop, onEditDay, onReorderStops, onOptimize }) {
   const color = dayColor || 'var(--accent)'
   const doneCount = day.stops.filter(s => s.done).length
   const dayBudget = day.stops.reduce((sum, s) => sum + (s.cost || 0), 0)
@@ -1347,6 +1369,7 @@ function DayDetailView({ day, dayColor, unitKm, onBack, onToggleStop, onAddStop,
             stops={day.stops}
             color={color}
             onToggleStop={onToggleStop}
+            togglingStopId={togglingStopId}
             onEditStop={onEditStop}
             onReorderStops={onReorderStops}
           />
