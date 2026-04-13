@@ -182,33 +182,40 @@ function AuthForm({ onBack }) {
   }
 
   return (
-    <div dir="rtl" style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden', background: 'var(--ink)' }}>
-      {/* Header */}
-      <div style={{ paddingTop: 'calc(var(--safe-top) + 12px)', padding: 'calc(var(--safe-top) + 12px) 20px 0', display: 'flex', alignItems: 'center', gap: 12 }}>
-        <button onClick={onBack} style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}>
-          <Icon name="chevron_right" size={18} color="rgba(255,255,255,0.7)" />
-        </button>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ width: 28, height: 28, background: 'var(--accent)', borderRadius: 7, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Icon name="globe" size={14} color="white" />
+    <div dir="rtl" style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      {/* Dark hero */}
+      <div style={{ background: '#1A1612', flexShrink: 0, padding: 'calc(var(--safe-top) + 16px) 24px 28px', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'radial-gradient(ellipse at 85% 85%, rgba(196,98,45,0.35) 0%, transparent 55%), radial-gradient(ellipse at 15% 15%, rgba(45,107,107,0.2) 0%, transparent 55%)' }} />
+        <div style={{ position: 'relative' }}>
+          {/* Top row */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+            <button onClick={onBack} style={{ width: 34, height: 34, borderRadius: '50%', background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+              <Icon name="chevron_right" size={16} color="rgba(255,255,255,0.6)" />
+            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+              <div style={{ width: 28, height: 28, background: 'var(--accent)', borderRadius: 7, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Icon name="globe" size={14} color="white" />
+              </div>
+              <span style={{ fontFamily: 'var(--font-display)', fontSize: 18, color: 'white', letterSpacing: '-0.02em' }}>Triplan</span>
+            </div>
           </div>
-          <span style={{ fontFamily: 'var(--font-display)', fontSize: 18, color: 'white', letterSpacing: '-0.02em' }}>Triplan</span>
+          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 30, color: 'white', fontWeight: 400, marginBottom: 6, lineHeight: 1.2 }}>
+            {mode === 'login' ? 'ברוכים הבאים חזרה' : 'מוכנים לצאת לדרך?'}
+          </h2>
+          <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 14 }}>
+            {mode === 'login' ? 'כנסו לחשבון שלכם' : 'צרו חשבון בחינם — לוקח 10 שניות'}
+          </p>
         </div>
       </div>
 
-      <div style={{ flex: 1, overflow: 'auto', padding: '24px 24px calc(var(--safe-bottom) + 24px)' }} className="scroll-y">
-        <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 30, color: 'white', fontWeight: 400, marginBottom: 6, lineHeight: 1.2 }}>
-          {mode === 'login' ? 'ברוכים הבאים חזרה' : 'מוכנים לצאת לדרך?'}
-        </h2>
-        <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 14, marginBottom: 28 }}>
-          {mode === 'login' ? 'כנסו לחשבון שלכם' : 'צרו חשבון בחינם — לוקח 10 שניות'}
-        </p>
+      {/* Form area */}
+      <div style={{ flex: 1, background: 'var(--cream)', overflow: 'auto', padding: '24px 24px calc(var(--safe-bottom) + 24px)' }} className="scroll-y">
 
         {/* Google — primary CTA */}
         <button onClick={handleGoogle} disabled={googleLoading || loading}
-          style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, padding: '15px 20px', borderRadius: 14, background: 'white', cursor: 'pointer', fontSize: 16, fontWeight: 600, color: '#1A1612', marginBottom: 16, transition: 'opacity 0.15s', opacity: googleLoading ? 0.7 : 1, border: 'none' }}>
+          style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, padding: '15px 20px', borderRadius: 14, background: 'var(--white)', cursor: 'pointer', fontSize: 16, fontWeight: 600, color: '#1A1612', marginBottom: 16, transition: 'opacity 0.15s', opacity: googleLoading ? 0.7 : 1, border: '1.5px solid var(--border)', boxShadow: '0 2px 12px rgba(0,0,0,0.08)' }}>
           {googleLoading ? (
-            <span style={{ color: '#555' }}>מעביר לגוגל…</span>
+            <span style={{ color: 'var(--ink-muted)' }}>מעביר לגוגל…</span>
           ) : (
             <>
               <svg width="20" height="20" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
@@ -224,19 +231,21 @@ function AuthForm({ onBack }) {
 
         {/* Divider */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-          <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.12)' }} />
-          <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)' }}>או עם אימייל</span>
-          <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.12)' }} />
+          <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
+          <span style={{ fontSize: 12, color: 'var(--ink-muted)' }}>או עם אימייל</span>
+          <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
         </div>
 
         {/* Mode tabs */}
-        <div style={{ display: 'flex', background: 'rgba(255,255,255,0.08)', borderRadius: 12, padding: 4, marginBottom: 20, gap: 4 }}>
+        <div style={{ display: 'flex', background: 'var(--cream-dark)', borderRadius: 12, padding: 4, marginBottom: 20, gap: 4 }}>
           {['login', 'signup'].map(m => (
             <button key={m} onClick={() => { setMode(m); setError('') }} style={{
               flex: 1, padding: '10px 0', borderRadius: 9, fontSize: 14, fontWeight: 500,
-              background: mode === m ? 'rgba(255,255,255,0.15)' : 'transparent',
-              color: mode === m ? 'white' : 'rgba(255,255,255,0.4)',
-              border: 'none', transition: 'all 0.15s', cursor: 'pointer',
+              background: mode === m ? 'var(--white)' : 'transparent',
+              color: mode === m ? 'var(--ink)' : 'var(--ink-muted)',
+              border: mode === m ? '1px solid var(--border)' : 'none',
+              boxShadow: mode === m ? 'var(--shadow-sm)' : 'none',
+              transition: 'all 0.15s', cursor: 'pointer',
             }}>
               {m === 'login' ? 'כניסה' : 'הרשמה'}
             </button>
@@ -247,18 +256,18 @@ function AuthForm({ onBack }) {
           {mode === 'signup' && (
             <div className="anim-up">
               <label style={lbl}>שם מלא</label>
-              <input className="input" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', color: 'white', textAlign: 'right' }}
+              <input className="input" style={{ textAlign: 'right' }}
                 placeholder="למשל: יוסי כהן" value={form.name} onChange={set('name')} autoComplete="name" />
             </div>
           )}
           <div>
             <label style={lbl}>אימייל</label>
-            <input className="input" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', color: 'white', direction: 'ltr', textAlign: 'left' }}
+            <input className="input" style={{ direction: 'ltr', textAlign: 'left' }}
               type="email" placeholder="you@example.com" value={form.email} onChange={set('email')} autoComplete="email" inputMode="email" />
           </div>
           <div>
             <label style={lbl}>סיסמה</label>
-            <input className="input" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', color: 'white', direction: 'ltr', textAlign: 'left' }}
+            <input className="input" style={{ direction: 'ltr', textAlign: 'left' }}
               type="password" placeholder="••••••••" value={form.password} onChange={set('password')} autoComplete={mode === 'login' ? 'current-password' : 'new-password'} />
           </div>
         </div>
@@ -370,4 +379,4 @@ export default function AuthPage() {
   )
 }
 
-const lbl = { display: 'block', fontSize: 12, fontWeight: 500, color: 'rgba(255,255,255,0.4)', letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: 6, textAlign: 'right' }
+const lbl = { display: 'block', fontSize: 12, fontWeight: 500, color: 'var(--ink-muted)', letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: 6, textAlign: 'right' }
