@@ -15,6 +15,9 @@ export default function NewTripModal({ onClose, onCreated }) {
 
   const handleCreate = async () => {
     if (!form.name.trim()) { setError('Trip name is required'); return }
+    if (form.date_start && form.date_end && form.date_end < form.date_start) {
+      setError('End date cannot be before start date'); return
+    }
     setLoading(true); setError('')
     const { data, error: err } = await supabase
       .from('trips')

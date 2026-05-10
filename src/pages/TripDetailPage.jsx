@@ -239,8 +239,8 @@ function GasCalculator({ days, unitKm, showGasCalc, setShowGasCalc, gasEfficienc
               <input className="input" style={{ fontSize: 13 }}
                 placeholder={unitKm ? 'e.g. 8.5' : 'e.g. 30'}
                 value={gasEfficiency}
-                onChange={e => setGasEfficiency(e.target.value)}
-                inputMode="decimal"
+                onChange={e => { const v = e.target.value; if (v === '' || parseFloat(v) >= 0) setGasEfficiency(v) }}
+                inputMode="decimal" min="0"
               />
             </div>
             <div>
@@ -250,8 +250,8 @@ function GasCalculator({ days, unitKm, showGasCalc, setShowGasCalc, gasEfficienc
               <input className="input" style={{ fontSize: 13 }}
                 placeholder={unitKm ? 'e.g. 1.80' : 'e.g. 3.50'}
                 value={gasPrice}
-                onChange={e => setGasPrice(e.target.value)}
-                inputMode="decimal"
+                onChange={e => { const v = e.target.value; if (v === '' || parseFloat(v) >= 0) setGasPrice(v) }}
+                inputMode="decimal" min="0"
               />
             </div>
           </div>
@@ -441,7 +441,10 @@ export default function TripDetailPage() {
         setDays(prev => prev.filter(d => d.id !== payload.old.id))
         setSyncFlash(true); setTimeout(() => setSyncFlash(false), 2000)
       })
-      .subscribe()
+      .subscribe((status, err) => {
+        if (err) console.error('[Triplan RT] subscription error:', err)
+        if (status === 'CHANNEL_ERROR') console.warn('[Triplan RT] channel error — realtime sync may be degraded')
+      })
     return () => { supabase.removeChannel(channel) }
   }, [id])
 
@@ -519,6 +522,7 @@ export default function TripDetailPage() {
     const newIdx = TABS.indexOf(newTab)
     setTabDir(newIdx > curIdx ? 'left' : 'right')
     setTab(newTab)
+    setSearchQuery('')
   }
 
   const handleTouchStart = (e) => {
@@ -551,20 +555,27 @@ export default function TripDetailPage() {
     if (togglingStopId === stop.id) return   // prevent double-tap
     setTogglingStopId(stop.id)
     const newDone = !stop.done
-    await supabase.from('stops').update({ done: newDone }).eq('id', stop.id)
-    setDays(prev => {
-      const updated = prev.map(d => ({
+    // Optimistic update
+    setDays(prev => prev.map(d => ({
+      ...d,
+      stops: d.stops.map(s => s.id === stop.id ? { ...s, done: newDone } : s),
+    })))
+    const { error: updateErr } = await supabase.from('stops').update({ done: newDone }).eq('id', stop.id)
+    if (updateErr) {
+      // Rollback on failure
+      setDays(prev => prev.map(d => ({
         ...d,
-        stops: d.stops.map(s => s.id === stop.id ? { ...s, done: newDone } : s),
-      }))
-      if (newDone) {
-        const day = updated.find(d => d.stops.some(s => s.id === stop.id))
+        stops: d.stops.map(s => s.id === stop.id ? { ...s, done: stop.done } : s),
+      })))
+    } else if (newDone) {
+      setDays(prev => {
+        const day = prev.find(d => d.stops.some(s => s.id === stop.id))
         if (day && day.stops.length > 0 && day.stops.every(s => s.done)) {
           setTimeout(() => setShowConfetti(true), 150)
         }
-      }
-      return updated
-    })
+        return prev
+      })
+    }
     setTogglingStopId(null)
   }
 
@@ -597,19 +608,43 @@ export default function TripDetailPage() {
       const url = supabase.storage.from('trip-photos').getPublicUrl(path).data.publicUrl
       setPhotos(prev => ({ ...prev, [dayId]: [...(prev[dayId] || []), url] }))
     }
-    if (failed > 0) setPhotoUploadError(`${failed} photo${failed > 1 ? 's' : ''} failed to upload`)
+    if (failed > 0) {
+      setPhotoUploadError(`${failed} photo${failed > 1 ? 's' : ''} failed to upload`)
+      setTimeout(() => setPhotoUploadError(''), 5000)
+    }
+  }
+
+  const copyToClipboard = (text) => {
+    if (navigator.clipboard?.writeText) {
+      return navigator.clipboard.writeText(text)
+    }
+    // Fallback for HTTP or older browsers
+    try {
+      const el = document.createElement('textarea')
+      el.value = text
+      el.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0'
+      document.body.appendChild(el)
+      el.select()
+      document.execCommand('copy')
+      document.body.removeChild(el)
+      return Promise.resolve()
+    } catch {
+      return Promise.reject(new Error('Copy not supported'))
+    }
   }
 
   const handleCopyInvite = () => {
     const url = `${window.location.origin}/join/${trip?.invite_token}`
-    navigator.clipboard?.writeText(url).catch(() => {})
-    setCopied(true); setTimeout(() => setCopied(false), 2200)
+    copyToClipboard(url)
+      .then(() => { setCopied(true); setTimeout(() => setCopied(false), 2200) })
+      .catch(() => { setCopied(true); setTimeout(() => setCopied(false), 2200) }) // still show feedback
   }
 
   const handleCopyViewLink = () => {
     const url = `${window.location.origin}/view/${trip?.view_token}`
-    navigator.clipboard?.writeText(url).catch(() => {})
-    setCopiedView(true); setTimeout(() => setCopiedView(false), 2200)
+    copyToClipboard(url)
+      .then(() => { setCopiedView(true); setTimeout(() => setCopiedView(false), 2200) })
+      .catch(() => { setCopiedView(true); setTimeout(() => setCopiedView(false), 2200) })
   }
 
   const handleExportPDF = () => setShowPdfPreview(true)
@@ -815,6 +850,15 @@ export default function TripDetailPage() {
         <div className={`no-print ${tabDir === 'left' ? 'tab-content' : 'tab-content-back'}`}
           style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
           <TripMap days={mapDays} onSelect={() => {}} />
+          {(() => {
+            const missingCoords = allStops.filter(s => !s.lat || !s.lng).length
+            return missingCoords > 0 ? (
+              <div style={{ position: 'absolute', bottom: totalCount > 0 ? 64 : 16, left: '50%', transform: 'translateX(-50%)', background: 'rgba(26,22,18,0.78)', backdropFilter: 'blur(8px)', borderRadius: 100, padding: '6px 14px', display: 'flex', alignItems: 'center', gap: 6, zIndex: 10, whiteSpace: 'nowrap', pointerEvents: 'none' }}>
+                <Icon name="pin" size={12} color="rgba(255,255,255,0.5)" />
+                <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>{missingCoords} stop{missingCoords > 1 ? 's' : ''} not on map (no location)</span>
+              </div>
+            ) : null
+          })()}
           {daysWithColors.length > 0 && (
             <div style={{ position: 'absolute', top: 12, left: 0, right: 0, zIndex: 10, overflowX: 'auto', display: 'flex', gap: 8, padding: '0 16px' }}
               className="scroll-y" onScroll={e => e.stopPropagation()}>
@@ -1076,7 +1120,7 @@ export default function TripDetailPage() {
               {collaborators.map(m => (
                 <div key={m.user_id} style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
                   <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: 'white' }}>{(m.profiles?.name || '?')[0].toUpperCase()}</span>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: 'white' }}>{(m.profiles?.name?.[0] ?? '?').toUpperCase()}</span>
                   </div>
                   <div>
                     <p style={{ fontSize: 14, fontWeight: 500 }}>{m.profiles?.name || 'Unknown'}</p>

@@ -32,6 +32,11 @@ export default function PackingList({ tripId }) {
   const addItem = async (text) => {
     const t = text || newText.trim()
     if (!t) return
+    // Prevent case-insensitive duplicates
+    if (items.some(i => i.text.toLowerCase() === t.toLowerCase())) {
+      setNewText('')
+      return
+    }
     setAdding(true)
     const { data } = await supabase
       .from('packing_items')

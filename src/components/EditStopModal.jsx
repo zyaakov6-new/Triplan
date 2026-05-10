@@ -55,6 +55,7 @@ export default function EditStopModal({ stop, days = [], onClose, onUpdated, onD
     setPlaceQuery(val)
     setSearchError('')
     clearTimeout(searchTimer.current)
+    if (!val.trim()) { setPlaceResults([]); return }
     searchTimer.current = setTimeout(() => searchPlaces(val), 400)
   }
 

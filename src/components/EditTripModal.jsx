@@ -58,6 +58,9 @@ export default function EditTripModal({ trip, onClose, onUpdated, onDeleted }) {
 
   const handleUpdate = async () => {
     if (!form.name.trim()) { setError('Trip name is required'); return }
+    if (form.date_start && form.date_end && form.date_end < form.date_start) {
+      setError('End date cannot be before start date'); return
+    }
     setLoading(true); setError('')
     const { data, error: err } = await supabase.from('trips').update({
       name: form.name.trim(),
@@ -137,7 +140,7 @@ export default function EditTripModal({ trip, onClose, onUpdated, onDeleted }) {
           </div>
           <div>
             <label style={lbl}>End date</label>
-            <input className="input" type="date" value={form.date_end} onChange={set('date_end')} />
+            <input className="input" type="date" value={form.date_end} min={form.date_start || undefined} onChange={set('date_end')} />
           </div>
         </div>
 

@@ -112,8 +112,10 @@ export default function NewDayModal({ tripId, nextDayNumber, tripDateStart, trip
     if (err) { setError(err.message); setLoading(false); return }
 
     const insertedStops = []
+    let stopsFailed = 0
+
     if (startQuery.trim()) {
-      const { data: s } = await supabase.from('stops').insert({
+      const { data: s, error: sErr } = await supabase.from('stops').insert({
         day_id: day.id,
         name: startQuery.trim(),
         type: 'waypoint',
@@ -122,9 +124,10 @@ export default function NewDayModal({ tripId, nextDayNumber, tripDateStart, trip
         note: 'Start point',
       }).select().single()
       if (s) insertedStops.push(s)
+      else if (sErr) stopsFailed++
     }
     if (endQuery.trim()) {
-      const { data: s } = await supabase.from('stops').insert({
+      const { data: s, error: sErr } = await supabase.from('stops').insert({
         day_id: day.id,
         name: endQuery.trim(),
         type: 'waypoint',
@@ -133,9 +136,15 @@ export default function NewDayModal({ tripId, nextDayNumber, tripDateStart, trip
         note: 'End point',
       }).select().single()
       if (s) insertedStops.push(s)
+      else if (sErr) stopsFailed++
     }
 
     setLoading(false)
+    if (stopsFailed > 0) {
+      // Day was created but stops failed — continue with what we have and warn
+      setError(`Day added, but ${stopsFailed} stop${stopsFailed > 1 ? 's' : ''} failed to save. You can add them manually.`)
+      // Still call onCreated so the day appears
+    }
     onCreated({ ...day, stops: insertedStops })
   }
 
