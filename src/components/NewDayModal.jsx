@@ -191,7 +191,7 @@ export default function NewDayModal({ tripId, nextDayNumber, tripDateStart, trip
         />
         {endLat && <p style={{ fontSize: 11, color: 'var(--teal)', marginTop: -10 }}>{endLat.toFixed(4)}, {endLng.toFixed(4)}</p>}
 
-        {error && <p style={{ fontSize: 13, color: '#C00', padding: '8px 12px', background: '#FEE', borderRadius: 8 }}>{error}</p>}
+        {error && <p className="error-box">{error}</p>}
 
         <button className="btn btn-accent" style={{ width: '100%' }} onClick={handleCreate} disabled={loading}>
           {loading ? 'Adding…' : `Add Day ${nextDayNumber}`} {!loading && <Icon name="arrow_right" size={16} color="white" />}

@@ -350,6 +350,8 @@ export default function TripDetailPage() {
   const fileRef = useRef(null)
   const touchStartX = useRef(0)
   const touchStartY = useRef(0)
+  const daysScrollRef   = useRef(null)   // ref for the days-route scroll container
+  const savedScrollPos  = useRef(0)      // saved scroll pos before opening day detail
 
   const [trip, setTrip] = useState(null)
   const [days, setDays] = useState([])
@@ -382,6 +384,8 @@ export default function TripDetailPage() {
   const [syncFlash, setSyncFlash] = useState(false)
   const [showPdfPreview, setShowPdfPreview] = useState(false)
   const [togglingStopId, setTogglingStopId] = useState(null)
+  const [reorderingDayId, setReorderingDayId] = useState(null) // lock during reorder
+  const [exportingIcal, setExportingIcal] = useState(false)
   const [unitKm, setUnitKm] = useState(() => localStorage.getItem('unit') !== 'miles')
   const [showGasCalc, setShowGasCalc] = useState(false)
   const [gasEfficiency, setGasEfficiency] = useState('')   // mpg or L/100km
@@ -390,6 +394,15 @@ export default function TripDetailPage() {
   const TABS = ['map', 'days', 'photos', 'pack']
 
   useEffect(() => { fetchAll() }, [id])
+
+  // Restore days-list scroll position after closing day detail view
+  useEffect(() => {
+    if (!detailDay && daysScrollRef.current) {
+      requestAnimationFrame(() => {
+        if (daysScrollRef.current) daysScrollRef.current.scrollTop = savedScrollPos.current
+      })
+    }
+  }, [detailDay])
 
   useEffect(() => {
     if (!id) return
@@ -411,6 +424,8 @@ export default function TripDetailPage() {
         setDays(prev => {
           const sourceDay = prev.find(d => d.stops.find(s => s.id === stop.id))
           if (!sourceDay) return prev
+          // Skip sort_order updates for the day currently being reordered locally
+          if (reorderingDayId === sourceDay.id) return prev
           if (stop.day_id !== sourceDay.id) {
             return prev.map(d => {
               if (d.id === sourceDay.id) return { ...d, stops: d.stops.filter(s => s.id !== stop.id) }
@@ -580,12 +595,17 @@ export default function TripDetailPage() {
   }
 
   const handleReorderStops = async (dayId, newStops) => {
+    // Capture snapshot for rollback, then lock against realtime overwrite
+    const snapshot = days.find(d => d.id === dayId)?.stops || []
+    setReorderingDayId(dayId)
     setDays(prev => prev.map(d => d.id === dayId ? { ...d, stops: newStops } : d))
     try {
       await Promise.all(newStops.map((s, i) => supabase.from('stops').update({ sort_order: i }).eq('id', s.id)))
     } catch {
-      // revert on failure
-      setDays(prev => prev.map(d => d.id === dayId ? { ...d, stops: d.stops } : d))
+      // Revert to the real pre-reorder snapshot
+      setDays(prev => prev.map(d => d.id === dayId ? { ...d, stops: snapshot } : d))
+    } finally {
+      setReorderingDayId(null)
     }
   }
 
@@ -596,10 +616,29 @@ export default function TripDetailPage() {
     await handleReorderStops(dayId, optimized)
   }
 
+  const MAX_PHOTOS  = 20
+  const MAX_MB      = 10
+
   const handleUploadPhoto = async (dayId, files) => {
     setPhotoUploadError('')
+    const fileArr = Array.from(files)
+
+    // Validate count
+    if (fileArr.length > MAX_PHOTOS) {
+      setPhotoUploadError(`Max ${MAX_PHOTOS} photos at once`)
+      setTimeout(() => setPhotoUploadError(''), 5000)
+      return
+    }
+    // Validate sizes
+    const tooBig = fileArr.filter(f => f.size > MAX_MB * 1024 * 1024)
+    if (tooBig.length > 0) {
+      setPhotoUploadError(`${tooBig.length} file${tooBig.length > 1 ? 's' : ''} exceed ${MAX_MB} MB limit`)
+      setTimeout(() => setPhotoUploadError(''), 5000)
+      return
+    }
+
     let failed = 0
-    for (const file of Array.from(files)) {
+    for (const file of fileArr) {
       const ext = file.name.split('.').pop()
       const path = `${id}/${dayId}/${Date.now()}.${ext}`
       const { error: upErr } = await supabase.storage.from('trip-photos').upload(path, file)
@@ -649,7 +688,8 @@ export default function TripDetailPage() {
 
   const handleExportPDF = () => setShowPdfPreview(true)
 
-  const handleExportIcal = () => {
+  const handleExportIcal = async () => {
+    setExportingIcal(true)
     const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Triplan//Trip//EN', 'CALSCALE:GREGORIAN']
     for (const day of days) {
       if (!day.trip_date) continue
@@ -671,6 +711,7 @@ export default function TripDetailPage() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a'); a.href = url; a.download = `${trip?.name || 'trip'}.ics`; a.click()
     setTimeout(() => URL.revokeObjectURL(url), 1000)
+    setExportingIcal(false)
   }
 
   const handleStopUpdated = (updated) => {
@@ -926,7 +967,7 @@ export default function TripDetailPage() {
                 </button>
               </div>
 
-              <div className="scroll-y" style={{ flex: 1, padding: '10px 14px 100px' }}>
+              <div ref={daysScrollRef} className="scroll-y" style={{ flex: 1, padding: '10px 14px 100px' }}>
                 {days.length === 0 ? (
                   <div style={{ textAlign: 'center', paddingTop: 48 }}>
                     <Icon name="map" size={40} color="var(--sand-dark)" />
@@ -946,7 +987,7 @@ export default function TripDetailPage() {
                   <>
                     {filteredDays.map(day => (
                       <DayCard key={day.id} day={day} dayColor={day.color} unitKm={unitKm}
-                        onOpen={() => setDetailDay(day)} />
+                        onOpen={() => { savedScrollPos.current = daysScrollRef.current?.scrollTop || 0; setDetailDay(day) }} />
                     ))}
                     <button className="btn btn-ghost" style={{ width: '100%', marginTop: 6 }} onClick={() => setShowNewDay(true)}>
                       <Icon name="plus" size={15} color="var(--ink-light)" /> Add day
@@ -1106,8 +1147,8 @@ export default function TripDetailPage() {
 
             {/* Export actions */}
             <div style={{ display: 'flex', gap: 8 }}>
-              <button className="btn btn-ghost btn-sm" style={{ flex: 1 }} onClick={() => { handleExportIcal(); setShowCollabSheet(false) }}>
-                <Icon name="ical" size={14} color="var(--ink-muted)" /> Export iCal
+              <button className="btn btn-ghost btn-sm" style={{ flex: 1, opacity: exportingIcal ? 0.6 : 1 }} disabled={exportingIcal} onClick={() => { handleExportIcal(); setShowCollabSheet(false) }}>
+                <Icon name="ical" size={14} color="var(--ink-muted)" /> {exportingIcal ? 'Exporting…' : 'Export iCal'}
               </button>
               <button className="btn btn-ghost btn-sm" style={{ flex: 1 }} onClick={() => { handleExportPDF(); setShowCollabSheet(false) }}>
                 <Icon name="download" size={14} color="var(--ink-muted)" /> Export PDF

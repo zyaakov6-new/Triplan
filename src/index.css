@@ -453,6 +453,21 @@ a { text-decoration: none; color: inherit; }
   .pdf-preview-content { overflow: visible !important; padding: 20px !important; }
 }
 
+/* ── Error / danger ── */
+:root {
+  --danger:        #b91c1c;
+  --danger-bg:     #fee2e2;
+  --danger-border: rgba(185,28,28,0.18);
+}
+.error-box {
+  font-size: 13px;
+  color: var(--danger);
+  padding: 8px 12px;
+  background: var(--danger-bg);
+  border-radius: 8px;
+  border: 1px solid var(--danger-border);
+}
+
 /* ── Sync indicator ── */
 @keyframes syncPulse {
   0%, 100% { opacity: 1; transform: scale(1); }

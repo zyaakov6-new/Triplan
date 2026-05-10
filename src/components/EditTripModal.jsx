@@ -195,7 +195,7 @@ export default function EditTripModal({ trip, onClose, onUpdated, onDeleted }) {
           )}
         </div>
 
-        {error && <p style={{ fontSize: 13, color: '#C00', padding: '8px 12px', background: '#FEE', borderRadius: 8 }}>{error}</p>}
+        {error && <p className="error-box">{error}</p>}
 
         <button className="btn btn-accent" style={{ width: '100%' }} onClick={handleUpdate} disabled={loading || uploadingCover}>
           {loading ? 'Saving…' : 'Save changes'}

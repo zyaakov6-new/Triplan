@@ -1,7 +1,8 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 import BottomSheet from './BottomSheet'
 import Icon from './Icon'
+import { useLocationSearch } from '../hooks/useLocationSearch'
 
 const TYPES = [
   { id: 'attraction', label: 'Viewpoint',   icon: 'navigate' },
@@ -12,39 +13,14 @@ const TYPES = [
 ]
 
 export default function NewStopModal({ dayId, nextOrder, onClose, onCreated }) {
-  const [form, setForm] = useState({ name: '', type: 'attraction', time_slot: '', note: '', lat: '', lng: '', cost: '' })
+  const [form, setForm]       = useState({ name: '', type: 'attraction', time_slot: '', note: '', lat: '', lng: '', cost: '' })
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [placeQuery, setPlaceQuery] = useState('')
-  const [placeResults, setPlaceResults] = useState([])
-  const [searchingPlace, setSearchingPlace] = useState(false)
-  const [searchError, setSearchError] = useState('')
-  const searchTimer = useRef(null)
+  const [error, setError]     = useState('')
+
+  const { query: placeQuery, results: placeResults, searching: searchingPlace,
+          searchError, handleInput: handlePlaceInput, clearResults, setQuery: setPlaceQuery } = useLocationSearch()
 
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }))
-
-  const searchPlaces = async (q) => {
-    if (!q.trim() || q.trim().length < 3) { setPlaceResults([]); setSearchError(''); return }
-    setSearchingPlace(true); setSearchError('')
-    try {
-      const res = await fetch(
-        `https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=8&lang=en`
-      )
-      if (!res.ok) throw new Error('Search unavailable')
-      const data = await res.json()
-      setPlaceResults(data.features || [])
-      if ((data.features || []).length === 0) setSearchError('No results found')
-    } catch { setPlaceResults([]); setSearchError('Location search unavailable') }
-    setSearchingPlace(false)
-  }
-
-  const handlePlaceInput = (e) => {
-    const val = e.target.value
-    setPlaceQuery(val)
-    setSearchError('')
-    clearTimeout(searchTimer.current)
-    searchTimer.current = setTimeout(() => searchPlaces(val), 400)
-  }
 
   const selectPlace = (feature) => {
     const [lon, lat] = feature.geometry.coordinates
@@ -57,7 +33,7 @@ export default function NewStopModal({ dayId, nextOrder, onClose, onCreated }) {
       lng: parseFloat(lon).toFixed(6),
     }))
     setPlaceQuery(label)
-    setPlaceResults([])
+    clearResults()
   }
 
   const handleCreate = async () => {
@@ -107,13 +83,8 @@ export default function NewStopModal({ dayId, nextOrder, onClose, onCreated }) {
             Search location
           </label>
           <div style={{ position: 'relative' }}>
-            <input
-              className="input"
-              placeholder="Search a place to auto-fill coordinates…"
-              value={placeQuery}
-              onChange={handlePlaceInput}
-              autoComplete="off"
-            />
+            <input className="input" placeholder="Search a place to auto-fill coordinates…"
+              value={placeQuery} onChange={e => handlePlaceInput(e.target.value)} autoComplete="off" />
             {searchingPlace && (
               <div style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 12, color: 'var(--ink-muted)' }}>…</div>
             )}
@@ -161,7 +132,7 @@ export default function NewStopModal({ dayId, nextOrder, onClose, onCreated }) {
           <input className="input" placeholder="Pre-booked tickets, reservation name…" value={form.note} onChange={set('note')} />
         </div>
 
-        {error && <p style={{ fontSize: 13, color: '#C00', padding: '8px 12px', background: '#FEE', borderRadius: 8 }}>{error}</p>}
+        {error && <p className="error-box">{error}</p>}
 
         <button className="btn btn-accent" style={{ width: '100%' }} onClick={handleCreate} disabled={loading}>
           {loading ? 'Adding…' : 'Add stop'} {!loading && <Icon name="arrow_right" size={16} color="white" />}

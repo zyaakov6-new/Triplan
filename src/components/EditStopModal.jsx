@@ -1,7 +1,8 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 import BottomSheet from './BottomSheet'
 import Icon from './Icon'
+import { useLocationSearch } from '../hooks/useLocationSearch'
 
 const TYPES = [
   { id: 'attraction', label: 'Viewpoint',  icon: 'navigate' },
@@ -21,43 +22,20 @@ export default function EditStopModal({ stop, days = [], onClose, onUpdated, onD
     lng: stop.lng != null ? String(stop.lng) : '',
     cost: stop.cost != null ? String(stop.cost) : '',
   })
-  const [loading, setLoading] = useState(false)
-  const [deleting, setDeleting] = useState(false)
-  const [moving, setMoving] = useState(false)
-  const [error, setError] = useState('')
+  const [loading, setLoading]           = useState(false)
+  const [deleting, setDeleting]         = useState(false)
+  const [moving, setMoving]             = useState(false)
+  const [error, setError]               = useState('')
   const [confirmDelete, setConfirmDelete] = useState(false)
-  const [showMoveDay, setShowMoveDay] = useState(false)
-  const [placeQuery, setPlaceQuery] = useState('')
-  const [placeResults, setPlaceResults] = useState([])
-  const [searchingPlace, setSearchingPlace] = useState(false)
-  const [searchError, setSearchError] = useState('')
-  const searchTimer = useRef(null)
+  const [showMoveDay, setShowMoveDay]   = useState(false)
+
+  const { query: placeQuery, results: placeResults, searching: searchingPlace,
+          searchError, handleInput: handlePlaceInputRaw, clearResults,
+          setQuery: setPlaceQuery } = useLocationSearch()
 
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }))
 
-  const searchPlaces = async (q) => {
-    if (!q.trim() || q.trim().length < 3) { setPlaceResults([]); setSearchError(''); return }
-    setSearchingPlace(true); setSearchError('')
-    try {
-      const res = await fetch(
-        `https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=8&lang=en`
-      )
-      if (!res.ok) throw new Error('Search unavailable')
-      const data = await res.json()
-      setPlaceResults(data.features || [])
-      if ((data.features || []).length === 0) setSearchError('No results found')
-    } catch { setPlaceResults([]); setSearchError('Location search unavailable') }
-    setSearchingPlace(false)
-  }
-
-  const handlePlaceInput = (e) => {
-    const val = e.target.value
-    setPlaceQuery(val)
-    setSearchError('')
-    clearTimeout(searchTimer.current)
-    if (!val.trim()) { setPlaceResults([]); return }
-    searchTimer.current = setTimeout(() => searchPlaces(val), 400)
-  }
+  const handlePlaceInput = (e) => handlePlaceInputRaw(e.target.value)
 
   const selectPlace = (feature) => {
     const [lon, lat] = feature.geometry.coordinates
@@ -69,7 +47,7 @@ export default function EditStopModal({ stop, days = [], onClose, onUpdated, onD
       lng: parseFloat(lon).toFixed(6),
     }))
     setPlaceQuery(label)
-    setPlaceResults([])
+    clearResults()
   }
 
   const handleUpdate = async () => {
@@ -172,7 +150,7 @@ export default function EditStopModal({ stop, days = [], onClose, onUpdated, onD
           <input className="input" placeholder="Notes…" value={form.note} onChange={set('note')} />
         </div>
 
-        {error && <p style={{ fontSize: 13, color: '#C00', padding: '8px 12px', background: '#FEE', borderRadius: 8 }}>{error}</p>}
+        {error && <p className="error-box">{error}</p>}
 
         <button className="btn btn-accent" style={{ width: '100%' }} onClick={handleUpdate} disabled={loading}>
           {loading ? 'Saving…' : 'Save changes'}
