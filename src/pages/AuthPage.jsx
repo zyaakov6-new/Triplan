@@ -181,7 +181,7 @@ export default function AuthPage() {
         {mode === 'forgot' && (
           <div className="anim-up" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {resetSent ? (
-              <div style={{ padding: '14px 16px', background: 'rgba(45,107,107,0.12)', borderRadius: 12, border: '1px solid rgba(45,107,107,0.3)', textAlign: isHe ? 'right' : 'left' }}>
+              <div style={{ padding: '14px 16px', background: 'rgba(45,107,107,0.12)', borderRadius: 12, border: '1px solid rgba(45,107,107,0.3)' }}>
                 <p style={{ fontSize: 14, color: 'var(--teal)', fontWeight: 500 }}>{t.resetSent}</p>
               </div>
             ) : (
@@ -198,7 +198,7 @@ export default function AuthPage() {
               </>
             )}
             <button onClick={() => { setMode('login'); setError(''); setResetSent(false) }}
-              style={{ fontSize: 13, color: 'var(--ink-muted)', cursor: 'pointer', textDecoration: 'underline', background: 'none', border: 'none', textAlign: isHe ? 'right' : 'left' }}>
+              style={{ fontSize: 13, color: 'var(--ink-muted)', cursor: 'pointer', textDecoration: 'underline', background: 'none', border: 'none' }}>
               {isHe ? '→' : '←'} {t.backToLogin}
             </button>
           </div>
@@ -253,7 +253,7 @@ export default function AuthPage() {
               {mode === 'signup' && (
                 <div className="anim-up">
                   <label style={lbl}>{t.labelName}</label>
-                  <input className="input" style={{ textAlign: isHe ? 'right' : 'left' }}
+                  <input className="input"
                     placeholder={t.placeholderName} value={form.name} onChange={set('name')} autoComplete="name" />
                 </div>
               )}
@@ -279,7 +279,7 @@ export default function AuthPage() {
 
             {error && (
               <div style={{ marginTop: 12, padding: '10px 14px', background: 'rgba(255,80,80,0.15)', borderRadius: 10, border: '1px solid rgba(255,80,80,0.3)' }}>
-                <p style={{ fontSize: 13, color: '#FF8080', textAlign: isHe ? 'right' : 'left' }}>{error}</p>
+                <p style={{ fontSize: 13, color: '#FF8080' }}>{error}</p>
               </div>
             )}
 

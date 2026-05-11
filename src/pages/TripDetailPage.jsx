@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
+import { useLang } from '../hooks/useLang'
 import TripMap from '../components/TripMap'
 import BottomSheet from '../components/BottomSheet'
 import NewDayModal from '../components/NewDayModal'
@@ -347,6 +348,8 @@ export default function TripDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { user } = useAuth()
+  const { lang } = useLang()
+  const isHe = lang === 'he'
   const fileRef = useRef(null)
   const touchStartX = useRef(0)
   const touchStartY = useRef(0)
@@ -843,7 +846,7 @@ export default function TripDetailPage() {
   const themeVars = getThemeVars(trip?.color_theme)
 
   return (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden', ...themeVars }}>
+    <div dir={isHe ? 'rtl' : 'ltr'} style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden', ...themeVars }}>
 
       {/* ── Print view ── */}
       {!showPdfPreview && (
@@ -862,7 +865,7 @@ export default function TripDetailPage() {
         )}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '0 16px 10px', marginTop: 12 }}>
           <button onClick={() => navigate('/')} style={{ width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', background: 'var(--cream)', cursor: 'pointer', flexShrink: 0 }}>
-            <Icon name="chevron_left" size={18} color="var(--ink)" />
+            <Icon name={isHe ? 'chevron_right' : 'chevron_left'} size={18} color="var(--ink)" />
           </button>
           <div style={{ flex: 1, overflow: 'hidden' }}>
             <p style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -1276,7 +1279,7 @@ export default function TripDetailPage() {
         <div className="pdf-preview-overlay no-print">
           <div className="pdf-preview-toolbar">
             <button onClick={() => setShowPdfPreview(false)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--white)', cursor: 'pointer', fontSize: 14, color: 'var(--ink-light)' }}>
-              <Icon name="chevron_left" size={16} color="var(--ink-muted)" /> Back
+              <Icon name={isHe ? 'chevron_right' : 'chevron_left'} size={16} color="var(--ink-muted)" /> Back
             </button>
             <span style={{ flex: 1, fontFamily: 'var(--font-display)', fontSize: 16, textAlign: 'center' }}>PDF Preview</span>
             <button onClick={() => window.print()} className="btn btn-accent btn-sm">
@@ -1301,6 +1304,8 @@ export default function TripDetailPage() {
 // ── DayCard ───────────────────────────────────────────────────────────────────
 // ── Compact day row (Route list) ─────────────────────────────────────────────
 function DayCard({ day, dayColor, unitKm = true, onOpen }) {
+  const { lang } = useLang()
+  const isHe = lang === 'he'
   const doneCount = day.stops.filter(s => s.done).length
   const dayBudget = day.stops.reduce((sum, s) => sum + (s.cost || 0), 0)
   const dayDistKm = getDayDistance(day.stops)
@@ -1311,7 +1316,7 @@ function DayCard({ day, dayColor, unitKm = true, onOpen }) {
     : `Day ${day.day_number}`
 
   return (
-    <button onClick={onOpen} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '11px 12px', background: 'var(--white)', borderRadius: 12, border: '1px solid var(--border)', marginBottom: 7, borderLeft: `4px solid ${color}`, cursor: 'pointer', textAlign: 'left' }}>
+    <button onClick={onOpen} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '11px 12px', background: 'var(--white)', borderRadius: 12, border: '1px solid var(--border)', marginBottom: 7, borderInlineStart: `4px solid ${color}`, cursor: 'pointer' }}>
       <div style={{ width: 34, height: 34, borderRadius: 8, background: color, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
         <span style={{ fontSize: 7, color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>DAY</span>
         <span style={{ fontSize: 13, fontWeight: 700, color: 'white', lineHeight: 1 }}>{day.day_number}</span>
@@ -1329,7 +1334,7 @@ function DayCard({ day, dayColor, unitKm = true, onOpen }) {
           <div style={{ height: '100%', width: `${(doneCount / day.stops.length) * 100}%`, background: color, borderRadius: 2 }} />
         </div>
       )}
-      <Icon name="chevron_right" size={14} color="var(--sand-dark)" />
+      <Icon name={isHe ? 'chevron_left' : 'chevron_right'} size={14} color="var(--sand-dark)" />
     </button>
   )
 }
@@ -1416,6 +1421,8 @@ function StopsList({ stops, color, onToggleStop, togglingStopId, onEditStop, onR
 
 // ── Day detail full-screen view ────────────────────────────────────────────────
 function DayDetailView({ day, dayColor, unitKm, onBack, onToggleStop, togglingStopId, onAddStop, onOpenSheet, onEditStop, onEditDay, onReorderStops, onOptimize }) {
+  const { lang } = useLang()
+  const isHe = lang === 'he'
   const color = dayColor || 'var(--accent)'
   const doneCount = day.stops.filter(s => s.done).length
   const dayBudget = day.stops.reduce((sum, s) => sum + (s.cost || 0), 0)
@@ -1432,7 +1439,7 @@ function DayDetailView({ day, dayColor, unitKm, onBack, onToggleStop, togglingSt
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px' }}>
           <button onClick={onBack}
             style={{ width: 34, height: 34, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', background: 'var(--cream)', cursor: 'pointer', flexShrink: 0 }}>
-            <Icon name="chevron_left" size={18} color="var(--ink)" />
+            <Icon name={isHe ? 'chevron_right' : 'chevron_left'} size={18} color="var(--ink)" />
           </button>
           <div style={{ width: 34, height: 34, borderRadius: 8, background: color, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <span style={{ fontSize: 7, color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase' }}>DAY</span>
