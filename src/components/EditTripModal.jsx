@@ -36,10 +36,20 @@ export default function EditTripModal({ trip, onClose, onUpdated, onDeleted }) {
 
   const handleCoverUpload = async (file) => {
     if (!file) return
+    if (!file.type.startsWith('image/')) {
+      setError('Cover photo must be an image file (JPG, PNG, WEBP…)')
+      return
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setError('Cover photo must be under 10 MB')
+      return
+    }
     setUploadingCover(true)
-    const ext = file.name.split('.').pop()
+    setError('')
+    const ext = file.name.split('.').pop().toLowerCase()
     const path = `${trip.id}/cover.${ext}`
-    await supabase.storage.from('trip-photos').upload(path, file, { upsert: true })
+    const { error: upErr } = await supabase.storage.from('trip-photos').upload(path, file, { upsert: true })
+    if (upErr) { setError('Cover upload failed — please try again'); setUploadingCover(false); return }
     const url = supabase.storage.from('trip-photos').getPublicUrl(path).data.publicUrl
     setCoverPhoto(url)
     setUploadingCover(false)
@@ -78,7 +88,8 @@ export default function EditTripModal({ trip, onClose, onUpdated, onDeleted }) {
   const handleDelete = async () => {
     if (!confirmDelete) { setConfirmDelete(true); return }
     setDeleting(true)
-    await supabase.from('trips').delete().eq('id', trip.id)
+    const { error: err } = await supabase.from('trips').delete().eq('id', trip.id)
+    if (err) { setError(err.message); setDeleting(false); setConfirmDelete(false); return }
     setDeleting(false)
     onDeleted(trip.id)
   }

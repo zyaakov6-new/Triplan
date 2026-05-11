@@ -1,7 +1,8 @@
-import { useState, useRef, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { supabase } from '../lib/supabase'
 import BottomSheet from './BottomSheet'
 import Icon from './Icon'
+import { useLocationSearch } from '../hooks/useLocationSearch'
 
 function addDays(dateStr, n) {
   if (!dateStr) return ''
@@ -10,95 +11,43 @@ function addDays(dateStr, n) {
   return d.toISOString().split('T')[0]
 }
 
-function LocationSearch({ label, value, onChange, onSelect, results, onClearResults }) {
-  const timer = useRef(null)
-
-  const handleInput = async (e) => {
-    const q = e.target.value
-    onChange(q)
-    clearTimeout(timer.current)
-    if (q.trim().length < 2) { onClearResults(); return }
-    timer.current = setTimeout(async () => {
-      try {
-        const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=6&lang=en`)
-        const data = await res.json()
-        onSelect(null, data.features || [])
-      } catch { onClearResults() }
-    }, 400)
-  }
-
-  return (
-    <div>
-      <label style={lbl}>{label}</label>
-      <div style={{ position: 'relative' }}>
-        <input
-          className="input"
-          placeholder="Search a location…"
-          value={value}
-          onChange={handleInput}
-          autoComplete="off"
-        />
-        {results.length > 0 && (
-          <div className="place-results">
-            {results.map((f, i) => {
-              const p = f.properties
-              const subtitle = [p.city || p.state, p.country].filter(Boolean).join(', ')
-              return (
-                <div key={i} className="place-result-item"
-                  onClick={() => onSelect(f, [])}>
-                  <div style={{ fontWeight: 500, fontSize: 13, color: 'var(--ink)', marginBottom: 1 }}>{p.name}</div>
-                  {subtitle && <div style={{ fontSize: 11, color: 'var(--ink-muted)' }}>{subtitle}</div>}
-                </div>
-              )
-            })}
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
 export default function NewDayModal({ tripId, nextDayNumber, tripDateStart, tripDateEnd, onClose, onCreated }) {
   const autoDate = useMemo(() => addDays(tripDateStart, nextDayNumber - 1), [tripDateStart, nextDayNumber])
 
   const [tripDate, setTripDate] = useState(autoDate)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+  const [loading, setLoading]   = useState(false)
+  const [error, setError]       = useState('')
 
   // Start point
-  const [startQuery, setStartQuery] = useState('')
-  const [startResults, setStartResults] = useState([])
   const [startLat, setStartLat] = useState(null)
   const [startLng, setStartLng] = useState(null)
+  const { query: startQuery, setQuery: setStartQuery, results: startResults,
+          searching: searchingStart, searchError: startSearchError,
+          handleInput: handleStartInput, clearResults: clearStartResults } = useLocationSearch()
 
   // End point
-  const [endQuery, setEndQuery] = useState('')
-  const [endResults, setEndResults] = useState([])
-  const [endLat, setEndLat] = useState(null)
-  const [endLng, setEndLng] = useState(null)
+  const [endLat, setEndLat]     = useState(null)
+  const [endLng, setEndLng]     = useState(null)
+  const { query: endQuery, setQuery: setEndQuery, results: endResults,
+          searching: searchingEnd, searchError: endSearchError,
+          handleInput: handleEndInput, clearResults: clearEndResults } = useLocationSearch()
 
-  const handleStartSelect = (feature, results) => {
-    setStartResults(results)
-    if (feature) {
-      const [lon, lat] = feature.geometry.coordinates
-      const p = feature.properties
-      setStartQuery([p.name, p.city || p.state, p.country].filter(Boolean).join(', '))
-      setStartLat(parseFloat(lat))
-      setStartLng(parseFloat(lon))
-      setStartResults([])
-    }
+  const selectStart = (feature) => {
+    const [lon, lat] = feature.geometry.coordinates
+    const p = feature.properties
+    setStartQuery([p.name, p.city || p.state, p.country].filter(Boolean).join(', '))
+    setStartLat(parseFloat(lat))
+    setStartLng(parseFloat(lon))
+    clearStartResults()
   }
 
-  const handleEndSelect = (feature, results) => {
-    setEndResults(results)
-    if (feature) {
-      const [lon, lat] = feature.geometry.coordinates
-      const p = feature.properties
-      setEndQuery([p.name, p.city || p.state, p.country].filter(Boolean).join(', '))
-      setEndLat(parseFloat(lat))
-      setEndLng(parseFloat(lon))
-      setEndResults([])
-    }
+  const selectEnd = (feature) => {
+    const [lon, lat] = feature.geometry.coordinates
+    const p = feature.properties
+    setEndQuery([p.name, p.city || p.state, p.country].filter(Boolean).join(', '))
+    setEndLat(parseFloat(lat))
+    setEndLng(parseFloat(lon))
+    clearEndResults()
   }
 
   const handleCreate = async () => {
@@ -116,24 +65,16 @@ export default function NewDayModal({ tripId, nextDayNumber, tripDateStart, trip
 
     if (startQuery.trim()) {
       const { data: s, error: sErr } = await supabase.from('stops').insert({
-        day_id: day.id,
-        name: startQuery.trim(),
-        type: 'waypoint',
-        lat: startLat, lng: startLng,
-        sort_order: 0,
-        note: 'Start point',
+        day_id: day.id, name: startQuery.trim(), type: 'waypoint',
+        lat: startLat, lng: startLng, sort_order: 0, note: 'Start point',
       }).select().single()
       if (s) insertedStops.push(s)
       else if (sErr) stopsFailed++
     }
     if (endQuery.trim()) {
       const { data: s, error: sErr } = await supabase.from('stops').insert({
-        day_id: day.id,
-        name: endQuery.trim(),
-        type: 'waypoint',
-        lat: endLat, lng: endLng,
-        sort_order: 999,
-        note: 'End point',
+        day_id: day.id, name: endQuery.trim(), type: 'waypoint',
+        lat: endLat, lng: endLng, sort_order: 999, note: 'End point',
       }).select().single()
       if (s) insertedStops.push(s)
       else if (sErr) stopsFailed++
@@ -141,9 +82,7 @@ export default function NewDayModal({ tripId, nextDayNumber, tripDateStart, trip
 
     setLoading(false)
     if (stopsFailed > 0) {
-      // Day was created but stops failed — continue with what we have and warn
       setError(`Day added, but ${stopsFailed} stop${stopsFailed > 1 ? 's' : ''} failed to save. You can add them manually.`)
-      // Still call onCreated so the day appears
     }
     onCreated({ ...day, stops: insertedStops })
   }
@@ -160,36 +99,65 @@ export default function NewDayModal({ tripId, nextDayNumber, tripDateStart, trip
         <div>
           <label style={lbl}>Date {dateLabel && <span style={{ fontWeight: 400, textTransform: 'none', color: 'var(--accent)', marginLeft: 6 }}>{dateLabel}</span>}</label>
           <input
-            className="input"
-            type="date"
-            value={tripDate}
-            min={tripDateStart || undefined}
-            max={tripDateEnd || undefined}
+            className="input" type="date" value={tripDate}
+            min={tripDateStart || undefined} max={tripDateEnd || undefined}
             onChange={e => setTripDate(e.target.value)}
           />
         </div>
 
         {/* Start location */}
-        <LocationSearch
-          label="Start point"
-          value={startQuery}
-          onChange={q => { setStartQuery(q); if (!q) { setStartLat(null); setStartLng(null) } }}
-          onSelect={handleStartSelect}
-          results={startResults}
-          onClearResults={() => setStartResults([])}
-        />
-        {startLat && <p style={{ fontSize: 11, color: 'var(--teal)', marginTop: -10 }}>{startLat.toFixed(4)}, {startLng.toFixed(4)}</p>}
+        <div>
+          <label style={lbl}>Start point</label>
+          <div style={{ position: 'relative' }}>
+            <input className="input" placeholder="Search a location…" value={startQuery}
+              onChange={e => { handleStartInput(e.target.value); if (!e.target.value) { setStartLat(null); setStartLng(null) } }}
+              autoComplete="off" />
+            {searchingStart && <div style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 12, color: 'var(--ink-muted)' }}>…</div>}
+            {startResults.length > 0 && (
+              <div className="place-results">
+                {startResults.map((f, i) => {
+                  const p = f.properties
+                  const sub = [p.city || p.state, p.country].filter(Boolean).join(', ')
+                  return (
+                    <div key={i} className="place-result-item" onClick={() => selectStart(f)}>
+                      <div style={{ fontWeight: 500, fontSize: 13, color: 'var(--ink)', marginBottom: 1 }}>{p.name}</div>
+                      {sub && <div style={{ fontSize: 11, color: 'var(--ink-muted)' }}>{sub}</div>}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+          {startSearchError && !startResults.length && <p style={{ fontSize: 11, color: 'var(--ink-muted)', marginTop: 5 }}>{startSearchError}</p>}
+          {startLat && <p style={{ fontSize: 11, color: 'var(--teal)', marginTop: 5 }}>{startLat.toFixed(4)}, {startLng.toFixed(4)}</p>}
+        </div>
 
         {/* End location */}
-        <LocationSearch
-          label="End point"
-          value={endQuery}
-          onChange={q => { setEndQuery(q); if (!q) { setEndLat(null); setEndLng(null) } }}
-          onSelect={handleEndSelect}
-          results={endResults}
-          onClearResults={() => setEndResults([])}
-        />
-        {endLat && <p style={{ fontSize: 11, color: 'var(--teal)', marginTop: -10 }}>{endLat.toFixed(4)}, {endLng.toFixed(4)}</p>}
+        <div>
+          <label style={lbl}>End point</label>
+          <div style={{ position: 'relative' }}>
+            <input className="input" placeholder="Search a location…" value={endQuery}
+              onChange={e => { handleEndInput(e.target.value); if (!e.target.value) { setEndLat(null); setEndLng(null) } }}
+              autoComplete="off" />
+            {searchingEnd && <div style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 12, color: 'var(--ink-muted)' }}>…</div>}
+            {endResults.length > 0 && (
+              <div className="place-results">
+                {endResults.map((f, i) => {
+                  const p = f.properties
+                  const sub = [p.city || p.state, p.country].filter(Boolean).join(', ')
+                  return (
+                    <div key={i} className="place-result-item" onClick={() => selectEnd(f)}>
+                      <div style={{ fontWeight: 500, fontSize: 13, color: 'var(--ink)', marginBottom: 1 }}>{p.name}</div>
+                      {sub && <div style={{ fontSize: 11, color: 'var(--ink-muted)' }}>{sub}</div>}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+          {endSearchError && !endResults.length && <p style={{ fontSize: 11, color: 'var(--ink-muted)', marginTop: 5 }}>{endSearchError}</p>}
+          {endLat && <p style={{ fontSize: 11, color: 'var(--teal)', marginTop: 5 }}>{endLat.toFixed(4)}, {endLng.toFixed(4)}</p>}
+        </div>
 
         {error && <p className="error-box">{error}</p>}
 

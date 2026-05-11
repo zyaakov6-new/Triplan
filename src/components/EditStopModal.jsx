@@ -69,7 +69,8 @@ export default function EditStopModal({ stop, days = [], onClose, onUpdated, onD
   const handleDelete = async () => {
     if (!confirmDelete) { setConfirmDelete(true); return }
     setDeleting(true)
-    await supabase.from('stops').delete().eq('id', stop.id)
+    const { error: err } = await supabase.from('stops').delete().eq('id', stop.id)
+    if (err) { setError(err.message); setDeleting(false); setConfirmDelete(false); return }
     setDeleting(false)
     onDeleted(stop.id)
   }

@@ -72,7 +72,12 @@ export default function HomePage() {
     if (!joinToken.trim()) return
     setJoining(true); setJoinError('')
     const { data, error } = await supabase.rpc('join_trip_by_token', { token: joinToken.trim().toLowerCase() })
-    if (error) { setJoinError('קוד הזמנה לא תקין'); setJoining(false); return }
+    if (error) {
+      const lang = localStorage.getItem('triplan_lang') || (navigator.language?.startsWith('he') ? 'he' : 'en')
+      setJoinError(lang === 'he' ? 'קוד הזמנה לא תקין' : 'Invalid invite code')
+      setJoining(false)
+      return
+    }
     setJoining(false); setJoinToken('')
     navigate(`/trip/${data}`)
   }

@@ -21,6 +21,26 @@ export default function PackingList({ tripId }) {
 
   useEffect(() => { fetchItems() }, [tripId])
 
+  // Realtime sync — keep collaborators' changes in view without reload
+  useEffect(() => {
+    const channel = supabase
+      .channel(`packing:${tripId}`)
+      .on('postgres_changes', {
+        event: '*', schema: 'public', table: 'packing_items',
+        filter: `trip_id=eq.${tripId}`,
+      }, ({ eventType, new: row, old }) => {
+        if (eventType === 'INSERT') {
+          setItems(prev => prev.some(i => i.id === row.id) ? prev : [...prev, row])
+        } else if (eventType === 'UPDATE') {
+          setItems(prev => prev.map(i => i.id === row.id ? row : i))
+        } else if (eventType === 'DELETE') {
+          setItems(prev => prev.filter(i => i.id !== old.id))
+        }
+      })
+      .subscribe()
+    return () => { supabase.removeChannel(channel) }
+  }, [tripId])
+
   // Reset delete-confirm if user taps elsewhere
   useEffect(() => {
     if (!confirmDeleteId) return

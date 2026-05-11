@@ -472,7 +472,17 @@ export default function TripDetailPage() {
         supabase.from('trip_days').select('*, stops(*)').eq('trip_id', id).order('day_number'),
         supabase.from('trip_members').select('*, profiles(*)').eq('trip_id', id),
       ])
-      if (tripRes.error) { navigate('/'); return }
+      if (tripRes.error) {
+        // PGRST116 = no rows (trip not found / no access) → redirect home
+        // Anything else (network, server) → show the retry error screen
+        if (tripRes.error.code === 'PGRST116' || tripRes.error.status === 406) {
+          navigate('/')
+        } else {
+          setLoadError(true)
+          setLoading(false)
+        }
+        return
+      }
       // Permission check — user must be a member of this trip
       const members = membersRes.data || []
       const isMember = members.some(m => m.user_id === user.id)
@@ -637,15 +647,28 @@ export default function TripDetailPage() {
       return
     }
 
-    let failed = 0
-    for (const file of fileArr) {
+    const uploadOne = async (file) => {
       const ext = file.name.split('.').pop()
-      const path = `${id}/${dayId}/${Date.now()}.${ext}`
+      // unique path per file to avoid collisions during parallel upload
+      const path = `${id}/${dayId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
       const { error: upErr } = await supabase.storage.from('trip-photos').upload(path, file)
-      if (upErr) { failed++; continue }
+      if (upErr) return null
       await supabase.from('trip_photos').insert({ day_id: dayId, uploaded_by: user.id, storage_path: path })
-      const url = supabase.storage.from('trip-photos').getPublicUrl(path).data.publicUrl
-      setPhotos(prev => ({ ...prev, [dayId]: [...(prev[dayId] || []), url] }))
+      return supabase.storage.from('trip-photos').getPublicUrl(path).data.publicUrl
+    }
+
+    // Upload up to 3 files in parallel
+    const BATCH = 3
+    const urls = []
+    for (let i = 0; i < fileArr.length; i += BATCH) {
+      const results = await Promise.all(fileArr.slice(i, i + BATCH).map(uploadOne))
+      urls.push(...results)
+    }
+
+    const uploaded = urls.filter(Boolean)
+    const failed   = urls.filter(u => u === null).length
+    if (uploaded.length > 0) {
+      setPhotos(prev => ({ ...prev, [dayId]: [...(prev[dayId] || []), ...uploaded] }))
     }
     if (failed > 0) {
       setPhotoUploadError(`${failed} photo${failed > 1 ? 's' : ''} failed to upload`)
@@ -699,7 +722,10 @@ export default function TripDetailPage() {
         lines.push('BEGIN:VEVENT')
         lines.push(`UID:${stop.id}@triplan`)
         lines.push(`DTSTART:${dateStr}T${time}`)
-        lines.push(`DTEND:${dateStr}T${time}`)
+        // DTEND = start + 1 hour (calendar apps need a non-zero duration)
+        const endHour = Math.min(parseInt(time.slice(0, 2), 10) + 1, 23)
+        const endTime = String(endHour).padStart(2, '0') + time.slice(2)
+        lines.push(`DTEND:${dateStr}T${endTime}`)
         lines.push(`SUMMARY:${stop.name.replace(/[,;\\]/g, m => '\\' + m)}`)
         if (stop.note) lines.push(`DESCRIPTION:${stop.note.replace(/[,;\\]/g, m => '\\' + m)}`)
         if (stop.lat && stop.lng) lines.push(`GEO:${stop.lat};${stop.lng}`)

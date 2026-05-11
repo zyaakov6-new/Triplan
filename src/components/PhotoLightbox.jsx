@@ -10,13 +10,13 @@ export default function PhotoLightbox({ photos, initialIndex = 0, onClose }) {
 
   useEffect(() => {
     const handleKey = (e) => {
-      if (e.key === 'ArrowLeft') prev()
+      if (e.key === 'ArrowLeft')  prev()
       if (e.key === 'ArrowRight') next()
-      if (e.key === 'Escape') onClose()
+      if (e.key === 'Escape')     onClose()
     }
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
-  }, [])
+  }, [onClose]) // prev/next use functional setState — safe; onClose must be current
 
   return (
     <div
@@ -69,7 +69,7 @@ export default function PhotoLightbox({ photos, initialIndex = 0, onClose }) {
 
       {/* Dots */}
       {photos.length > 1 && (
-        <div style={{ position: 'absolute', bottom: 'calc(env(safe-area-inset-bottom,0px) + 28px)', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 7, zIndex: 10 }}>
+        <div style={{ position: 'absolute', bottom: 'calc(env(safe-area-inset-bottom,0px) + 28px)', left: 0, right: 0, display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 7, zIndex: 10, padding: '0 16px' }}>
           {photos.map((_, i) => (
             <div key={i}
               onClick={e => { e.stopPropagation(); setIdx(i) }}

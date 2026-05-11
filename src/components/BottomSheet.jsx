@@ -8,6 +8,13 @@ export default function BottomSheet({ onClose, title, children, noPadding }) {
     return () => window.removeEventListener('keydown', handler)
   }, [onClose])
 
+  // Prevent background page from scrolling while sheet is open
+  useEffect(() => {
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = prev }
+  }, [])
+
   return (
     <>
       <div className="overlay" onClick={onClose} />

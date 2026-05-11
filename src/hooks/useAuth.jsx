@@ -23,21 +23,27 @@ export function AuthProvider({ children }) {
   }, [])
 
   const fetchProfile = async (id, authUser) => {
-    const { data } = await supabase.from('profiles').select('*').eq('id', id).single()
-    if (!data) {
-      // First-time OAuth sign-in — create profile from provider metadata
-      const name =
-        authUser?.user_metadata?.full_name ||
-        authUser?.user_metadata?.name ||
-        authUser?.email?.split('@')[0] ||
-        'Traveler'
-      const { data: created } = await supabase
-        .from('profiles').upsert({ id, name }).select().single()
-      setProfile(created)
-    } else {
-      setProfile(data)
+    try {
+      const { data } = await supabase.from('profiles').select('*').eq('id', id).single()
+      if (!data) {
+        // First-time OAuth sign-in — create profile from provider metadata
+        const name =
+          authUser?.user_metadata?.full_name ||
+          authUser?.user_metadata?.name ||
+          authUser?.email?.split('@')[0] ||
+          'Traveler'
+        const { data: created } = await supabase
+          .from('profiles').upsert({ id, name }).select().single()
+        setProfile(created ?? null)
+      } else {
+        setProfile(data)
+      }
+    } catch (e) {
+      console.error('[Triplan] fetchProfile error:', e)
+      // Don't block the app — user will be shown as logged in but with no profile
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   const signUp = async (email, password, name) => {

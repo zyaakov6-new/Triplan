@@ -31,7 +31,8 @@ export default function EditDayModal({ day, onClose, onUpdated, onDeleted }) {
   const handleDelete = async () => {
     if (!confirmDelete) { setConfirmDelete(true); return }
     setDeleting(true)
-    await supabase.from('trip_days').delete().eq('id', day.id)
+    const { error: err } = await supabase.from('trip_days').delete().eq('id', day.id)
+    if (err) { setError(err.message); setDeleting(false); setConfirmDelete(false); return }
     setDeleting(false)
     onDeleted(day.id)
   }
@@ -56,7 +57,7 @@ export default function EditDayModal({ day, onClose, onUpdated, onDeleted }) {
           <textarea className="input" value={form.journal} onChange={set('journal')} rows={3} style={{ resize: 'none' }} placeholder="How was the day? Any memories, tips, or thoughts…" />
         </div>
 
-        {error && <p style={{ fontSize: 13, color: '#C00', padding: '8px 12px', background: '#FEE', borderRadius: 8 }}>{error}</p>}
+        {error && <p className="error-box">{error}</p>}
 
         <button className="btn btn-accent" style={{ width: '100%' }} onClick={handleUpdate} disabled={loading}>
           {loading ? 'Saving…' : 'Save changes'}
