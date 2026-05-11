@@ -1,8 +1,36 @@
 import { useState, useMemo } from 'react'
 import { supabase } from '../lib/supabase'
+import { useLang } from '../hooks/useLang'
 import BottomSheet from './BottomSheet'
 import Icon from './Icon'
 import { useLocationSearch } from '../hooks/useLocationSearch'
+
+const STRINGS = {
+  he: {
+    titlePrefix: 'יום',
+    date: 'תאריך',
+    startPoint: 'נקודת התחלה',
+    endPoint: 'נקודת סיום',
+    searchPh: 'חפשו מיקום…',
+    addingBtn: 'מוסיף…',
+    addDayPrefix: 'הוסף יום',
+    startNote: 'נקודת התחלה',
+    endNote: 'נקודת סיום',
+    errPartial: (n) => `היום נוסף, אבל ${n} עצירות לא נשמרו. אפשר להוסיף ידנית.`,
+  },
+  en: {
+    titlePrefix: 'Day',
+    date: 'Date',
+    startPoint: 'Start point',
+    endPoint: 'End point',
+    searchPh: 'Search a location…',
+    addingBtn: 'Adding…',
+    addDayPrefix: 'Add Day',
+    startNote: 'Start point',
+    endNote: 'End point',
+    errPartial: (n) => `Day added, but ${n} stop${n > 1 ? 's' : ''} failed to save. You can add them manually.`,
+  }
+}
 
 function addDays(dateStr, n) {
   if (!dateStr) return ''
@@ -12,6 +40,10 @@ function addDays(dateStr, n) {
 }
 
 export default function NewDayModal({ tripId, nextDayNumber, tripDateStart, tripDateEnd, onClose, onCreated }) {
+  const { lang } = useLang()
+  const t = STRINGS[lang === 'he' ? 'he' : 'en']
+  const isHe = lang === 'he'
+  const dateLocale = isHe ? 'he-IL' : 'en'
   const autoDate = useMemo(() => addDays(tripDateStart, nextDayNumber - 1), [tripDateStart, nextDayNumber])
 
   const [tripDate, setTripDate] = useState(autoDate)
@@ -66,7 +98,7 @@ export default function NewDayModal({ tripId, nextDayNumber, tripDateStart, trip
     if (startQuery.trim()) {
       const { data: s, error: sErr } = await supabase.from('stops').insert({
         day_id: day.id, name: startQuery.trim(), type: 'waypoint',
-        lat: startLat, lng: startLng, sort_order: 0, note: 'Start point',
+        lat: startLat, lng: startLng, sort_order: 0, note: t.startNote,
       }).select().single()
       if (s) insertedStops.push(s)
       else if (sErr) stopsFailed++
@@ -74,7 +106,7 @@ export default function NewDayModal({ tripId, nextDayNumber, tripDateStart, trip
     if (endQuery.trim()) {
       const { data: s, error: sErr } = await supabase.from('stops').insert({
         day_id: day.id, name: endQuery.trim(), type: 'waypoint',
-        lat: endLat, lng: endLng, sort_order: 999, note: 'End point',
+        lat: endLat, lng: endLng, sort_order: 999, note: t.endNote,
       }).select().single()
       if (s) insertedStops.push(s)
       else if (sErr) stopsFailed++
@@ -82,22 +114,22 @@ export default function NewDayModal({ tripId, nextDayNumber, tripDateStart, trip
 
     setLoading(false)
     if (stopsFailed > 0) {
-      setError(`Day added, but ${stopsFailed} stop${stopsFailed > 1 ? 's' : ''} failed to save. You can add them manually.`)
+      setError(t.errPartial(stopsFailed))
     }
     onCreated({ ...day, stops: insertedStops })
   }
 
   const dateLabel = tripDate
-    ? new Date(tripDate).toLocaleDateString('en', { weekday: 'long', month: 'long', day: 'numeric' })
+    ? new Date(tripDate).toLocaleDateString(dateLocale, { weekday: 'long', month: 'long', day: 'numeric' })
     : ''
 
   return (
-    <BottomSheet onClose={onClose} title={`Day ${nextDayNumber}`}>
+    <BottomSheet onClose={onClose} title={`${t.titlePrefix} ${nextDayNumber}`}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
         {/* Date */}
         <div>
-          <label style={lbl}>Date {dateLabel && <span style={{ fontWeight: 400, textTransform: 'none', color: 'var(--accent)', marginLeft: 6 }}>{dateLabel}</span>}</label>
+          <label style={lbl}>{t.date} {dateLabel && <span style={{ fontWeight: 400, textTransform: 'none', color: 'var(--accent)', marginInlineStart: 6 }}>{dateLabel}</span>}</label>
           <input
             className="input" type="date" value={tripDate}
             min={tripDateStart || undefined} max={tripDateEnd || undefined}
@@ -107,12 +139,12 @@ export default function NewDayModal({ tripId, nextDayNumber, tripDateStart, trip
 
         {/* Start location */}
         <div>
-          <label style={lbl}>Start point</label>
+          <label style={lbl}>{t.startPoint}</label>
           <div style={{ position: 'relative' }}>
-            <input className="input" placeholder="Search a location…" value={startQuery}
+            <input className="input" placeholder={t.searchPh} value={startQuery}
               onChange={e => { handleStartInput(e.target.value); if (!e.target.value) { setStartLat(null); setStartLng(null) } }}
               autoComplete="off" />
-            {searchingStart && <div style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 12, color: 'var(--ink-muted)' }}>…</div>}
+            {searchingStart && <div style={{ position: 'absolute', insetInlineEnd: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 12, color: 'var(--ink-muted)' }}>…</div>}
             {startResults.length > 0 && (
               <div className="place-results">
                 {startResults.map((f, i) => {
@@ -129,17 +161,17 @@ export default function NewDayModal({ tripId, nextDayNumber, tripDateStart, trip
             )}
           </div>
           {startSearchError && !startResults.length && <p style={{ fontSize: 11, color: 'var(--ink-muted)', marginTop: 5 }}>{startSearchError}</p>}
-          {startLat && <p style={{ fontSize: 11, color: 'var(--teal)', marginTop: 5 }}>{startLat.toFixed(4)}, {startLng.toFixed(4)}</p>}
+          {startLat && <p style={{ fontSize: 11, color: 'var(--teal)', marginTop: 5, direction: 'ltr' }}>{startLat.toFixed(4)}, {startLng.toFixed(4)}</p>}
         </div>
 
         {/* End location */}
         <div>
-          <label style={lbl}>End point</label>
+          <label style={lbl}>{t.endPoint}</label>
           <div style={{ position: 'relative' }}>
-            <input className="input" placeholder="Search a location…" value={endQuery}
+            <input className="input" placeholder={t.searchPh} value={endQuery}
               onChange={e => { handleEndInput(e.target.value); if (!e.target.value) { setEndLat(null); setEndLng(null) } }}
               autoComplete="off" />
-            {searchingEnd && <div style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 12, color: 'var(--ink-muted)' }}>…</div>}
+            {searchingEnd && <div style={{ position: 'absolute', insetInlineEnd: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 12, color: 'var(--ink-muted)' }}>…</div>}
             {endResults.length > 0 && (
               <div className="place-results">
                 {endResults.map((f, i) => {
@@ -156,13 +188,13 @@ export default function NewDayModal({ tripId, nextDayNumber, tripDateStart, trip
             )}
           </div>
           {endSearchError && !endResults.length && <p style={{ fontSize: 11, color: 'var(--ink-muted)', marginTop: 5 }}>{endSearchError}</p>}
-          {endLat && <p style={{ fontSize: 11, color: 'var(--teal)', marginTop: 5 }}>{endLat.toFixed(4)}, {endLng.toFixed(4)}</p>}
+          {endLat && <p style={{ fontSize: 11, color: 'var(--teal)', marginTop: 5, direction: 'ltr' }}>{endLat.toFixed(4)}, {endLng.toFixed(4)}</p>}
         </div>
 
         {error && <p className="error-box">{error}</p>}
 
         <button className="btn btn-accent" style={{ width: '100%' }} onClick={handleCreate} disabled={loading}>
-          {loading ? 'Adding…' : `Add Day ${nextDayNumber}`} {!loading && <Icon name="arrow_right" size={16} color="white" />}
+          {loading ? t.addingBtn : `${t.addDayPrefix} ${nextDayNumber}`} {!loading && <Icon name={isHe ? 'arrow_left' : 'arrow_right'} size={16} color="white" />}
         </button>
       </div>
     </BottomSheet>

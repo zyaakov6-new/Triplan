@@ -1,9 +1,45 @@
 import { useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { useLang } from '../hooks/useLang'
 import BottomSheet from './BottomSheet'
 import Icon from './Icon'
 
+const STRINGS = {
+  he: {
+    titlePrefix: 'עריכת יום',
+    date: 'תאריך',
+    physical: 'הערות פיזיות',
+    physicalPh: 'הרבה הליכה, להביא נעליים נוחות…',
+    logistics: 'תזכורות לוגיסטיות',
+    logisticsPh: 'לזכור דרכון, להזמין כרטיסים מראש…',
+    journal: 'יומן / הערות',
+    journalPh: 'איך היה היום? זיכרונות, טיפים, מחשבות…',
+    save: 'שמור שינויים',
+    saving: 'שומר…',
+    deleteDay: 'מחק יום וכל העצירות',
+    deleting: 'מוחק…',
+    confirmDelete: 'הקש שוב לאישור מחיקה',
+  },
+  en: {
+    titlePrefix: 'Edit Day',
+    date: 'Date',
+    physical: 'Physical notes',
+    physicalPh: 'Lots of walking, bring comfortable shoes…',
+    logistics: 'Logistics reminders',
+    logisticsPh: 'Remember passport, book tickets in advance…',
+    journal: 'Journal / Notes',
+    journalPh: 'How was the day? Any memories, tips, or thoughts…',
+    save: 'Save changes',
+    saving: 'Saving…',
+    deleteDay: 'Delete day & all stops',
+    deleting: 'Deleting…',
+    confirmDelete: 'Tap again to confirm delete',
+  }
+}
+
 export default function EditDayModal({ day, onClose, onUpdated, onDeleted }) {
+  const { lang } = useLang()
+  const t = STRINGS[lang === 'he' ? 'he' : 'en']
   const [form, setForm] = useState({
     trip_date: day.trip_date || '',
     physical_note: day.physical_note || '',
@@ -38,29 +74,29 @@ export default function EditDayModal({ day, onClose, onUpdated, onDeleted }) {
   }
 
   return (
-    <BottomSheet onClose={onClose} title={`Edit Day ${day.day_number}`}>
+    <BottomSheet onClose={onClose} title={`${t.titlePrefix} ${day.day_number}`}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         <div>
-          <label style={lbl}>Date</label>
+          <label style={lbl}>{t.date}</label>
           <input className="input" type="date" value={form.trip_date} onChange={set('trip_date')} />
         </div>
         <div>
-          <label style={lbl}>Physical notes</label>
-          <textarea className="input" value={form.physical_note} onChange={set('physical_note')} rows={2} style={{ resize: 'none' }} placeholder="Lots of walking, bring comfortable shoes…" />
+          <label style={lbl}>{t.physical}</label>
+          <textarea className="input" value={form.physical_note} onChange={set('physical_note')} rows={2} style={{ resize: 'none' }} placeholder={t.physicalPh} />
         </div>
         <div>
-          <label style={lbl}>Logistics reminders</label>
-          <textarea className="input" value={form.logistics_note} onChange={set('logistics_note')} rows={2} style={{ resize: 'none' }} placeholder="Remember passport, book tickets in advance…" />
+          <label style={lbl}>{t.logistics}</label>
+          <textarea className="input" value={form.logistics_note} onChange={set('logistics_note')} rows={2} style={{ resize: 'none' }} placeholder={t.logisticsPh} />
         </div>
         <div>
-          <label style={lbl}>Journal / Notes</label>
-          <textarea className="input" value={form.journal} onChange={set('journal')} rows={3} style={{ resize: 'none' }} placeholder="How was the day? Any memories, tips, or thoughts…" />
+          <label style={lbl}>{t.journal}</label>
+          <textarea className="input" value={form.journal} onChange={set('journal')} rows={3} style={{ resize: 'none' }} placeholder={t.journalPh} />
         </div>
 
         {error && <p className="error-box">{error}</p>}
 
         <button className="btn btn-accent" style={{ width: '100%' }} onClick={handleUpdate} disabled={loading}>
-          {loading ? 'Saving…' : 'Save changes'}
+          {loading ? t.saving : t.save}
         </button>
 
         <button
@@ -70,7 +106,7 @@ export default function EditDayModal({ day, onClose, onUpdated, onDeleted }) {
           disabled={deleting}
         >
           <Icon name="trash" size={14} color={confirmDelete ? '#b91c1c' : 'var(--ink-muted)'} />
-          {deleting ? 'Deleting…' : confirmDelete ? 'Tap again to confirm delete' : 'Delete day & all stops'}
+          {deleting ? t.deleting : confirmDelete ? t.confirmDelete : t.deleteDay}
         </button>
       </div>
     </BottomSheet>

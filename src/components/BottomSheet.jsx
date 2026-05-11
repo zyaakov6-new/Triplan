@@ -1,7 +1,10 @@
 import { useEffect } from 'react'
 import Icon from './Icon'
+import { useLang } from '../hooks/useLang'
 
 export default function BottomSheet({ onClose, title, children, noPadding }) {
+  const { lang } = useLang()
+  const isHe = lang === 'he'
   useEffect(() => {
     const handler = (e) => { if (e.key === 'Escape') onClose() }
     window.addEventListener('keydown', handler)
@@ -18,7 +21,7 @@ export default function BottomSheet({ onClose, title, children, noPadding }) {
   return (
     <>
       <div className="overlay" onClick={onClose} />
-      <div className="bottom-sheet" style={{ maxHeight: '88vh', display: 'flex', flexDirection: 'column' }}>
+      <div dir={isHe ? 'rtl' : 'ltr'} className="bottom-sheet" style={{ maxHeight: '88vh', display: 'flex', flexDirection: 'column' }}>
         <div className="sheet-handle" />
         {title && (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px 0', flexShrink: 0 }}>

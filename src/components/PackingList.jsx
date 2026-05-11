@@ -1,14 +1,39 @@
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../lib/supabase'
+import { useLang } from '../hooks/useLang'
 import Icon from './Icon'
 
-const SUGGESTIONS = [
-  'Passport', 'Travel insurance', 'Phone charger', 'Power adapter',
-  'Sunscreen', 'Comfortable shoes', 'Camera', 'Headphones',
-  'Reusable water bottle', 'Travel pillow', 'Medications', 'Cash',
-]
+const STRINGS = {
+  he: {
+    suggestions: ['דרכון', 'ביטוח נסיעות', 'מטען טלפון', 'מתאם חשמל', 'קרם הגנה', 'נעליים נוחות', 'מצלמה', 'אוזניות', 'בקבוק מים', 'כרית נסיעה', 'תרופות', 'מזומן'],
+    addPh: 'הוסיפו פריט אריזה…',
+    quickAdd: 'הוספה מהירה',
+    packing: 'התקדמות אריזה',
+    emptyTitle: 'עדיין לא נארז כלום',
+    emptySub: 'הוסיפו פריטים למעלה או הקישו על הצעות',
+    packed: 'נארזו',
+    deleteQ: 'למחוק?',
+    delete: 'מחק',
+    tapAgain: 'הקש שוב למחיקה',
+  },
+  en: {
+    suggestions: ['Passport', 'Travel insurance', 'Phone charger', 'Power adapter', 'Sunscreen', 'Comfortable shoes', 'Camera', 'Headphones', 'Reusable water bottle', 'Travel pillow', 'Medications', 'Cash'],
+    addPh: 'Add packing item…',
+    quickAdd: 'Quick add',
+    packing: 'Packing progress',
+    emptyTitle: 'Nothing packed yet',
+    emptySub: 'Add items above or tap quick-add suggestions',
+    packed: 'Packed',
+    deleteQ: 'Delete?',
+    delete: 'Delete',
+    tapAgain: 'Tap again to delete',
+  }
+}
 
 export default function PackingList({ tripId }) {
+  const { lang } = useLang()
+  const t = STRINGS[lang === 'he' ? 'he' : 'en']
+  const isHe = lang === 'he'
   const [items, setItems]               = useState([])
   const [loading, setLoading]           = useState(true)
   const [newText, setNewText]           = useState('')
@@ -44,8 +69,8 @@ export default function PackingList({ tripId }) {
   // Reset delete-confirm if user taps elsewhere
   useEffect(() => {
     if (!confirmDeleteId) return
-    const t = setTimeout(() => setConfirmDeleteId(null), 3000)
-    return () => clearTimeout(t)
+    const tt = setTimeout(() => setConfirmDeleteId(null), 3000)
+    return () => clearTimeout(tt)
   }, [confirmDeleteId])
 
   const fetchItems = async () => {
@@ -60,17 +85,17 @@ export default function PackingList({ tripId }) {
   }
 
   const addItem = async (text) => {
-    const t = text || newText.trim()
-    if (!t) return
+    const txt = text || newText.trim()
+    if (!txt) return
     // Prevent case-insensitive duplicates
-    if (items.some(i => i.text.toLowerCase() === t.toLowerCase())) {
+    if (items.some(i => i.text.toLowerCase() === txt.toLowerCase())) {
       setNewText('')
       return
     }
     setAdding(true)
     const { data } = await supabase
       .from('packing_items')
-      .insert({ trip_id: tripId, text: t })
+      .insert({ trip_id: tripId, text: txt })
       .select().single()
     if (data) setItems(prev => [...prev, data])
     setNewText('')
@@ -118,14 +143,14 @@ export default function PackingList({ tripId }) {
   )
 
   return (
-    <div style={{ padding: '16px 16px 100px' }}>
+    <div dir={isHe ? 'rtl' : 'ltr'} style={{ padding: '16px 16px 100px' }}>
       {/* Add input */}
       <div style={{ position: 'relative', marginBottom: 20 }}>
         <div style={{ display: 'flex', gap: 8 }}>
           <input
             ref={inputRef}
             className="input"
-            placeholder="Add packing item…"
+            placeholder={t.addPh}
             value={newText}
             onChange={e => setNewText(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && addItem()}
@@ -145,9 +170,9 @@ export default function PackingList({ tripId }) {
         {/* Quick suggestions */}
         {showSuggestions && !newText && (
           <div style={{ marginTop: 8 }}>
-            <p style={{ fontSize: 11, color: 'var(--ink-muted)', marginBottom: 8, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Quick add</p>
+            <p style={{ fontSize: 11, color: 'var(--ink-muted)', marginBottom: 8, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t.quickAdd}</p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-              {SUGGESTIONS.filter(s => !items.find(i => i.text.toLowerCase() === s.toLowerCase())).map(s => (
+              {t.suggestions.filter(s => !items.find(i => i.text.toLowerCase() === s.toLowerCase())).map(s => (
                 <button key={s} onClick={() => addItem(s)}
                   style={{ padding: '6px 12px', borderRadius: 100, fontSize: 12, fontWeight: 500, background: 'var(--cream)', border: '1px solid var(--border)', color: 'var(--ink-light)', cursor: 'pointer', transition: 'all 0.12s' }}
                   onMouseEnter={e => { e.target.style.background = 'var(--accent-pale)'; e.target.style.borderColor = 'var(--accent)'; e.target.style.color = 'var(--accent)' }}
@@ -165,7 +190,7 @@ export default function PackingList({ tripId }) {
       {items.length > 0 && (
         <div style={{ marginBottom: 20, padding: '12px 16px', background: 'var(--white)', borderRadius: 12, border: '1px solid var(--border)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-            <span style={{ fontSize: 13, fontWeight: 500 }}>Packing progress</span>
+            <span style={{ fontSize: 13, fontWeight: 500 }}>{t.packing}</span>
             <span style={{ fontSize: 13, color: 'var(--teal)', fontWeight: 600 }}>{checked.length}/{items.length}</span>
           </div>
           <div style={{ height: 6, background: 'var(--cream-dark)', borderRadius: 3, overflow: 'hidden' }}>
@@ -178,8 +203,8 @@ export default function PackingList({ tripId }) {
       {items.length === 0 && (
         <div style={{ textAlign: 'center', paddingTop: 40 }}>
           <div style={{ marginBottom: 12 }}><Icon name="package" size={44} color="var(--sand-dark)" /></div>
-          <p style={{ fontFamily: 'var(--font-display)', fontSize: 18, marginBottom: 6 }}>Nothing packed yet</p>
-          <p style={{ color: 'var(--ink-muted)', fontSize: 14 }}>Add items above or tap quick-add suggestions</p>
+          <p style={{ fontFamily: 'var(--font-display)', fontSize: 18, marginBottom: 6 }}>{t.emptyTitle}</p>
+          <p style={{ color: 'var(--ink-muted)', fontSize: 14 }}>{t.emptySub}</p>
         </div>
       )}
 
@@ -191,7 +216,8 @@ export default function PackingList({ tripId }) {
               toggling={togglingId === item.id}
               deleting={deletingId === item.id}
               confirmingDelete={confirmDeleteId === item.id}
-              onToggle={toggleItem} onDelete={deleteItem} delay={i * 0.04} />
+              onToggle={toggleItem} onDelete={deleteItem} delay={i * 0.04}
+              labels={t} />
           ))}
         </div>
       )}
@@ -200,14 +226,15 @@ export default function PackingList({ tripId }) {
       {checked.length > 0 && (
         <div>
           <p style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--ink-muted)', marginBottom: 10 }}>
-            Packed ({checked.length})
+            {t.packed} ({checked.length})
           </p>
           {checked.map((item, i) => (
             <PackItem key={item.id} item={item}
               toggling={togglingId === item.id}
               deleting={deletingId === item.id}
               confirmingDelete={confirmDeleteId === item.id}
-              onToggle={toggleItem} onDelete={deleteItem} delay={i * 0.04} />
+              onToggle={toggleItem} onDelete={deleteItem} delay={i * 0.04}
+              labels={t} />
           ))}
         </div>
       )}
@@ -215,7 +242,7 @@ export default function PackingList({ tripId }) {
   )
 }
 
-function PackItem({ item, toggling, deleting, confirmingDelete, onToggle, onDelete, delay }) {
+function PackItem({ item, toggling, deleting, confirmingDelete, onToggle, onDelete, delay, labels }) {
   return (
     <div
       className="anim-up"
@@ -240,11 +267,11 @@ function PackItem({ item, toggling, deleting, confirmingDelete, onToggle, onDele
       <button
         onClick={() => onDelete(item.id)}
         disabled={deleting}
-        title={confirmingDelete ? 'Tap again to delete' : 'Delete'}
+        title={confirmingDelete ? labels.tapAgain : labels.delete}
         style={{ padding: '4px 6px', borderRadius: 6, cursor: deleting ? 'wait' : 'pointer', opacity: deleting ? 0.4 : 1, transition: 'all 0.15s', background: confirmingDelete ? 'var(--danger-bg, #fee2e2)' : 'transparent', border: confirmingDelete ? '1px solid var(--danger-border, #fca5a5)' : 'none' }}
       >
         {confirmingDelete
-          ? <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--danger, #b91c1c)', whiteSpace: 'nowrap' }}>Delete?</span>
+          ? <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--danger, #b91c1c)', whiteSpace: 'nowrap' }}>{labels.deleteQ}</span>
           : <Icon name="close" size={13} color="var(--sand-dark)" />
         }
       </button>

@@ -17,22 +17,135 @@ import { THEMES, getThemeVars } from '../lib/themes'
 import { getDayDistance, optimizeRoute } from '../lib/tripUtils'
 import BeautifulPrintView from '../components/BeautifulPrintView'
 
+const STRINGS = {
+  he: {
+    waypoint: 'נקודת ציון', attraction: 'נקודת תצפית', food: 'אוכל ומים', hotel: 'מחנה/לינה', transport: 'תחבורה',
+    flight: 'טיסה', hotelB: 'מלון', car: 'רכב', other: 'קישור',
+    noStops: 'אין עצירות עדיין',
+    dayLabel: 'יום',
+    directions: 'הוראות הגעה',
+    noPhotos: 'אין תמונות עדיין',
+    noPhotosSub: 'העלו תמונות מכל יום כדי לבנות אלבום הטיול',
+    addPhotosForDay: 'הוסיפו תמונות ליום',
+    gasCalc: 'מחשבון עלות דלק',
+    consumption: 'צריכה (ל׳/100ק״מ)',
+    fuelEcon: 'נצילות (מייל/גלון)',
+    pricePerL: 'מחיר לליטר ($)',
+    pricePerG: 'מחיר לגלון ($)',
+    estFuel: 'עלות דלק משוערת',
+    fillBoth: 'מלאו את שני השדות לחישוב',
+    tripStats: 'נתוני טיול',
+    days: 'ימים', stops: 'עצירות', done: 'בוצעו', totalBudget: 'תקציב', avgDay: 'ממוצע ליום', cities: 'ערים', total: 'סה״כ',
+    today: 'הטיול מתחיל היום!',
+    inDays: (n) => `עוד ${n} ימים`,
+    accessDenied: 'אין הרשאה',
+    notMember: 'אינך חבר/ה בטיול הזה. בקשו מהמארגן/ת קישור הזמנה.',
+    backToTrips: 'חזרה לטיולים',
+    loadFailed: 'טעינת הטיול נכשלה',
+    checkConn: 'בדקו את החיבור ונסו שוב',
+    retry: 'נסה שוב',
+    syncing: 'מסתנכרן',
+    live: 'מחובר',
+    exportPDF: 'ייצוא PDF',
+    tabMap: 'מפה', tabDays: 'ימים', tabPhotos: 'תמונות', tabPack: 'אריזה',
+    subRoute: 'מסלול', subStats: 'נתונים', subGas: 'דלק',
+    searchStops: 'חיפוש עצירות…',
+    noDaysYet: 'אין ימים עדיין',
+    addFirstDay: 'הוסיפו יום ראשון כדי להתחיל',
+    noResultsFor: 'אין תוצאות עבור',
+    clear: 'נקה',
+    addDaysStats: 'הוסיפו ימים כדי לראות נתונים',
+    totalBudget2: 'תקציב כולל',
+    bookings: 'הזמנות',
+    ref: 'הזמנה:',
+    collab: 'שיתוף ועריכה',
+    inviteEdit: 'הזמינו לעריכה',
+    inviteSub: 'כל מי שיש לו את הקישור יכול לצפות ולערוך את הטיול.',
+    copy: 'העתק', copied: 'הועתק!',
+    readonlyShare: 'קישור לצפייה בלבד',
+    readonlySub: 'שתפו גרסה לקריאה בלבד — לא נדרשת הרשמה.',
+    exportIcal: 'ייצוא iCal',
+    exporting: 'מייצא…',
+    members: 'חברים',
+    unknown: 'לא ידוע',
+    physical: 'פיזי', logistics: 'לוגיסטיקה', journal: 'יומן',
+    back: 'חזרה',
+    pdfPreview: 'תצוגת PDF',
+    saveAsPdf: 'שמור כ-PDF',
+  },
+  en: {
+    waypoint: 'Waypoint', attraction: 'Viewpoint', food: 'Food & Water', hotel: 'Camp/Lodge', transport: 'Transport',
+    flight: 'Flight', hotelB: 'Hotel', car: 'Car', other: 'Link',
+    noStops: 'No stops yet',
+    dayLabel: 'Day',
+    directions: 'Directions',
+    noPhotos: 'No photos yet',
+    noPhotosSub: 'Upload photos from each day to build your trip album',
+    addPhotosForDay: 'Add photos for Day',
+    gasCalc: 'Gas Cost Calculator',
+    consumption: 'Consumption (L/100km)',
+    fuelEcon: 'Fuel economy (mpg)',
+    pricePerL: 'Price / liter ($)',
+    pricePerG: 'Price / gallon ($)',
+    estFuel: 'Estimated fuel cost',
+    fillBoth: 'Fill in both fields to calculate',
+    tripStats: 'Trip Stats',
+    days: 'Days', stops: 'Stops', done: 'Done', totalBudget: 'Total Budget', avgDay: 'Avg/Day', cities: 'Cities', total: 'Total',
+    today: 'Trip starts today!',
+    inDays: (n) => `In ${n} days`,
+    accessDenied: 'Access denied',
+    notMember: "You're not a member of this trip. Ask the organiser for an invite link.",
+    backToTrips: 'Back to my trips',
+    loadFailed: "Couldn't load trip",
+    checkConn: 'Check your connection and try again',
+    retry: 'Retry',
+    syncing: 'Syncing',
+    live: 'Live',
+    exportPDF: 'Export PDF',
+    tabMap: 'Map', tabDays: 'Days', tabPhotos: 'Photos', tabPack: 'Pack',
+    subRoute: 'Route', subStats: 'Stats', subGas: 'Gas',
+    searchStops: 'Search stops…',
+    noDaysYet: 'No days yet',
+    addFirstDay: 'Add your first day to start planning',
+    noResultsFor: 'No results for',
+    clear: 'Clear',
+    addDaysStats: 'Add days to see stats',
+    totalBudget2: 'Total budget',
+    bookings: 'Bookings',
+    ref: 'Ref:',
+    collab: 'Collaborate',
+    inviteEdit: 'Invite to edit',
+    inviteSub: 'Anyone with this link can view and edit the trip.',
+    copy: 'Copy', copied: 'Copied!',
+    readonlyShare: 'Read-only share link',
+    readonlySub: 'Share a view-only version — no login required.',
+    exportIcal: 'Export iCal',
+    exporting: 'Exporting…',
+    members: 'Members',
+    unknown: 'Unknown',
+    physical: 'Physical', logistics: 'Logistics', journal: 'Journal',
+    back: 'Back',
+    pdfPreview: 'PDF Preview',
+    saveAsPdf: 'Save as PDF',
+  }
+}
+
 const TYPE_META = {
-  waypoint:   { icon: 'pin',       label: 'Waypoint',     color: '#7A6E64' },
-  attraction: { icon: 'navigate',  label: 'Viewpoint',    color: '#C4622D' },
-  food:       { icon: 'food',      label: 'Food & Water', color: '#2D6B6B' },
-  hotel:      { icon: 'hotel',     label: 'Camp/Lodge',   color: '#5B3D8F' },
-  transport:  { icon: 'transport', label: 'Transport',    color: '#2D5C8E' },
+  waypoint:   { icon: 'pin',       color: '#7A6E64' },
+  attraction: { icon: 'navigate',  color: '#C4622D' },
+  food:       { icon: 'food',      color: '#2D6B6B' },
+  hotel:      { icon: 'hotel',     color: '#5B3D8F' },
+  transport:  { icon: 'transport', color: '#2D5C8E' },
+}
+
+const BOOKING_TYPE_META = {
+  flight: { icon: 'transport' },
+  hotel:  { icon: 'hotel' },
+  car:    { icon: 'navigate' },
+  other:  { icon: 'external_link' },
 }
 
 const DAY_COLORS = ['#E05C3A','#2E9E6E','#5B6FE8','#E8A020','#B045C8','#2DA8C4','#C44B7A','#8B7355','#3D9E3D','#9B59B6']
-
-const BOOKING_TYPE_META = {
-  flight: { icon: 'transport', label: 'Flight' },
-  hotel:  { icon: 'hotel',     label: 'Hotel' },
-  car:    { icon: 'navigate',  label: 'Car' },
-  other:  { icon: 'external_link', label: 'Link' },
-}
 
 // ── Confetti component ────────────────────────────────────────────────────────
 function Confetti({ onDone }) {
@@ -74,9 +187,12 @@ function Confetti({ onDone }) {
 
 // ── AgendaView ────────────────────────────────────────────────────────────────
 function AgendaView({ days, onDirections }) {
+  const { lang } = useLang()
+  const t = STRINGS[lang === 'he' ? 'he' : 'en']
+  const dateLocale = lang === 'he' ? 'he-IL' : 'en'
   const allDays = days.filter(d => d.stops.length > 0)
   if (allDays.length === 0) return (
-    <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--ink-muted)' }}>No stops yet</div>
+    <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--ink-muted)' }}>{t.noStops}</div>
   )
   return (
     <div>
@@ -92,12 +208,12 @@ function AgendaView({ days, onDirections }) {
             {/* Day header */}
             <div className="agenda-day-header">
               <div style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--accent)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <span style={{ fontSize: 8, color: 'rgba(255,255,255,0.65)', textTransform: 'uppercase' }}>Day</span>
+                <span style={{ fontSize: 8, color: 'rgba(255,255,255,0.65)', textTransform: 'uppercase' }}>{t.dayLabel}</span>
                 <span style={{ fontSize: 12, fontWeight: 700, color: 'white', lineHeight: 1 }}>{day.day_number}</span>
               </div>
               <div>
                 <p style={{ fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 500 }}>{day.city}</p>
-                {day.trip_date && <p style={{ fontSize: 11, color: 'var(--ink-muted)' }}>{new Date(day.trip_date).toLocaleDateString('en', { weekday: 'short', month: 'short', day: 'numeric' })}</p>}
+                {day.trip_date && <p style={{ fontSize: 11, color: 'var(--ink-muted)' }}>{new Date(day.trip_date).toLocaleDateString(dateLocale, { weekday: 'short', month: 'short', day: 'numeric' })}</p>}
               </div>
             </div>
             <div className="card" style={{ overflow: 'hidden' }}>
@@ -117,7 +233,7 @@ function AgendaView({ days, onDirections }) {
                     </div>
                     <a href={gmapsUrl} target="_blank" rel="noopener noreferrer"
                       style={{ width: 30, height: 30, borderRadius: '50%', background: 'var(--cream)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 14 }}
-                      title="Directions"><Icon name="navigate" size={14} color="var(--accent)" /></a>
+                      title={t.directions}><Icon name="navigate" size={14} color="var(--accent)" /></a>
                   </div>
                 )
               })}
@@ -131,6 +247,9 @@ function AgendaView({ days, onDirections }) {
 
 // ── Photos Tab ────────────────────────────────────────────────────────────────
 function PhotosTab({ days, photos, onLightbox, onUploadPhoto }) {
+  const { lang } = useLang()
+  const t = STRINGS[lang === 'he' ? 'he' : 'en']
+  const dateLocale = lang === 'he' ? 'he-IL' : 'en'
   const fileRefs = useRef({})
   const allPhotos = days.flatMap(d => (photos[d.id] || []).map(url => ({ url, dayId: d.id, dayNumber: d.day_number, color: d.color })))
   const hasAny = allPhotos.length > 0
@@ -140,8 +259,8 @@ function PhotosTab({ days, photos, onLightbox, onUploadPhoto }) {
       {!hasAny && (
         <div style={{ textAlign: 'center', paddingTop: 48 }}>
           <div style={{ marginBottom: 12 }}><Icon name="image" size={40} color="var(--sand-dark)" /></div>
-          <p style={{ fontFamily: 'var(--font-display)', fontSize: 18, marginBottom: 6 }}>No photos yet</p>
-          <p style={{ color: 'var(--ink-muted)', fontSize: 14 }}>Upload photos from each day to build your trip album</p>
+          <p style={{ fontFamily: 'var(--font-display)', fontSize: 18, marginBottom: 6 }}>{t.noPhotos}</p>
+          <p style={{ color: 'var(--ink-muted)', fontSize: 14 }}>{t.noPhotosSub}</p>
         </div>
       )}
       {days.map(day => {
@@ -154,7 +273,7 @@ function PhotosTab({ days, photos, onLightbox, onUploadPhoto }) {
                   <span style={{ fontSize: 11, fontWeight: 700, color: 'white' }}>{day.day_number}</span>
                 </div>
                 <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink-light)' }}>
-                  {day.trip_date ? new Date(day.trip_date).toLocaleDateString('en', { weekday: 'short', month: 'short', day: 'numeric' }) : `Day ${day.day_number}`}
+                  {day.trip_date ? new Date(day.trip_date).toLocaleDateString(dateLocale, { weekday: 'short', month: 'short', day: 'numeric' }) : `${t.dayLabel} ${day.day_number}`}
                 </span>
                 {dayPhotos.length > 0 && <span style={{ fontSize: 11, color: 'var(--ink-muted)' }}>({dayPhotos.length})</span>}
               </div>
@@ -182,7 +301,7 @@ function PhotosTab({ days, photos, onLightbox, onUploadPhoto }) {
               <div onClick={() => fileRefs.current[day.id]?.click()}
                 style={{ border: '1.5px dashed var(--sand)', borderRadius: 10, padding: '16px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
                 <Icon name="image" size={20} color="var(--sand-dark)" />
-                <p style={{ fontSize: 12, color: 'var(--ink-muted)' }}>Add photos for Day {day.day_number}</p>
+                <p style={{ fontSize: 12, color: 'var(--ink-muted)' }}>{t.addPhotosForDay} {day.day_number}</p>
               </div>
             )}
           </div>
@@ -194,6 +313,8 @@ function PhotosTab({ days, photos, onLightbox, onUploadPhoto }) {
 
 // ── Gas Calculator ────────────────────────────────────────────────────────────
 function GasCalculator({ days, unitKm, showGasCalc, setShowGasCalc, gasEfficiency, setGasEfficiency, gasPrice, setGasPrice }) {
+  const { lang } = useLang()
+  const t = STRINGS[lang === 'he' ? 'he' : 'en']
   const totalDistKm = days.reduce((sum, d) => sum + getDayDistance(d.stops), 0)
   const totalDist = unitKm ? totalDistKm : totalDistKm * 0.621371
   const unit = unitKm ? 'km' : 'mi'
@@ -215,7 +336,7 @@ function GasCalculator({ days, unitKm, showGasCalc, setShowGasCalc, gasEfficienc
         style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 14px', background: 'none', cursor: 'pointer' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <Icon name="gas" size={16} color="var(--ink-muted)" />
-          <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink-light)' }}>Gas Cost Calculator</span>
+          <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink-light)' }}>{t.gasCalc}</span>
           {totalDist > 0 && (
             <span style={{ fontSize: 12, color: 'var(--ink-muted)' }}>· {totalDist.toFixed(0)} {unit}</span>
           )}
@@ -235,7 +356,7 @@ function GasCalculator({ days, unitKm, showGasCalc, setShowGasCalc, gasEfficienc
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
             <div>
               <label style={{ fontSize: 11, fontWeight: 500, color: 'var(--ink-muted)', display: 'block', marginBottom: 4 }}>
-                {unitKm ? 'Consumption (L/100km)' : 'Fuel economy (mpg)'}
+                {unitKm ? t.consumption : t.fuelEcon}
               </label>
               <input className="input" style={{ fontSize: 13 }}
                 placeholder={unitKm ? 'e.g. 8.5' : 'e.g. 30'}
@@ -246,7 +367,7 @@ function GasCalculator({ days, unitKm, showGasCalc, setShowGasCalc, gasEfficienc
             </div>
             <div>
               <label style={{ fontSize: 11, fontWeight: 500, color: 'var(--ink-muted)', display: 'block', marginBottom: 4 }}>
-                {unitKm ? 'Price / liter ($)' : 'Price / gallon ($)'}
+                {unitKm ? t.pricePerL : t.pricePerG}
               </label>
               <input className="input" style={{ fontSize: 13 }}
                 placeholder={unitKm ? 'e.g. 1.80' : 'e.g. 3.50'}
@@ -260,7 +381,7 @@ function GasCalculator({ days, unitKm, showGasCalc, setShowGasCalc, gasEfficienc
             <div style={{ padding: '10px 14px', background: 'var(--accent-pale)', borderRadius: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
               <Icon name="gas" size={22} color="var(--accent)" />
               <div>
-                <p style={{ fontSize: 12, color: 'var(--accent)', fontWeight: 600 }}>Estimated fuel cost</p>
+                <p style={{ fontSize: 12, color: 'var(--accent)', fontWeight: 600 }}>{t.estFuel}</p>
                 <p style={{ fontSize: 22, fontWeight: 700, color: 'var(--accent)', fontFamily: 'var(--font-display)' }}>${gasCost.toFixed(2)}</p>
               </div>
               <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
@@ -269,7 +390,7 @@ function GasCalculator({ days, unitKm, showGasCalc, setShowGasCalc, gasEfficienc
               </div>
             </div>
           ) : (eff > 0 || price > 0) ? (
-            <p style={{ fontSize: 12, color: 'var(--ink-muted)' }}>Fill in both fields to calculate</p>
+            <p style={{ fontSize: 12, color: 'var(--ink-muted)' }}>{t.fillBoth}</p>
           ) : null}
         </div>
       )}
@@ -279,6 +400,8 @@ function GasCalculator({ days, unitKm, showGasCalc, setShowGasCalc, gasEfficienc
 
 // ── TripStats ─────────────────────────────────────────────────────────────────
 function TripStatsCard({ days, unitKm }) {
+  const { lang } = useLang()
+  const t = STRINGS[lang === 'he' ? 'he' : 'en']
   const allStops = days.flatMap(d => d.stops)
   const total = allStops.length
   const done = allStops.filter(s => s.done).length
@@ -296,39 +419,39 @@ function TripStatsCard({ days, unitKm }) {
     <div style={{ marginBottom: 12, padding: '14px 14px 10px', background: 'var(--white)', borderRadius: 14, border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
         <Icon name="bar_chart" size={15} color="var(--accent)" />
-        <span style={{ fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--ink-light)' }}>Trip Stats</span>
+        <span style={{ fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--ink-light)' }}>{t.tripStats}</span>
       </div>
       <div className="stats-grid">
         <div className="stat-cell">
           <div className="stat-value">{days.length}</div>
-          <div className="stat-label">Days</div>
+          <div className="stat-label">{t.days}</div>
         </div>
         <div className="stat-cell">
           <div className="stat-value">{total}</div>
-          <div className="stat-label">Stops</div>
+          <div className="stat-label">{t.stops}</div>
         </div>
         <div className="stat-cell">
           <div className="stat-value">{total > 0 ? Math.round((done / total) * 100) : 0}%</div>
-          <div className="stat-label">Done</div>
+          <div className="stat-label">{t.done}</div>
         </div>
         {budget > 0 && <>
           <div className="stat-cell">
             <div className="stat-value" style={{ fontSize: 16 }}>${budget.toFixed(0)}</div>
-            <div className="stat-label">Total Budget</div>
+            <div className="stat-label">{t.totalBudget}</div>
           </div>
           <div className="stat-cell">
             <div className="stat-value" style={{ fontSize: 16 }}>${avgPerDay.toFixed(0)}</div>
-            <div className="stat-label">Avg/Day</div>
+            <div className="stat-label">{t.avgDay}</div>
           </div>
         </>}
         <div className="stat-cell">
           <div className="stat-value">{cities.length}</div>
-          <div className="stat-label">Cities</div>
+          <div className="stat-label">{t.cities}</div>
         </div>
         {totalDist > 0 && (
           <div className="stat-cell">
             <div className="stat-value" style={{ fontSize: 15 }}>{totalDist.toFixed(0)}</div>
-            <div className="stat-label">Total {unit}</div>
+            <div className="stat-label">{t.total} {unit}</div>
           </div>
         )}
       </div>
@@ -350,6 +473,8 @@ export default function TripDetailPage() {
   const { user } = useAuth()
   const { lang } = useLang()
   const isHe = lang === 'he'
+  const t = STRINGS[isHe ? 'he' : 'en']
+  const dateLocale = isHe ? 'he-IL' : 'en'
   const fileRef = useRef(null)
   const touchStartX = useRef(0)
   const touchStartY = useRef(0)
@@ -521,9 +646,9 @@ export default function TripDetailPage() {
     const start = new Date(trip.date_start); start.setHours(0, 0, 0, 0)
     const diff = Math.round((start - today) / (1000 * 60 * 60 * 24))
     if (diff < 0) return null
-    if (diff === 0) return 'Trip starts today!'
-    return `${diff} day${diff !== 1 ? 's' : ''} to go`
-  }, [trip])
+    if (diff === 0) return t.today
+    return isHe ? `עוד ${diff} ${diff === 1 ? 'יום' : 'ימים'}` : `${diff} day${diff !== 1 ? 's' : ''} to go`
+  }, [trip, t, isHe])
 
   // ── Days with colors ───────────────────────────────────────────────────────
   const daysWithColors = useMemo(() =>
@@ -826,19 +951,19 @@ export default function TripDetailPage() {
       <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--accent-pale)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <Icon name="lock" size={28} color="var(--accent)" />
       </div>
-      <p style={{ fontFamily: 'var(--font-display)', fontSize: 22, textAlign: 'center' }}>Access denied</p>
-      <p style={{ color: 'var(--ink-muted)', fontSize: 14, textAlign: 'center' }}>You're not a member of this trip. Ask the organiser for an invite link.</p>
-      <button className="btn btn-accent" onClick={() => navigate('/')}>Back to my trips</button>
+      <p style={{ fontFamily: 'var(--font-display)', fontSize: 22, textAlign: 'center' }}>{t.accessDenied}</p>
+      <p style={{ color: 'var(--ink-muted)', fontSize: 14, textAlign: 'center' }}>{t.notMember}</p>
+      <button className="btn btn-accent" onClick={() => navigate('/')}>{t.backToTrips}</button>
     </div>
   )
 
   if (loadError) return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, padding: 32 }}>
       <Icon name="close" size={40} color="var(--sand-dark)" />
-      <p style={{ fontFamily: 'var(--font-display)', fontSize: 20 }}>Couldn't load trip</p>
-      <p style={{ color: 'var(--ink-muted)', fontSize: 14, textAlign: 'center' }}>Check your connection and try again</p>
-      <button className="btn btn-accent" onClick={() => fetchAll()}>Retry</button>
-      <button className="btn btn-ghost" onClick={() => navigate('/')}>Back to trips</button>
+      <p style={{ fontFamily: 'var(--font-display)', fontSize: 20 }}>{t.loadFailed}</p>
+      <p style={{ color: 'var(--ink-muted)', fontSize: 14, textAlign: 'center' }}>{t.checkConn}</p>
+      <button className="btn btn-accent" onClick={() => fetchAll()}>{t.retry}</button>
+      <button className="btn btn-ghost" onClick={() => navigate('/')}>{t.backToTrips}</button>
     </div>
   )
 
@@ -874,19 +999,19 @@ export default function TripDetailPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
               {trip.date_start && (
                 <p style={{ fontSize: 12, color: 'var(--ink-muted)' }}>
-                  {new Date(trip.date_start).toLocaleDateString('en', { month: 'short', day: 'numeric' })}
-                  {trip.date_end ? ` – ${new Date(trip.date_end).toLocaleDateString('en', { month: 'short', day: 'numeric' })}` : ''}
+                  {new Date(trip.date_start).toLocaleDateString(dateLocale, { month: 'short', day: 'numeric' })}
+                  {trip.date_end ? ` – ${new Date(trip.date_end).toLocaleDateString(dateLocale, { month: 'short', day: 'numeric' })}` : ''}
                 </p>
               )}
               <span style={{ fontSize: 10, color: 'var(--teal)', display: 'inline-flex', alignItems: 'center', gap: 3, padding: '2px 7px', borderRadius: 100, background: 'var(--teal-light)', border: '1px solid rgba(45,107,107,0.2)' }}>
                 <span style={{ width: 5, height: 5, borderRadius: '50%', background: syncFlash ? 'var(--accent)' : 'var(--teal)', transition: 'background 0.3s' }} />
-                {syncFlash ? 'Syncing' : 'Live'}
+                {syncFlash ? t.syncing : t.live}
               </span>
             </div>
             {countdown && <span className="countdown-badge" style={{ marginTop: 3, display: 'inline-block' }}>{countdown}</span>}
           </div>
           <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-            <button onClick={handleExportPDF} style={{ width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', background: 'var(--cream)', cursor: 'pointer' }} title="Export PDF">
+            <button onClick={handleExportPDF} style={{ width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', background: 'var(--cream)', cursor: 'pointer' }} title={t.exportPDF}>
               <Icon name="download" size={16} color="var(--ink-muted)" />
             </button>
             <button onClick={() => setShowEditTrip(true)} style={{ width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', background: 'var(--cream)', cursor: 'pointer' }}>
@@ -901,10 +1026,10 @@ export default function TripDetailPage() {
         {/* Tab bar */}
         <div style={{ display: 'flex', borderTop: '1px solid var(--border)' }}>
           {[
-            { id: 'map',    label: 'Map',    icon: 'map' },
-            { id: 'days',   label: 'Days',   icon: 'calendar' },
-            { id: 'photos', label: 'Photos', icon: 'image' },
-            { id: 'pack',   label: 'Pack',   icon: 'package' },
+            { id: 'map',    label: t.tabMap,    icon: 'map' },
+            { id: 'days',   label: t.tabDays,   icon: 'calendar' },
+            { id: 'photos', label: t.tabPhotos, icon: 'image' },
+            { id: 'pack',   label: t.tabPack,   icon: 'package' },
           ].map(t => (
             <button key={t.id} onClick={() => changeTab(t.id)}
               style={{ flex: 1, padding: '10px 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontSize: 12, fontWeight: tab === t.id ? 600 : 400, color: tab === t.id ? 'var(--accent)' : 'var(--ink-muted)', borderBottom: `2.5px solid ${tab === t.id ? 'var(--accent)' : 'transparent'}`, background: 'none', cursor: 'pointer', transition: 'color 0.15s' }}>
@@ -966,9 +1091,9 @@ export default function TripDetailPage() {
           {/* Sub-tab bar: Route | Stats | Gas */}
           <div style={{ display: 'flex', background: 'var(--white)', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
             {[
-              { id: 'route', label: 'Route',   icon: 'map' },
-              { id: 'stats', label: 'Stats',   icon: 'bar_chart' },
-              { id: 'gas',   label: 'Gas',     icon: 'gas' },
+              { id: 'route', label: t.subRoute, icon: 'map' },
+              { id: 'stats', label: t.subStats, icon: 'bar_chart' },
+              { id: 'gas',   label: t.subGas,   icon: 'gas' },
             ].map(st => (
               <button key={st.id} onClick={() => setDaysSubTab(st.id)}
                 style={{ flex: 1, padding: '10px 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, fontSize: 12, fontWeight: daysSubTab === st.id ? 600 : 400, color: daysSubTab === st.id ? 'var(--accent)' : 'var(--ink-muted)', borderBottom: `2px solid ${daysSubTab === st.id ? 'var(--accent)' : 'transparent'}`, background: 'none', cursor: 'pointer' }}>
@@ -986,7 +1111,7 @@ export default function TripDetailPage() {
                 <div className="search-bar-wrap" style={{ flex: 1 }}>
                   <div className="search-icon"><Icon name="search" size={14} color="var(--ink-muted)" /></div>
                   <input className="input" style={{ fontSize: 13, padding: '8px 12px 8px 34px', height: 36 }}
-                    placeholder="Search stops…" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
+                    placeholder={t.searchStops} value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
                   {searchQuery && <button className="search-clear" onClick={() => setSearchQuery('')}><Icon name="close" size={10} color="var(--ink-muted)" /></button>}
                 </div>
                 <button onClick={toggleUnit}
@@ -1000,8 +1125,8 @@ export default function TripDetailPage() {
                 {days.length === 0 ? (
                   <div style={{ textAlign: 'center', paddingTop: 48 }}>
                     <Icon name="map" size={40} color="var(--sand-dark)" />
-                    <p style={{ fontFamily: 'var(--font-display)', fontSize: 18, marginBottom: 6, marginTop: 12 }}>No days yet</p>
-                    <p style={{ color: 'var(--ink-muted)', fontSize: 14, marginBottom: 24 }}>Add your first day to start planning</p>
+                    <p style={{ fontFamily: 'var(--font-display)', fontSize: 18, marginBottom: 6, marginTop: 12 }}>{t.noDaysYet}</p>
+                    <p style={{ color: 'var(--ink-muted)', fontSize: 14, marginBottom: 24 }}>{t.addFirstDay}</p>
                     <button className="btn btn-accent" onClick={() => setShowNewDay(true)}>
                       <Icon name="plus" size={15} color="white" /> Add first day
                     </button>
@@ -1009,8 +1134,8 @@ export default function TripDetailPage() {
                 ) : filteredDays.length === 0 && searchQuery ? (
                   <div style={{ textAlign: 'center', paddingTop: 32 }}>
                     <Icon name="search" size={32} color="var(--sand-dark)" />
-                    <p style={{ color: 'var(--ink-muted)', fontSize: 14, marginTop: 12 }}>No results for "<strong>{searchQuery}</strong>"</p>
-                    <button className="btn btn-ghost btn-sm" style={{ marginTop: 12 }} onClick={() => setSearchQuery('')}>Clear</button>
+                    <p style={{ color: 'var(--ink-muted)', fontSize: 14, marginTop: 12 }}>{t.noResultsFor} "<strong>{searchQuery}</strong>"</p>
+                    <button className="btn btn-ghost btn-sm" style={{ marginTop: 12 }} onClick={() => setSearchQuery('')}>{t.clear}</button>
                   </div>
                 ) : (
                   <>
@@ -1031,14 +1156,14 @@ export default function TripDetailPage() {
           {daysSubTab === 'stats' && (
             <div className="scroll-y" style={{ flex: 1, padding: '14px 14px 100px' }}>
               {days.length === 0 ? (
-                <p style={{ color: 'var(--ink-muted)', textAlign: 'center', paddingTop: 40, fontSize: 14 }}>Add days to see stats</p>
+                <p style={{ color: 'var(--ink-muted)', textAlign: 'center', paddingTop: 40, fontSize: 14 }}>{t.addDaysStats}</p>
               ) : (
                 <>
                   {totalBudget > 0 && (
                     <div style={{ marginBottom: 12, padding: '10px 14px', background: 'var(--teal-light)', borderRadius: 12, display: 'flex', alignItems: 'center', gap: 10, border: '1px solid rgba(45,107,107,0.2)' }}>
                       <Icon name="wallet" size={18} color="var(--teal)" />
                       <div style={{ flex: 1 }}>
-                        <p style={{ fontSize: 12, color: 'var(--teal)', fontWeight: 600 }}>Total budget</p>
+                        <p style={{ fontSize: 12, color: 'var(--teal)', fontWeight: 600 }}>{t.totalBudget2}</p>
                         <p style={{ fontSize: 18, fontWeight: 700, color: 'var(--teal)', fontFamily: 'var(--font-display)' }}>${totalBudget.toFixed(2)}</p>
                       </div>
                     </div>
@@ -1046,7 +1171,7 @@ export default function TripDetailPage() {
                   <TripStatsCard days={days} unitKm={unitKm} />
                   {trip.booking_links?.length > 0 && (
                     <div style={{ marginTop: 8, padding: '12px 14px', background: 'var(--white)', borderRadius: 12, border: '1px solid var(--border)' }}>
-                      <p style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--ink-muted)', marginBottom: 10 }}>Bookings</p>
+                      <p style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--ink-muted)', marginBottom: 10 }}>{t.bookings}</p>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                         {trip.booking_links.map((bl, i) => {
                           const bm = BOOKING_TYPE_META[bl.type] || BOOKING_TYPE_META.other
@@ -1057,7 +1182,7 @@ export default function TripDetailPage() {
                               </div>
                               <div style={{ flex: 1, overflow: 'hidden' }}>
                                 <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{bl.label}</p>
-                                {bl.ref && <p style={{ fontSize: 11, color: 'var(--ink-muted)' }}>Ref: {bl.ref}</p>}
+                                {bl.ref && <p style={{ fontSize: 11, color: 'var(--ink-muted)' }}>{t.ref} {bl.ref}</p>}
                               </div>
                               {bl.url && <a href={bl.url} target="_blank" rel="noopener noreferrer" style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--cream)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Icon name="external_link" size={13} color="var(--accent)" /></a>}
                             </div>
@@ -1135,23 +1260,23 @@ export default function TripDetailPage() {
 
       {/* ── Collab sheet ── */}
       {showCollabSheet && (
-        <BottomSheet title="Collaborate" onClose={() => setShowCollabSheet(false)}>
+        <BottomSheet title={t.collab} onClose={() => setShowCollabSheet(false)}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
             {/* Invite link */}
             <div style={{ background: 'var(--cream)', borderRadius: 12, padding: 16 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
                 <Icon name="edit" size={13} color="var(--ink)" />
-                <p style={{ fontSize: 13, fontWeight: 500 }}>Invite to edit</p>
+                <p style={{ fontSize: 13, fontWeight: 500 }}>{t.inviteEdit}</p>
               </div>
-              <p style={{ fontSize: 12, color: 'var(--ink-muted)', marginBottom: 12, lineHeight: 1.5 }}>Anyone with this link can view and edit the trip.</p>
+              <p style={{ fontSize: 12, color: 'var(--ink-muted)', marginBottom: 12, lineHeight: 1.5 }}>{t.inviteSub}</p>
               <div style={{ display: 'flex', gap: 8 }}>
                 <div style={{ flex: 1, background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 8, padding: '10px 12px', fontSize: 12, color: 'var(--ink-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {window.location.origin}/join/{trip.invite_token}
                 </div>
                 <button className="btn btn-accent btn-sm" onClick={handleCopyInvite} style={{ flexShrink: 0 }}>
                   <Icon name={copied ? 'check' : 'copy'} size={14} color="white" />
-                  {copied ? 'Copied!' : 'Copy'}
+                  {copied ? t.copied : t.copy}
                 </button>
               </div>
             </div>
@@ -1160,16 +1285,16 @@ export default function TripDetailPage() {
             <div style={{ background: 'var(--cream)', borderRadius: 12, padding: 16 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
                 <Icon name="eye" size={13} color="var(--ink)" />
-                <p style={{ fontSize: 13, fontWeight: 500 }}>Read-only share link</p>
+                <p style={{ fontSize: 13, fontWeight: 500 }}>{t.readonlyShare}</p>
               </div>
-              <p style={{ fontSize: 12, color: 'var(--ink-muted)', marginBottom: 12, lineHeight: 1.5 }}>Share a view-only version — no login required.</p>
+              <p style={{ fontSize: 12, color: 'var(--ink-muted)', marginBottom: 12, lineHeight: 1.5 }}>{t.readonlySub}</p>
               <div style={{ display: 'flex', gap: 8 }}>
                 <div style={{ flex: 1, background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 8, padding: '10px 12px', fontSize: 12, color: 'var(--ink-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {window.location.origin}/view/{trip.view_token}
                 </div>
                 <button className="btn btn-ghost btn-sm" onClick={handleCopyViewLink} style={{ flexShrink: 0 }}>
                   <Icon name={copiedView ? 'check' : 'share'} size={14} color={copiedView ? 'var(--teal)' : 'var(--ink-muted)'} />
-                  {copiedView ? 'Copied!' : 'Copy'}
+                  {copiedView ? t.copied : t.copy}
                 </button>
               </div>
             </div>
@@ -1177,23 +1302,23 @@ export default function TripDetailPage() {
             {/* Export actions */}
             <div style={{ display: 'flex', gap: 8 }}>
               <button className="btn btn-ghost btn-sm" style={{ flex: 1, opacity: exportingIcal ? 0.6 : 1 }} disabled={exportingIcal} onClick={() => { handleExportIcal(); setShowCollabSheet(false) }}>
-                <Icon name="ical" size={14} color="var(--ink-muted)" /> {exportingIcal ? 'Exporting…' : 'Export iCal'}
+                <Icon name="ical" size={14} color="var(--ink-muted)" /> {exportingIcal ? t.exporting : t.exportIcal}
               </button>
               <button className="btn btn-ghost btn-sm" style={{ flex: 1 }} onClick={() => { handleExportPDF(); setShowCollabSheet(false) }}>
-                <Icon name="download" size={14} color="var(--ink-muted)" /> Export PDF
+                <Icon name="download" size={14} color="var(--ink-muted)" /> {t.exportPDF}
               </button>
             </div>
 
             {/* Members */}
             <div>
-              <p style={{ fontSize: 13, fontWeight: 500, marginBottom: 12 }}>Members ({collaborators.length})</p>
+              <p style={{ fontSize: 13, fontWeight: 500, marginBottom: 12 }}>{t.members} ({collaborators.length})</p>
               {collaborators.map(m => (
                 <div key={m.user_id} style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
                   <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <span style={{ fontSize: 13, fontWeight: 600, color: 'white' }}>{(m.profiles?.name?.[0] ?? '?').toUpperCase()}</span>
                   </div>
                   <div>
-                    <p style={{ fontSize: 14, fontWeight: 500 }}>{m.profiles?.name || 'Unknown'}</p>
+                    <p style={{ fontSize: 14, fontWeight: 500 }}>{m.profiles?.name || t.unknown}</p>
                     <p style={{ fontSize: 11, color: 'var(--ink-muted)', textTransform: 'capitalize' }}>{m.role}</p>
                   </div>
                 </div>
@@ -1205,11 +1330,11 @@ export default function TripDetailPage() {
 
       {/* ── Day detail sheet ── */}
       {openDaySheet && (
-        <BottomSheet title={`Day ${openDaySheet.day_number} — ${openDaySheet.city}`} onClose={() => setOpenDaySheet(null)}>
+        <BottomSheet title={`${t.dayLabel} ${openDaySheet.day_number} — ${openDaySheet.city}`} onClose={() => setOpenDaySheet(null)}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {openDaySheet.physical_note && <InfoBox icon="walk" color="var(--accent)" label="Physical" text={openDaySheet.physical_note} />}
-            {openDaySheet.logistics_note && <InfoBox icon="bag" color="var(--teal)" label="Logistics" text={openDaySheet.logistics_note} />}
-            {openDaySheet.journal && <InfoBox icon="edit" color="var(--ink-muted)" label="Journal" text={openDaySheet.journal} />}
+            {openDaySheet.physical_note && <InfoBox icon="walk" color="var(--accent)" label={t.physical} text={openDaySheet.physical_note} />}
+            {openDaySheet.logistics_note && <InfoBox icon="bag" color="var(--teal)" label={t.logistics} text={openDaySheet.logistics_note} />}
+            {openDaySheet.journal && <InfoBox icon="edit" color="var(--ink-muted)" label={t.journal} text={openDaySheet.journal} />}
           </div>
         </BottomSheet>
       )}
@@ -1279,11 +1404,11 @@ export default function TripDetailPage() {
         <div className="pdf-preview-overlay no-print">
           <div className="pdf-preview-toolbar">
             <button onClick={() => setShowPdfPreview(false)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--white)', cursor: 'pointer', fontSize: 14, color: 'var(--ink-light)' }}>
-              <Icon name={isHe ? 'chevron_right' : 'chevron_left'} size={16} color="var(--ink-muted)" /> Back
+              <Icon name={isHe ? 'chevron_right' : 'chevron_left'} size={16} color="var(--ink-muted)" /> {t.back}
             </button>
-            <span style={{ flex: 1, fontFamily: 'var(--font-display)', fontSize: 16, textAlign: 'center' }}>PDF Preview</span>
+            <span style={{ flex: 1, fontFamily: 'var(--font-display)', fontSize: 16, textAlign: 'center' }}>{t.pdfPreview}</span>
             <button onClick={() => window.print()} className="btn btn-accent btn-sm">
-              <Icon name="download" size={14} color="white" /> Save as PDF
+              <Icon name="download" size={14} color="white" /> {t.saveAsPdf}
             </button>
           </div>
           <div className="pdf-preview-content">
@@ -1306,25 +1431,27 @@ export default function TripDetailPage() {
 function DayCard({ day, dayColor, unitKm = true, onOpen }) {
   const { lang } = useLang()
   const isHe = lang === 'he'
+  const t = STRINGS[isHe ? 'he' : 'en']
+  const dateLocale = isHe ? 'he-IL' : 'en'
   const doneCount = day.stops.filter(s => s.done).length
   const dayBudget = day.stops.reduce((sum, s) => sum + (s.cost || 0), 0)
   const dayDistKm = getDayDistance(day.stops)
   const dayDist = unitKm ? dayDistKm : dayDistKm * 0.621371
   const color = dayColor || 'var(--accent)'
   const dateLabel = day.trip_date
-    ? new Date(day.trip_date).toLocaleDateString('en', { weekday: 'short', month: 'short', day: 'numeric' })
-    : `Day ${day.day_number}`
+    ? new Date(day.trip_date).toLocaleDateString(dateLocale, { weekday: 'short', month: 'short', day: 'numeric' })
+    : `${t.dayLabel} ${day.day_number}`
 
   return (
     <button onClick={onOpen} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '11px 12px', background: 'var(--white)', borderRadius: 12, border: '1px solid var(--border)', marginBottom: 7, borderInlineStart: `4px solid ${color}`, cursor: 'pointer' }}>
       <div style={{ width: 34, height: 34, borderRadius: 8, background: color, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-        <span style={{ fontSize: 7, color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>DAY</span>
+        <span style={{ fontSize: 7, color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t.dayLabel}</span>
         <span style={{ fontSize: 13, fontWeight: 700, color: 'white', lineHeight: 1 }}>{day.day_number}</span>
       </div>
       <div style={{ flex: 1, overflow: 'hidden' }}>
         <p style={{ fontSize: 14, fontWeight: 500, color: 'var(--ink)' }}>{dateLabel}</p>
         <p style={{ fontSize: 12, color: 'var(--ink-muted)', marginTop: 1 }}>
-          {day.stops.length > 0 ? `${doneCount}/${day.stops.length} stops` : 'No stops yet'}
+          {day.stops.length > 0 ? `${doneCount}/${day.stops.length} ${t.stops.toLowerCase()}` : t.noStops}
           {dayBudget > 0 && ` · $${dayBudget.toFixed(0)}`}
           {dayDist > 0.1 && ` · ${dayDist.toFixed(1)} ${unitKm ? 'km' : 'mi'}`}
         </p>
@@ -1423,14 +1550,16 @@ function StopsList({ stops, color, onToggleStop, togglingStopId, onEditStop, onR
 function DayDetailView({ day, dayColor, unitKm, onBack, onToggleStop, togglingStopId, onAddStop, onOpenSheet, onEditStop, onEditDay, onReorderStops, onOptimize }) {
   const { lang } = useLang()
   const isHe = lang === 'he'
+  const t = STRINGS[isHe ? 'he' : 'en']
+  const dateLocale = isHe ? 'he-IL' : 'en'
   const color = dayColor || 'var(--accent)'
   const doneCount = day.stops.filter(s => s.done).length
   const dayBudget = day.stops.reduce((sum, s) => sum + (s.cost || 0), 0)
   const dayDistKm = getDayDistance(day.stops)
   const dayDist = unitKm ? dayDistKm : dayDistKm * 0.621371
   const dateLabel = day.trip_date
-    ? new Date(day.trip_date).toLocaleDateString('en', { weekday: 'long', month: 'long', day: 'numeric' })
-    : `Day ${day.day_number}`
+    ? new Date(day.trip_date).toLocaleDateString(dateLocale, { weekday: 'long', month: 'long', day: 'numeric' })
+    : `${t.dayLabel} ${day.day_number}`
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'var(--cream)', zIndex: 50, display: 'flex', flexDirection: 'column' }}>
@@ -1442,13 +1571,13 @@ function DayDetailView({ day, dayColor, unitKm, onBack, onToggleStop, togglingSt
             <Icon name={isHe ? 'chevron_right' : 'chevron_left'} size={18} color="var(--ink)" />
           </button>
           <div style={{ width: 34, height: 34, borderRadius: 8, background: color, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <span style={{ fontSize: 7, color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase' }}>DAY</span>
+            <span style={{ fontSize: 7, color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase' }}>{t.dayLabel}</span>
             <span style={{ fontSize: 13, fontWeight: 700, color: 'white', lineHeight: 1 }}>{day.day_number}</span>
           </div>
           <div style={{ flex: 1, overflow: 'hidden' }}>
             <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{dateLabel}</p>
             <p style={{ fontSize: 12, color: 'var(--ink-muted)' }}>
-              {doneCount}/{day.stops.length} done
+              {doneCount}/{day.stops.length} {t.done.toLowerCase()}
               {dayBudget > 0 && ` · $${dayBudget.toFixed(0)}`}
               {dayDist > 0.1 && ` · ${dayDist.toFixed(1)} ${unitKm ? 'km' : 'mi'}`}
             </p>

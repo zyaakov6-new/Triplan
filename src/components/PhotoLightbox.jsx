@@ -1,7 +1,10 @@
 import { useState, useRef, useEffect } from 'react'
+import { useLang } from '../hooks/useLang'
 import Icon from './Icon'
 
 export default function PhotoLightbox({ photos, initialIndex = 0, onClose }) {
+  const { lang } = useLang()
+  const isHe = lang === 'he'
   const [idx, setIdx] = useState(initialIndex)
   const touchStart = useRef(0)
 
@@ -10,13 +13,20 @@ export default function PhotoLightbox({ photos, initialIndex = 0, onClose }) {
 
   useEffect(() => {
     const handleKey = (e) => {
-      if (e.key === 'ArrowLeft')  prev()
-      if (e.key === 'ArrowRight') next()
+      // Arrow keys: in RTL, left key advances (next), right key retreats (prev)
+      if (e.key === 'ArrowLeft')  isHe ? next() : prev()
+      if (e.key === 'ArrowRight') isHe ? prev() : next()
       if (e.key === 'Escape')     onClose()
     }
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
-  }, [onClose]) // prev/next use functional setState — safe; onClose must be current
+  }, [onClose, isHe])
+
+  // Physical button positions for prev/next.
+  // In LTR: prev = left side, next = right side.
+  // In RTL: prev = right side, next = left side.
+  const prevSide = isHe ? { right: 12 } : { left: 12 }
+  const nextSide = isHe ? { left: 12 }  : { right: 12 }
 
   return (
     <div
@@ -24,7 +34,7 @@ export default function PhotoLightbox({ photos, initialIndex = 0, onClose }) {
       onClick={onClose}
     >
       {/* Close */}
-      <button onClick={onClose} style={{ position: 'absolute', top: 'calc(env(safe-area-inset-top,0px) + 16px)', right: 16, zIndex: 10, width: 42, height: 42, borderRadius: '50%', background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: '1px solid rgba(255,255,255,0.15)' }}>
+      <button onClick={onClose} style={{ position: 'absolute', top: 'calc(env(safe-area-inset-top,0px) + 16px)', insetInlineEnd: 16, zIndex: 10, width: 42, height: 42, borderRadius: '50%', background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: '1px solid rgba(255,255,255,0.15)' }}>
         <Icon name="close" size={20} color="white" />
       </button>
 
@@ -40,8 +50,9 @@ export default function PhotoLightbox({ photos, initialIndex = 0, onClose }) {
         onTouchStart={e => { touchStart.current = e.touches[0].clientX }}
         onTouchEnd={e => {
           const dx = e.changedTouches[0].clientX - touchStart.current
-          if (dx < -50) next()
-          else if (dx > 50) prev()
+          // Swipe left = advance in LTR, retreat in RTL. Swipe right = retreat in LTR, advance in RTL.
+          if (dx < -50) isHe ? prev() : next()
+          else if (dx > 50) isHe ? next() : prev()
         }}
       >
         <img
@@ -54,16 +65,16 @@ export default function PhotoLightbox({ photos, initialIndex = 0, onClose }) {
       {/* Prev */}
       {idx > 0 && (
         <button onClick={e => { e.stopPropagation(); prev() }}
-          style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', width: 46, height: 46, borderRadius: '50%', background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: '1px solid rgba(255,255,255,0.15)', zIndex: 10 }}>
-          <Icon name="chevron_left" size={24} color="white" />
+          style={{ position: 'absolute', ...prevSide, top: '50%', transform: 'translateY(-50%)', width: 46, height: 46, borderRadius: '50%', background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: '1px solid rgba(255,255,255,0.15)', zIndex: 10 }}>
+          <Icon name={isHe ? 'chevron_right' : 'chevron_left'} size={24} color="white" />
         </button>
       )}
 
       {/* Next */}
       {idx < photos.length - 1 && (
         <button onClick={e => { e.stopPropagation(); next() }}
-          style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', width: 46, height: 46, borderRadius: '50%', background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: '1px solid rgba(255,255,255,0.15)', zIndex: 10 }}>
-          <Icon name="chevron_right" size={24} color="white" />
+          style={{ position: 'absolute', ...nextSide, top: '50%', transform: 'translateY(-50%)', width: 46, height: 46, borderRadius: '50%', background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: '1px solid rgba(255,255,255,0.15)', zIndex: 10 }}>
+          <Icon name={isHe ? 'chevron_left' : 'chevron_right'} size={24} color="white" />
         </button>
       )}
 

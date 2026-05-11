@@ -1,12 +1,47 @@
 import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
+import { useLang } from '../hooks/useLang'
 import BottomSheet from './BottomSheet'
 import Icon from './Icon'
 import { THEMES } from '../lib/themes'
 
+const STRINGS = {
+  he: {
+    title: 'טיול חדש',
+    theme: 'ערכת צבעים:',
+    tripName: 'שם הטיול *',
+    tripNamePh: 'טרק בהרי הרוקי 2025',
+    destination: 'יעד עיקרי',
+    destinationPh: 'למשל איטליה, דרום-מזרח אסיה…',
+    dateStart: 'תאריך התחלה',
+    dateEnd: 'תאריך סיום',
+    createBtn: 'צור טיול',
+    creating: 'יוצר…',
+    errName: 'שם הטיול נדרש',
+    errDates: 'תאריך הסיום לא יכול להיות לפני תאריך ההתחלה',
+  },
+  en: {
+    title: 'New trip',
+    theme: 'Theme:',
+    tripName: 'Trip name *',
+    tripNamePh: 'Rocky Mountains Trek 2025',
+    destination: 'Main destination',
+    destinationPh: 'e.g. Italy, Southeast Asia…',
+    dateStart: 'Start date',
+    dateEnd: 'End date',
+    createBtn: 'Create trip',
+    creating: 'Creating…',
+    errName: 'Trip name is required',
+    errDates: 'End date cannot be before start date',
+  }
+}
+
 export default function NewTripModal({ onClose, onCreated }) {
   const { user } = useAuth()
+  const { lang } = useLang()
+  const t = STRINGS[lang === 'he' ? 'he' : 'en']
+  const isHe = lang === 'he'
   const [form, setForm] = useState({ name: '', destination: '', date_start: '', date_end: '', color_theme: 'terracotta' })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -14,9 +49,9 @@ export default function NewTripModal({ onClose, onCreated }) {
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }))
 
   const handleCreate = async () => {
-    if (!form.name.trim()) { setError('Trip name is required'); return }
+    if (!form.name.trim()) { setError(t.errName); return }
     if (form.date_start && form.date_end && form.date_end < form.date_start) {
-      setError('End date cannot be before start date'); return
+      setError(t.errDates); return
     }
     setLoading(true); setError('')
     const { data, error: err } = await supabase
@@ -31,38 +66,38 @@ export default function NewTripModal({ onClose, onCreated }) {
   }
 
   return (
-    <BottomSheet onClose={onClose} title="New trip">
+    <BottomSheet onClose={onClose} title={t.title}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
         {/* Color theme — compact row */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--ink-muted)', whiteSpace: 'nowrap' }}>Theme:</span>
+          <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--ink-muted)', whiteSpace: 'nowrap' }}>{t.theme}</span>
           <div style={{ display: 'flex', gap: 6 }}>
-            {Object.values(THEMES).map(t => (
-              <button key={t.id} onClick={() => setForm(f => ({ ...f, color_theme: t.id }))}
-                title={t.label}
-                style={{ width: 24, height: 24, borderRadius: '50%', background: t.swatch, border: `2px solid ${form.color_theme === t.id ? '#1A1612' : 'transparent'}`, outline: form.color_theme === t.id ? `2px solid ${t.swatch}` : 'none', outlineOffset: 2, cursor: 'pointer', transition: 'all 0.15s' }}>
+            {Object.values(THEMES).map(th => (
+              <button key={th.id} onClick={() => setForm(f => ({ ...f, color_theme: th.id }))}
+                title={th.label}
+                style={{ width: 24, height: 24, borderRadius: '50%', background: th.swatch, border: `2px solid ${form.color_theme === th.id ? '#1A1612' : 'transparent'}`, outline: form.color_theme === th.id ? `2px solid ${th.swatch}` : 'none', outlineOffset: 2, cursor: 'pointer', transition: 'all 0.15s' }}>
               </button>
             ))}
           </div>
         </div>
 
         <div>
-          <label style={lbl}>Trip name *</label>
-          <input className="input" placeholder="Rocky Mountains Trek 2025" value={form.name} onChange={set('name')} />
+          <label style={lbl}>{t.tripName}</label>
+          <input className="input" placeholder={t.tripNamePh} value={form.name} onChange={set('name')} />
         </div>
 
         <div>
-          <label style={lbl}>Main destination</label>
-          <input className="input" placeholder="e.g. Italy, Southeast Asia…" value={form.destination} onChange={set('destination')} />
+          <label style={lbl}>{t.destination}</label>
+          <input className="input" placeholder={t.destinationPh} value={form.destination} onChange={set('destination')} />
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           <div>
-            <label style={lbl}>Start date</label>
+            <label style={lbl}>{t.dateStart}</label>
             <input className="input" type="date" value={form.date_start} onChange={set('date_start')} />
           </div>
           <div>
-            <label style={lbl}>End date</label>
+            <label style={lbl}>{t.dateEnd}</label>
             <input className="input" type="date" value={form.date_end} min={form.date_start || undefined} onChange={set('date_end')} />
           </div>
         </div>
@@ -70,7 +105,7 @@ export default function NewTripModal({ onClose, onCreated }) {
         {error && <p className="error-box">{error}</p>}
 
         <button className="btn btn-accent" style={{ width: '100%', marginTop: 4 }} onClick={handleCreate} disabled={loading}>
-          {loading ? 'Creating…' : 'Create trip'} {!loading && <Icon name="arrow_right" size={16} color="white" />}
+          {loading ? t.creating : t.createBtn} {!loading && <Icon name={isHe ? 'arrow_left' : 'arrow_right'} size={16} color="white" />}
         </button>
       </div>
     </BottomSheet>
