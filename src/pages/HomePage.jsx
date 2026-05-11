@@ -6,6 +6,61 @@ import NewTripModal from '../components/NewTripModal'
 import EditTripModal from '../components/EditTripModal'
 import Icon from '../components/Icon'
 
+// ── i18n ──────────────────────────────────────────────────────────────────────
+
+const T = {
+  he: {
+    dir:             'rtl',
+    greet:           (name) => `היי${name ? ' ' + name : ''}`,
+    themeLabel:      (mode) => `ערכת נושא: ${mode}`,
+    settingsLabel:   'הגדרות',
+    joinPlaceholder: 'הדבק קוד הזמנה להצטרפות לטיול…',
+    joinBtn:         'הצטרף',
+    joinLoading:     '…',
+    joinInvalid:     'קוד הזמנה לא תקין',
+    loadFail:        'לא הצלחנו לטעון את הטיולים',
+    loadFailSub:     'בדוק את החיבור לאינטרנט ונסה שוב',
+    retry:           'נסה שוב',
+    noTrips:         'אין טיולים עדיין',
+    noTripsSub:      'תתחיל לתכנן את ההרפתקה הבאה',
+    newTrip:         'טיול חדש',
+    noDates:         'ללא תאריכים',
+    settingsTitle:   'הגדרות',
+    loggedInAs:      'מחובר כ',
+    signOut:         'התנתקות',
+    deleteAccount:   'מחיקת חשבון',
+    deleteConfirm:   'לחץ שוב לאישור מחיקת חשבון',
+    deleting:        'מוחק…',
+    privacy:         'מדיניות פרטיות',
+    terms:           'תנאי שימוש',
+  },
+  en: {
+    dir:             'ltr',
+    greet:           (name) => `Hey${name ? ', ' + name : ''}`,
+    themeLabel:      (mode) => `Theme: ${mode}`,
+    settingsLabel:   'Settings',
+    joinPlaceholder: 'Paste an invite code to join a trip…',
+    joinBtn:         'Join',
+    joinLoading:     '…',
+    joinInvalid:     'Invalid invite code',
+    loadFail:        "Couldn't load your trips",
+    loadFailSub:     'Check your internet connection and try again',
+    retry:           'Try again',
+    noTrips:         'No trips yet',
+    noTripsSub:      'Start planning your next adventure',
+    newTrip:         'New trip',
+    noDates:         'No dates set',
+    settingsTitle:   'Settings',
+    loggedInAs:      'Signed in as',
+    signOut:         'Sign out',
+    deleteAccount:   'Delete account',
+    deleteConfirm:   'Tap again to confirm account deletion',
+    deleting:        'Deleting…',
+    privacy:         'Privacy Policy',
+    terms:           'Terms',
+  },
+}
+
 function applyThemeMode(mode) {
   if (mode === 'dark') {
     document.documentElement.setAttribute('data-theme', 'dark')
@@ -44,17 +99,24 @@ export default function HomePage() {
   const { user, profile, signOut, deleteAccount } = useAuth()
   const navigate = useNavigate()
   const { mode, cycle: cycleTheme } = useThemeMode()
-  const [trips, setTrips] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [fetchError, setFetchError] = useState(false)
-  const [showNew, setShowNew] = useState(false)
-  const [editingTrip, setEditingTrip] = useState(null)
-  const [joinToken, setJoinToken] = useState('')
-  const [joining, setJoining] = useState(false)
-  const [joinError, setJoinError] = useState('')
+
+  const [lang] = useState(() =>
+    localStorage.getItem('triplan_lang') || (navigator.language?.startsWith('he') ? 'he' : 'en')
+  )
+  const t    = T[lang]
+  const isHe = lang === 'he'
+
+  const [trips, setTrips]               = useState([])
+  const [loading, setLoading]           = useState(true)
+  const [fetchError, setFetchError]     = useState(false)
+  const [showNew, setShowNew]           = useState(false)
+  const [editingTrip, setEditingTrip]   = useState(null)
+  const [joinToken, setJoinToken]       = useState('')
+  const [joining, setJoining]           = useState(false)
+  const [joinError, setJoinError]       = useState('')
   const [showSettings, setShowSettings] = useState(false)
   const [deletingAccount, setDeletingAccount] = useState(false)
-  const [confirmDelete, setConfirmDelete] = useState(false)
+  const [confirmDelete, setConfirmDelete]     = useState(false)
 
   useEffect(() => { fetchTrips() }, [user])
 
@@ -76,8 +138,7 @@ export default function HomePage() {
     setJoining(true); setJoinError('')
     const { data, error } = await supabase.rpc('join_trip_by_token', { token: joinToken.trim().toLowerCase() })
     if (error) {
-      const lang = localStorage.getItem('triplan_lang') || (navigator.language?.startsWith('he') ? 'he' : 'en')
-      setJoinError(lang === 'he' ? 'קוד הזמנה לא תקין' : 'Invalid invite code')
+      setJoinError(t.joinInvalid)
       setJoining(false)
       return
     }
@@ -85,20 +146,21 @@ export default function HomePage() {
     navigate(`/trip/${data}`)
   }
 
-  const formatDates = (t) => {
-    if (!t.date_start) return null
-    const s = new Date(t.date_start).toLocaleDateString('he', { month: 'short', day: 'numeric' })
-    const e = t.date_end ? new Date(t.date_end).toLocaleDateString('he', { month: 'short', day: 'numeric' }) : null
+  const formatDates = (trip) => {
+    if (!trip.date_start) return null
+    const locale = lang === 'he' ? 'he' : 'en-US'
+    const s = new Date(trip.date_start).toLocaleDateString(locale, { month: 'short', day: 'numeric' })
+    const e = trip.date_end ? new Date(trip.date_end).toLocaleDateString(locale, { month: 'short', day: 'numeric' }) : null
     return e ? `${s} – ${e}` : s
   }
 
   const handleTripUpdated = (updated) => {
-    setTrips(prev => prev.map(t => t.id === updated.id ? updated : t))
+    setTrips(prev => prev.map(tr => tr.id === updated.id ? updated : tr))
     setEditingTrip(null)
   }
 
   const handleTripDeleted = (id) => {
-    setTrips(prev => prev.filter(t => t.id !== id))
+    setTrips(prev => prev.filter(tr => tr.id !== id))
     setEditingTrip(null)
   }
 
@@ -107,11 +169,12 @@ export default function HomePage() {
     setDeletingAccount(true)
     const err = await deleteAccount()
     if (err) { setDeletingAccount(false); setConfirmDelete(false); alert('Failed to delete account: ' + err.message) }
-    // On success, signOut inside deleteAccount navigates away automatically
   }
 
   return (
-    <div dir="rtl" style={{ height: '100%', display: 'flex', flexDirection: 'column', background: 'var(--cream)' }}>
+    <div dir={t.dir} style={{ height: '100%', display: 'flex', flexDirection: 'column', background: 'var(--cream)' }}>
+
+      {/* Header */}
       <div style={{ padding: 'calc(var(--safe-top) + 20px) 20px 0', background: 'var(--white)', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <div>
@@ -121,35 +184,38 @@ export default function HomePage() {
               </div>
               <span style={{ fontFamily: 'var(--font-display)', fontSize: 19, letterSpacing: '-0.02em' }}>Triplan</span>
             </div>
-            <p style={{ fontSize: 13, color: 'var(--ink-muted)' }}>היי {profile?.name || 'שם'}</p>
+            <p style={{ fontSize: 13, color: 'var(--ink-muted)' }}>{t.greet(profile?.name)}</p>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={cycleTheme} title={`ערכת נושא: ${mode}`}
+            <button onClick={cycleTheme} title={t.themeLabel(mode)}
               style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--cream)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: '1px solid var(--border)' }}>
               <Icon name={mode === 'dark' ? 'sun' : mode === 'system' ? 'monitor' : 'moon'} size={16} color="var(--ink-muted)" />
             </button>
-            <button onClick={() => setShowSettings(true)} aria-label="הגדרות"
+            <button onClick={() => setShowSettings(true)} aria-label={t.settingsLabel}
               style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--cream)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: '1px solid var(--border)' }}>
               <Icon name="settings" size={16} color="var(--ink-muted)" />
             </button>
           </div>
         </div>
+
+        {/* Join input */}
         <div style={{ display: 'flex', gap: 8, paddingBottom: 16 }}>
           <input
             className="input"
-            style={{ flex: 1, fontSize: 14, padding: '10px 14px', textAlign: 'right' }}
-            placeholder="הדבק קוד הזמנה להצטרפות לטיול…"
+            style={{ flex: 1, fontSize: 14, padding: '10px 14px', textAlign: isHe ? 'right' : 'left' }}
+            placeholder={t.joinPlaceholder}
             value={joinToken}
             onChange={e => setJoinToken(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleJoin()}
           />
           <button className="btn btn-ghost btn-sm" onClick={handleJoin} disabled={joining || !joinToken.trim()}>
-            {joining ? '…' : 'הצטרף'}
+            {joining ? t.joinLoading : t.joinBtn}
           </button>
         </div>
-        {joinError && <p style={{ fontSize: 12, color: '#C00', marginBottom: 10, marginTop: -8, textAlign: 'right' }}>{joinError}</p>}
+        {joinError && <p style={{ fontSize: 12, color: '#C00', marginBottom: 10, marginTop: -8, textAlign: isHe ? 'right' : 'left' }}>{joinError}</p>}
       </div>
 
+      {/* Trip list */}
       <div className="scroll-y" style={{ flex: 1, padding: '20px 20px 100px' }}>
         {loading ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -169,23 +235,23 @@ export default function HomePage() {
         ) : fetchError ? (
           <div style={{ textAlign: 'center', paddingTop: 60 }}>
             <div style={{ marginBottom: 16 }}><Icon name="close" size={44} color="var(--sand-dark)" /></div>
-            <p style={{ fontFamily: 'var(--font-display)', fontSize: 18, marginBottom: 8 }}>לא הצלחנו לטעון את הטיולים</p>
-            <p style={{ color: 'var(--ink-muted)', fontSize: 14, marginBottom: 24 }}>בדוק את החיבור לאינטרנט ונסה שוב</p>
-            <button className="btn btn-accent" onClick={fetchTrips}>נסה שוב</button>
+            <p style={{ fontFamily: 'var(--font-display)', fontSize: 18, marginBottom: 8 }}>{t.loadFail}</p>
+            <p style={{ color: 'var(--ink-muted)', fontSize: 14, marginBottom: 24 }}>{t.loadFailSub}</p>
+            <button className="btn btn-accent" onClick={fetchTrips}>{t.retry}</button>
           </div>
         ) : trips.length === 0 ? (
           <div style={{ textAlign: 'center', paddingTop: 60 }}>
             <div style={{ marginBottom: 16 }}><Icon name="map" size={52} color="var(--sand-dark)" /></div>
-            <p style={{ fontFamily: 'var(--font-display)', fontSize: 22, marginBottom: 8 }}>אין טיולים עדיין</p>
-            <p style={{ color: 'var(--ink-muted)', fontSize: 14, marginBottom: 28 }}>תתחיל לתכנן את ההרפתקה הבאה</p>
+            <p style={{ fontFamily: 'var(--font-display)', fontSize: 22, marginBottom: 8 }}>{t.noTrips}</p>
+            <p style={{ color: 'var(--ink-muted)', fontSize: 14, marginBottom: 28 }}>{t.noTripsSub}</p>
             <button className="btn btn-accent" onClick={() => setShowNew(true)}>
-              <Icon name="plus" size={16} color="white" /> טיול חדש
+              <Icon name="plus" size={16} color="white" /> {t.newTrip}
             </button>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {trips.map(trip => (
-              <TripCard key={trip.id} trip={trip} formatDates={formatDates}
+              <TripCard key={trip.id} trip={trip} formatDates={formatDates} noDates={t.noDates} isHe={isHe}
                 onClick={() => navigate(`/trip/${trip.id}`)}
                 onEdit={e => { e.stopPropagation(); setEditingTrip(trip) }}
               />
@@ -194,15 +260,20 @@ export default function HomePage() {
         )}
       </div>
 
+      {/* FAB */}
       <button onClick={() => setShowNew(true)}
-        style={{ position: 'fixed', bottom: 'calc(var(--safe-bottom) + 28px)', left: 24, width: 56, height: 56, borderRadius: '50%', background: 'var(--ink)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 20px rgba(26,22,18,0.3)', zIndex: 100, cursor: 'pointer', transition: 'transform 0.15s', border: 'none' }}
+        style={{ position: 'fixed', bottom: 'calc(var(--safe-bottom) + 28px)', [isHe ? 'left' : 'right']: 24, width: 56, height: 56, borderRadius: '50%', background: 'var(--ink)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 20px rgba(26,22,18,0.3)', zIndex: 100, cursor: 'pointer', transition: 'transform 0.15s', border: 'none' }}
         onTouchStart={e => e.currentTarget.style.transform = 'scale(0.9)'}
         onTouchEnd={e => e.currentTarget.style.transform = ''}>
         <Icon name="plus" size={22} color="var(--cream)" />
       </button>
 
-      {showNew && <NewTripModal onClose={() => setShowNew(false)} onCreated={(trip) => { setShowNew(false); fetchTrips(); navigate(`/trip/${trip.id}`) }} />}
-      {editingTrip && <EditTripModal trip={editingTrip} onClose={() => setEditingTrip(null)} onUpdated={handleTripUpdated} onDeleted={handleTripDeleted} />}
+      {showNew && (
+        <NewTripModal onClose={() => setShowNew(false)} onCreated={(trip) => { setShowNew(false); fetchTrips(); navigate(`/trip/${trip.id}`) }} />
+      )}
+      {editingTrip && (
+        <EditTripModal trip={editingTrip} onClose={() => setEditingTrip(null)} onUpdated={handleTripUpdated} onDeleted={handleTripDeleted} />
+      )}
 
       {/* Settings sheet */}
       {showSettings && (
@@ -210,32 +281,34 @@ export default function HomePage() {
           <div className="overlay" onClick={() => { setShowSettings(false); setConfirmDelete(false) }} />
           <div className="bottom-sheet" style={{ maxHeight: '60vh' }}>
             <div className="sheet-handle" />
-            <div style={{ padding: '16px 20px 32px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 500, marginBottom: 4 }}>הגדרות</h2>
+            <div dir={t.dir} style={{ padding: '16px 20px 32px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 500, marginBottom: 4 }}>
+                {t.settingsTitle}
+              </h2>
 
-              <div style={{ padding: '14px 16px', background: 'var(--cream)', borderRadius: 12, border: '1px solid var(--border)' }}>
-                <p style={{ fontSize: 13, color: 'var(--ink-muted)', marginBottom: 2 }}>מחובר כ</p>
+              <div style={{ padding: '14px 16px', background: 'var(--cream)', borderRadius: 12, border: '1px solid var(--border)', textAlign: isHe ? 'right' : 'left' }}>
+                <p style={{ fontSize: 13, color: 'var(--ink-muted)', marginBottom: 2 }}>{t.loggedInAs}</p>
                 <p style={{ fontSize: 14, fontWeight: 500 }}>{profile?.name || user?.email}</p>
                 <p style={{ fontSize: 12, color: 'var(--ink-muted)' }}>{user?.email}</p>
               </div>
 
-              <button onClick={signOut} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '13px 16px', borderRadius: 12, border: '1px solid var(--border)', background: 'var(--white)', cursor: 'pointer', fontSize: 14, color: 'var(--ink)' }}>
+              <button onClick={signOut} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '13px 16px', borderRadius: 12, border: '1px solid var(--border)', background: 'var(--white)', cursor: 'pointer', fontSize: 14, color: 'var(--ink)', flexDirection: isHe ? 'row-reverse' : 'row' }}>
                 <Icon name="logout" size={18} color="var(--ink-muted)" />
-                התנתקות
+                {t.signOut}
               </button>
 
               <button
                 onClick={handleDeleteAccount}
                 disabled={deletingAccount}
-                style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '13px 16px', borderRadius: 12, border: `1px solid ${confirmDelete ? 'var(--danger-border, #fca5a5)' : 'var(--border)'}`, background: confirmDelete ? 'var(--danger-bg, #fee2e2)' : 'var(--white)', cursor: deletingAccount ? 'wait' : 'pointer', fontSize: 14, color: confirmDelete ? 'var(--danger, #b91c1c)' : 'var(--ink-muted)', opacity: deletingAccount ? 0.6 : 1 }}>
+                style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '13px 16px', borderRadius: 12, border: `1px solid ${confirmDelete ? 'var(--danger-border, #fca5a5)' : 'var(--border)'}`, background: confirmDelete ? 'var(--danger-bg, #fee2e2)' : 'var(--white)', cursor: deletingAccount ? 'wait' : 'pointer', fontSize: 14, color: confirmDelete ? 'var(--danger, #b91c1c)' : 'var(--ink-muted)', opacity: deletingAccount ? 0.6 : 1, flexDirection: isHe ? 'row-reverse' : 'row' }}>
                 <Icon name="trash" size={18} color={confirmDelete ? '#b91c1c' : 'var(--ink-muted)'} />
-                {deletingAccount ? 'מוחק…' : confirmDelete ? 'לחץ שוב לאישור מחיקת חשבון' : 'מחיקת חשבון'}
+                {deletingAccount ? t.deleting : confirmDelete ? t.deleteConfirm : t.deleteAccount}
               </button>
 
               <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 4 }}>
-                <a href="/privacy" target="_blank" style={{ fontSize: 11, color: 'var(--ink-muted)', textDecoration: 'underline' }}>מדיניות פרטיות</a>
+                <a href="/privacy" target="_blank" style={{ fontSize: 11, color: 'var(--ink-muted)', textDecoration: 'underline' }}>{t.privacy}</a>
                 <span style={{ fontSize: 11, color: 'var(--border-strong)' }}>·</span>
-                <a href="/terms" target="_blank" style={{ fontSize: 11, color: 'var(--ink-muted)', textDecoration: 'underline' }}>תנאי שימוש</a>
+                <a href="/terms" target="_blank" style={{ fontSize: 11, color: 'var(--ink-muted)', textDecoration: 'underline' }}>{t.terms}</a>
               </div>
             </div>
           </div>
@@ -245,38 +318,38 @@ export default function HomePage() {
   )
 }
 
-function TripCard({ trip, formatDates, onClick, onEdit }) {
+function TripCard({ trip, formatDates, noDates, isHe, onClick, onEdit }) {
   return (
     <button onClick={onClick} className="card"
-      style={{ width: '100%', textAlign: 'right', cursor: 'pointer', overflow: 'hidden', transition: 'transform 0.15s' }}
+      style={{ width: '100%', textAlign: isHe ? 'right' : 'left', cursor: 'pointer', overflow: 'hidden', transition: 'transform 0.15s' }}
       onTouchStart={e => e.currentTarget.style.transform = 'scale(0.985)'}
       onTouchEnd={e => e.currentTarget.style.transform = ''}>
       {trip.cover_photo_url ? (
         <div style={{ position: 'relative', height: 110, overflow: 'hidden' }}>
           <img src={trip.cover_photo_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 30%, rgba(26,22,18,0.65))' }} />
-          <div style={{ position: 'absolute', bottom: 10, right: 14, left: 50 }}>
+          <div style={{ position: 'absolute', bottom: 10, [isHe ? 'left' : 'right']: 14, [isHe ? 'right' : 'left']: 50 }}>
             <p style={{ fontFamily: 'var(--font-display)', fontSize: 17, fontWeight: 500, color: '#fff', marginBottom: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{trip.name}</p>
-            <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.78)' }}>{[trip.destination, formatDates(trip)].filter(Boolean).join(' · ') || 'ללא תאריכים'}</p>
+            <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.78)' }}>{[trip.destination, formatDates(trip)].filter(Boolean).join(' · ') || noDates}</p>
           </div>
-          <button onClick={onEdit} style={{ position: 'absolute', top: 8, left: 8, width: 30, height: 30, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: '1px solid rgba(255,255,255,0.3)' }}>
+          <button onClick={onEdit} style={{ position: 'absolute', top: 8, [isHe ? 'right' : 'left']: 8, width: 30, height: 30, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: '1px solid rgba(255,255,255,0.3)' }}>
             <Icon name="edit" size={13} color="white" />
           </button>
         </div>
       ) : (
-        <div style={{ padding: '18px 20px', display: 'flex', alignItems: 'center', gap: 16 }}>
+        <div style={{ padding: '18px 20px', display: 'flex', alignItems: 'center', gap: 16, flexDirection: isHe ? 'row-reverse' : 'row' }}>
           <div style={{ width: 52, height: 52, borderRadius: 14, background: 'var(--accent-pale)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <Icon name="map" size={24} color="var(--accent)" />
           </div>
-          <div style={{ flex: 1, overflow: 'hidden' }}>
+          <div style={{ flex: 1, overflow: 'hidden', textAlign: isHe ? 'right' : 'left' }}>
             <p style={{ fontFamily: 'var(--font-display)', fontSize: 17, fontWeight: 500, color: 'var(--ink)', marginBottom: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{trip.name}</p>
-            <p style={{ fontSize: 13, color: 'var(--ink-muted)' }}>{[trip.destination, formatDates(trip)].filter(Boolean).join(' · ') || 'ללא תאריכים'}</p>
+            <p style={{ fontSize: 13, color: 'var(--ink-muted)' }}>{[trip.destination, formatDates(trip)].filter(Boolean).join(' · ') || noDates}</p>
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <button onClick={onEdit} style={{ width: 30, height: 30, borderRadius: '50%', background: 'var(--cream)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
               <Icon name="edit" size={13} color="var(--ink-muted)" />
             </button>
-            <Icon name="chevron_left" size={18} color="var(--sand-dark)" />
+            <Icon name={isHe ? 'chevron_right' : 'chevron_left'} size={18} color="var(--sand-dark)" />
           </div>
         </div>
       )}

@@ -52,7 +52,7 @@ export default class ErrorBoundary extends Component {
           }}>
             Something went wrong
           </h2>
-          {msg && (
+          {import.meta.env.DEV && msg && (
             <p style={{
               fontSize: 13,
               color: 'var(--ink-muted)',
