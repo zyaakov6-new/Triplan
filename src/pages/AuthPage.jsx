@@ -32,6 +32,7 @@ const T = {
     badCredentials: 'אימייל או סיסמה שגויים',
     loginFailed:    'הכניסה נכשלה',
     googleFailed:   'כניסה עם גוגל נכשלה',
+    networkError:   'לא ניתן להתחבר לשרת — בדוק את האינטרנט ונסה שוב',
     wait:           'רגע...',
     submitLogin:    'כניסה',
     submitSignup:   'יצירת חשבון',
@@ -63,6 +64,7 @@ const T = {
     badCredentials: 'Invalid email or password',
     loginFailed:    'Sign in failed',
     googleFailed:   'Google sign in failed',
+    networkError:   "Can't reach the server — check your internet and try again",
     wait:           'Please wait…',
     submitLogin:    'Sign in',
     submitSignup:   'Create account',
@@ -242,7 +244,16 @@ function AuthForm({ onBack, t }) {
       if (err) setError(err.message)
     } else {
       const err = await signIn(form.email, form.password)
-      if (err) setError(err.message?.includes('Invalid') ? t.badCredentials : (err.message || t.loginFailed))
+      if (err) {
+        const msg = err.message || ''
+        if (/fetch|network|failed to fetch/i.test(msg)) {
+          setError(t.networkError)
+        } else if (/invalid login|invalid email|invalid password|credentials/i.test(msg)) {
+          setError(t.badCredentials)
+        } else {
+          setError(msg || t.loginFailed)
+        }
+      }
     }
     setLoading(false)
   }

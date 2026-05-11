@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './hooks/useAuth'
 import { useEffect } from 'react'
 import Icon from './components/Icon'
+import ErrorBoundary from './components/ErrorBoundary'
 import AuthPage from './pages/AuthPage'
 import HomePage from './pages/HomePage'
 import TripDetailPage from './pages/TripDetailPage'
@@ -52,10 +53,12 @@ function AppRoutes() {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <AppRoutes />
-      </AuthProvider>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <AuthProvider>
+          <AppRoutes />
+        </AuthProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
   )
 }
