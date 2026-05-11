@@ -228,10 +228,10 @@ export default function LandingPage() {
 
         {/* Hero text + CTA */}
         <div style={{ padding: '28px 28px calc(var(--safe-bottom) + 40px)', position: 'relative', zIndex: 1, flexShrink: 0 }}>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 33, fontWeight: 400, color: 'white', lineHeight: 1.2, marginBottom: 12, textAlign: isHe ? 'right' : 'left' }}>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 33, fontWeight: 400, color: 'white', lineHeight: 1.2, marginBottom: 12 }}>
             {t.heroTitle}
           </h1>
-          <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 15, lineHeight: 1.65, marginBottom: 28, textAlign: isHe ? 'right' : 'left' }}>
+          <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 15, lineHeight: 1.65, marginBottom: 28 }}>
             {t.heroSub}
           </p>
           <button
@@ -253,19 +253,19 @@ export default function LandingPage() {
 
       {/* ── Features ── */}
       <div dir={dir} style={{ background: 'var(--cream)', padding: '56px 24px 64px' }}>
-        <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 26, fontWeight: 400, color: 'var(--ink)', lineHeight: 1.25, marginBottom: 8, textAlign: isHe ? 'right' : 'left' }}>
+        <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 26, fontWeight: 400, color: 'var(--ink)', lineHeight: 1.25, marginBottom: 8 }}>
           {t.featuresTitle}
         </h2>
-        <p style={{ color: 'var(--ink-muted)', fontSize: 14, lineHeight: 1.65, marginBottom: 32, textAlign: isHe ? 'right' : 'left' }}>
+        <p style={{ color: 'var(--ink-muted)', fontSize: 14, lineHeight: 1.65, marginBottom: 32 }}>
           {t.featuresSub}
         </p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           {t.features.map((f, i) => (
-            <div key={i} style={{ padding: 18, background: 'var(--white)', borderRadius: 16, border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)', display: 'flex', alignItems: 'flex-start', gap: 14, flexDirection: isHe ? 'row-reverse' : 'row' }}>
+            <div key={i} style={{ padding: 18, background: 'var(--white)', borderRadius: 16, border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)', display: 'flex', alignItems: 'flex-start', gap: 14 }}>
               <div style={{ width: 44, height: 44, borderRadius: 12, background: f.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <Icon name={f.icon} size={20} color={f.color} />
               </div>
-              <div style={{ textAlign: isHe ? 'right' : 'left' }}>
+              <div>
                 <p style={{ fontWeight: 600, fontSize: 15, marginBottom: 4, color: 'var(--ink)' }}>{f.title}</p>
                 <p style={{ fontSize: 13, color: 'var(--ink-muted)', lineHeight: 1.55 }}>{f.desc}</p>
               </div>
@@ -276,16 +276,16 @@ export default function LandingPage() {
 
       {/* ── How it works ── */}
       <div dir={dir} style={{ background: 'var(--cream-dark)', padding: '56px 24px 68px' }}>
-        <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 26, fontWeight: 400, color: 'var(--ink)', lineHeight: 1.25, marginBottom: 36, textAlign: isHe ? 'right' : 'left' }}>
+        <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 26, fontWeight: 400, color: 'var(--ink)', lineHeight: 1.25, marginBottom: 36 }}>
           {t.howTitle}
         </h2>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
           {t.steps.map((s, i) => (
-            <div key={i} style={{ display: 'flex', gap: 16, alignItems: 'flex-start', flexDirection: isHe ? 'row-reverse' : 'row' }}>
+            <div key={i} style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
               <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--ink)', color: 'var(--cream)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 14, flexShrink: 0, fontFamily: 'var(--font-body)' }}>
                 {i + 1}
               </div>
-              <div style={{ paddingTop: 5, textAlign: isHe ? 'right' : 'left' }}>
+              <div style={{ paddingTop: 5 }}>
                 <p style={{ fontWeight: 600, fontSize: 15, marginBottom: 3, color: 'var(--ink)' }}>{s.title}</p>
                 <p style={{ fontSize: 13, color: 'var(--ink-muted)', lineHeight: 1.55 }}>{s.desc}</p>
               </div>

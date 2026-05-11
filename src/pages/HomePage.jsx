@@ -292,13 +292,13 @@ export default function HomePage() {
                 {t.settingsTitle}
               </h2>
 
-              <div style={{ padding: '14px 16px', background: 'var(--cream)', borderRadius: 12, border: '1px solid var(--border)', textAlign: isHe ? 'right' : 'left' }}>
+              <div style={{ padding: '14px 16px', background: 'var(--cream)', borderRadius: 12, border: '1px solid var(--border)' }}>
                 <p style={{ fontSize: 13, color: 'var(--ink-muted)', marginBottom: 2 }}>{t.loggedInAs}</p>
                 <p style={{ fontSize: 14, fontWeight: 500 }}>{profile?.name || user?.email}</p>
                 <p style={{ fontSize: 12, color: 'var(--ink-muted)' }}>{user?.email}</p>
               </div>
 
-              <button onClick={signOut} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '13px 16px', borderRadius: 12, border: '1px solid var(--border)', background: 'var(--white)', cursor: 'pointer', fontSize: 14, color: 'var(--ink)', flexDirection: isHe ? 'row-reverse' : 'row' }}>
+              <button onClick={signOut} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '13px 16px', borderRadius: 12, border: '1px solid var(--border)', background: 'var(--white)', cursor: 'pointer', fontSize: 14, color: 'var(--ink)' }}>
                 <Icon name="logout" size={18} color="var(--ink-muted)" />
                 {t.signOut}
               </button>
@@ -306,7 +306,7 @@ export default function HomePage() {
               <button
                 onClick={handleDeleteAccount}
                 disabled={deletingAccount}
-                style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '13px 16px', borderRadius: 12, border: `1px solid ${confirmDelete ? 'var(--danger-border, #fca5a5)' : 'var(--border)'}`, background: confirmDelete ? 'var(--danger-bg, #fee2e2)' : 'var(--white)', cursor: deletingAccount ? 'wait' : 'pointer', fontSize: 14, color: confirmDelete ? 'var(--danger, #b91c1c)' : 'var(--ink-muted)', opacity: deletingAccount ? 0.6 : 1, flexDirection: isHe ? 'row-reverse' : 'row' }}>
+                style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '13px 16px', borderRadius: 12, border: `1px solid ${confirmDelete ? 'var(--danger-border, #fca5a5)' : 'var(--border)'}`, background: confirmDelete ? 'var(--danger-bg, #fee2e2)' : 'var(--white)', cursor: deletingAccount ? 'wait' : 'pointer', fontSize: 14, color: confirmDelete ? 'var(--danger, #b91c1c)' : 'var(--ink-muted)', opacity: deletingAccount ? 0.6 : 1 }}>
                 <Icon name="trash" size={18} color={confirmDelete ? '#b91c1c' : 'var(--ink-muted)'} />
                 {deletingAccount ? t.deleting : confirmDelete ? t.deleteConfirm : t.deleteAccount}
               </button>
@@ -327,7 +327,7 @@ export default function HomePage() {
 function TripCard({ trip, formatDates, noDates, isHe, onClick, onEdit }) {
   return (
     <button onClick={onClick} className="card"
-      style={{ width: '100%', textAlign: isHe ? 'right' : 'left', cursor: 'pointer', overflow: 'hidden', transition: 'transform 0.15s' }}
+      style={{ width: '100%', cursor: 'pointer', overflow: 'hidden', transition: 'transform 0.15s' }}
       onTouchStart={e => e.currentTarget.style.transform = 'scale(0.985)'}
       onTouchEnd={e => e.currentTarget.style.transform = ''}>
       {trip.cover_photo_url ? (
@@ -343,11 +343,11 @@ function TripCard({ trip, formatDates, noDates, isHe, onClick, onEdit }) {
           </button>
         </div>
       ) : (
-        <div style={{ padding: '18px 20px', display: 'flex', alignItems: 'center', gap: 16, flexDirection: isHe ? 'row-reverse' : 'row' }}>
+        <div style={{ padding: '18px 20px', display: 'flex', alignItems: 'center', gap: 16 }}>
           <div style={{ width: 52, height: 52, borderRadius: 14, background: 'var(--accent-pale)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <Icon name="map" size={24} color="var(--accent)" />
           </div>
-          <div style={{ flex: 1, overflow: 'hidden', textAlign: isHe ? 'right' : 'left' }}>
+          <div style={{ flex: 1, overflow: 'hidden' }}>
             <p style={{ fontFamily: 'var(--font-display)', fontSize: 17, fontWeight: 500, color: 'var(--ink)', marginBottom: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{trip.name}</p>
             <p style={{ fontSize: 13, color: 'var(--ink-muted)' }}>{[trip.destination, formatDates(trip)].filter(Boolean).join(' · ') || noDates}</p>
           </div>
@@ -355,7 +355,8 @@ function TripCard({ trip, formatDates, noDates, isHe, onClick, onEdit }) {
             <button onClick={onEdit} style={{ width: 30, height: 30, borderRadius: '50%', background: 'var(--cream)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
               <Icon name="edit" size={13} color="var(--ink-muted)" />
             </button>
-            <Icon name={isHe ? 'chevron_right' : 'chevron_left'} size={18} color="var(--sand-dark)" />
+            {/* chevron points toward the detail screen: left in LTR, right in RTL */}
+            <Icon name={isHe ? 'chevron_left' : 'chevron_right'} size={18} color="var(--sand-dark)" />
           </div>
         </div>
       )}
