@@ -1,8 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './hooks/useAuth'
-import { useEffect } from 'react'
 import Icon from './components/Icon'
 import ErrorBoundary from './components/ErrorBoundary'
+import LandingPage from './pages/LandingPage'
 import AuthPage from './pages/AuthPage'
 import HomePage from './pages/HomePage'
 import TripDetailPage from './pages/TripDetailPage'
@@ -13,9 +13,9 @@ import PrivacyPage from './pages/PrivacyPage'
 import TermsPage from './pages/TermsPage'
 import './index.css'
 
-// Apply saved theme on load (supports 'light', 'dark', 'system')
+// Apply saved theme on load
 ;(function () {
-  const mode = localStorage.getItem('themeMode') || (localStorage.getItem('theme') === 'dark' ? 'dark' : 'light')
+  const mode = localStorage.getItem('themeMode') || 'light'
   if (mode === 'dark') {
     document.documentElement.setAttribute('data-theme', 'dark')
   } else if (mode === 'system') {
@@ -38,24 +38,34 @@ function AppRoutes() {
 
   if (!user) return (
     <Routes>
-      <Route path="/join/:token"      element={<AuthPage />} />
-      <Route path="/reset-password"   element={<ResetPasswordPage />} />
-      <Route path="/privacy"          element={<PrivacyPage />} />
-      <Route path="/terms"            element={<TermsPage />} />
-      <Route path="*"                 element={<AuthPage />} />
+      {/* Public marketing + auth */}
+      <Route path="/"               element={<LandingPage />} />
+      <Route path="/auth"           element={<AuthPage />} />
+      <Route path="/login"          element={<Navigate to="/auth" replace />} />
+      {/* Deep-link: show auth so user can sign in then get joined */}
+      <Route path="/join/:token"    element={<AuthPage />} />
+      {/* Utility pages always accessible */}
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
+      <Route path="/privacy"        element={<PrivacyPage />} />
+      <Route path="/terms"          element={<TermsPage />} />
+      {/* Everything else → landing */}
+      <Route path="*"               element={<Navigate to="/" replace />} />
     </Routes>
   )
 
   return (
     <Routes>
-      <Route path="/"                 element={<HomePage />} />
-      <Route path="/trip/:id"         element={<TripDetailPage />} />
-      <Route path="/join/:token"      element={<JoinPage />} />
-      <Route path="/view/:token"      element={<ViewPage />} />
-      <Route path="/reset-password"   element={<ResetPasswordPage />} />
-      <Route path="/privacy"          element={<PrivacyPage />} />
-      <Route path="/terms"            element={<TermsPage />} />
-      <Route path="*"                 element={<Navigate to="/" replace />} />
+      <Route path="/"               element={<HomePage />} />
+      <Route path="/trip/:id"       element={<TripDetailPage />} />
+      <Route path="/join/:token"    element={<JoinPage />} />
+      <Route path="/view/:token"    element={<ViewPage />} />
+      {/* Logged-in users visiting auth → send home */}
+      <Route path="/auth"           element={<Navigate to="/" replace />} />
+      <Route path="/login"          element={<Navigate to="/" replace />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
+      <Route path="/privacy"        element={<PrivacyPage />} />
+      <Route path="/terms"          element={<TermsPage />} />
+      <Route path="*"               element={<Navigate to="/" replace />} />
     </Routes>
   )
 }

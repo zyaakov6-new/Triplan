@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
+import { useLang } from '../hooks/useLang'
 import NewTripModal from '../components/NewTripModal'
 import EditTripModal from '../components/EditTripModal'
 import Icon from '../components/Icon'
@@ -100,9 +101,7 @@ export default function HomePage() {
   const navigate = useNavigate()
   const { mode, cycle: cycleTheme } = useThemeMode()
 
-  const [lang] = useState(() =>
-    localStorage.getItem('triplan_lang') || (navigator.language?.startsWith('he') ? 'he' : 'en')
-  )
+  const { lang, toggleLang } = useLang()
   const t    = T[lang]
   const isHe = lang === 'he'
 
@@ -186,7 +185,14 @@ export default function HomePage() {
             </div>
             <p style={{ fontSize: 13, color: 'var(--ink-muted)' }}>{t.greet(profile?.name)}</p>
           </div>
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            {/* Language toggle */}
+            <button
+              onClick={toggleLang}
+              title={lang === 'he' ? 'Switch to English' : 'החלף לעברית'}
+              style={{ height: 36, padding: '0 12px', borderRadius: 18, background: 'var(--cream)', border: '1px solid var(--border)', cursor: 'pointer', fontSize: 12, fontWeight: 700, color: 'var(--ink-muted)', letterSpacing: '0.03em', fontFamily: 'var(--font-body)' }}>
+              {lang === 'he' ? 'EN' : 'עב'}
+            </button>
             <button onClick={cycleTheme} title={t.themeLabel(mode)}
               style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--cream)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: '1px solid var(--border)' }}>
               <Icon name={mode === 'dark' ? 'sun' : mode === 'system' ? 'monitor' : 'moon'} size={16} color="var(--ink-muted)" />
