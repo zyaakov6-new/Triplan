@@ -19,9 +19,11 @@ export default function TripMap({ days = [], onSelect }) {
       style: MAP_STYLE,
       center: [0, 20],
       zoom: 2,
-      attributionControl: false,
+      attributionControl: false, // we add a compact one below
     })
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right')
+    // Required by ODbL license: show OpenStreetMap attribution
+    map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-left')
     mapRef.current = map
     return () => { map.remove(); mapRef.current = null }
   }, [])

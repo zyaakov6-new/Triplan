@@ -2,15 +2,32 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+  <!-- user-scalable=no removed — required by WCAG & iOS accessibility guidelines -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#1A1612" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Triplan" />
-  <link rel="apple-touch-icon" href="/icon-192.png" />
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-  <link rel="alternate icon" href="/favicon.ico" />
+
+  <!-- SEO & Social -->
+  <meta name="description" content="Plan trips beautifully with your whole group — maps, itineraries, packing lists and photos in one place." />
+  <meta property="og:type"        content="website" />
+  <meta property="og:title"       content="Triplan — Trip Planning for Groups" />
+  <meta property="og:description" content="Plan trips beautifully with your whole group — maps, itineraries, packing lists and photos in one place." />
+  <meta property="og:image"       content="/og-image.png" />
+  <meta name="twitter:card"       content="summary_large_image" />
+  <meta name="twitter:title"      content="Triplan — Trip Planning for Groups" />
+  <meta name="twitter:description" content="Plan trips beautifully with your whole group." />
+  <meta name="twitter:image"      content="/og-image.png" />
+
+  <!-- Icons -->
+  <link rel="icon"             href="/favicon.svg" type="image/svg+xml" />
+  <link rel="alternate icon"   href="/favicon.ico" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon-180x180.png" />
+
+  <!-- MapLibre CSS (local via npm, loaded by TripMap) -->
   <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
+
   <title>Triplan</title>
 </head>
 <body>

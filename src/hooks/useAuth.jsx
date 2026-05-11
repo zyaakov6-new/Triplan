@@ -67,10 +67,23 @@ export function AuthProvider({ children }) {
     return error
   }
 
+  const resetPassword = async (email) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    })
+    return error
+  }
+
+  const deleteAccount = async () => {
+    const { error } = await supabase.rpc('delete_account')
+    if (!error) await supabase.auth.signOut()
+    return error
+  }
+
   const signOut = () => supabase.auth.signOut()
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, signUp, signIn, signInWithGoogle, signOut, fetchProfile }}>
+    <AuthContext.Provider value={{ user, profile, loading, signUp, signIn, signInWithGoogle, signOut, fetchProfile, resetPassword, deleteAccount }}>
       {children}
     </AuthContext.Provider>
   )

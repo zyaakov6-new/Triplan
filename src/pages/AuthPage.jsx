@@ -33,6 +33,12 @@ const T = {
     loginFailed:    'הכניסה נכשלה',
     googleFailed:   'כניסה עם גוגל נכשלה',
     networkError:   'לא ניתן להתחבר לשרת — בדוק את האינטרנט ונסה שוב',
+    forgotPassword: 'שכחת סיסמה?',
+    resetTitle:     'איפוס סיסמה',
+    resetSub:       'נשלח אליך קישור לאיפוס הסיסמה',
+    resetBtn:       'שלח קישור',
+    resetSent:      'נשלח! בדוק את תיבת הדואר שלך',
+    backToLogin:    'חזרה לכניסה',
     wait:           'רגע...',
     submitLogin:    'כניסה',
     submitSignup:   'יצירת חשבון',
@@ -65,6 +71,12 @@ const T = {
     loginFailed:    'Sign in failed',
     googleFailed:   'Google sign in failed',
     networkError:   "Can't reach the server — check your internet and try again",
+    forgotPassword: 'Forgot password?',
+    resetTitle:     'Reset password',
+    resetSub:       "We'll send you a link to reset your password",
+    resetBtn:       'Send reset link',
+    resetSent:      'Sent! Check your inbox',
+    backToLogin:    'Back to sign in',
     wait:           'Please wait…',
     submitLogin:    'Sign in',
     submitSignup:   'Create account',
@@ -227,12 +239,13 @@ function AllInOneIllustration({ isHe }) {
 // ── Auth form ─────────────────────────────────────────────────────────────────
 
 function AuthForm({ onBack, t }) {
-  const { signIn, signUp, signInWithGoogle } = useAuth()
-  const [mode, setMode]             = useState('login')
+  const { signIn, signUp, signInWithGoogle, resetPassword } = useAuth()
+  const [mode, setMode]             = useState('login') // 'login' | 'signup' | 'forgot'
   const [form, setForm]             = useState({ name: '', email: '', password: '' })
   const [error, setError]           = useState('')
   const [loading, setLoading]       = useState(false)
   const [googleLoading, setGLoader] = useState(false)
+  const [resetSent, setResetSent]   = useState(false)
 
   const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }))
 
@@ -262,6 +275,15 @@ function AuthForm({ onBack, t }) {
     setGLoader(true); setError('')
     const err = await signInWithGoogle()
     if (err) { setError(err.message || t.googleFailed); setGLoader(false) }
+  }
+
+  const handleForgot = async () => {
+    if (!form.email.trim()) { setError(t.labelEmail + ' is required'); return }
+    setLoading(true); setError('')
+    const err = await resetPassword(form.email.trim())
+    setLoading(false)
+    if (err) setError(err.message || t.loginFailed)
+    else setResetSent(true)
   }
 
   const isRtl = t.dir === 'rtl'
@@ -321,51 +343,92 @@ function AuthForm({ onBack, t }) {
           <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
         </div>
 
-        {/* Mode tabs */}
-        <div style={{ display: 'flex', background: 'var(--cream-dark)', borderRadius: 12, padding: 4, marginBottom: 20, gap: 4 }}>
-          {['login', 'signup'].map(m => (
-            <button key={m} onClick={() => { setMode(m); setError('') }} style={{
-              flex: 1, padding: '10px 0', borderRadius: 9, fontSize: 14, fontWeight: 500,
-              background: mode === m ? 'var(--white)' : 'transparent',
-              color:      mode === m ? 'var(--ink)'   : 'var(--ink-muted)',
-              border:     mode === m ? '1px solid var(--border)' : 'none',
-              boxShadow:  mode === m ? 'var(--shadow-sm)' : 'none',
-              transition: 'all 0.15s', cursor: 'pointer',
-            }}>
-              {m === 'login' ? t.tabLogin : t.tabSignup}
-            </button>
-          ))}
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {mode === 'signup' && (
-            <div className="anim-up">
-              <label style={lbl}>{t.labelName}</label>
-              <input className="input" style={{ textAlign: isRtl ? 'right' : 'left' }}
-                placeholder={t.placeholderName} value={form.name} onChange={set('name')} autoComplete="name" />
+        {/* Forgot-password view */}
+        {mode === 'forgot' && (
+          <div className="anim-up" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div>
+              <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 20, marginBottom: 6 }}>{t.resetTitle}</h3>
+              <p style={{ fontSize: 13, color: 'var(--ink-muted)' }}>{t.resetSub}</p>
             </div>
-          )}
-          <div>
-            <label style={lbl}>{t.labelEmail}</label>
-            <input className="input" style={{ direction: 'ltr', textAlign: 'left' }}
-              type="email" placeholder="you@example.com" value={form.email} onChange={set('email')} autoComplete="email" inputMode="email" />
-          </div>
-          <div>
-            <label style={lbl}>{t.labelPassword}</label>
-            <input className="input" style={{ direction: 'ltr', textAlign: 'left' }}
-              type="password" placeholder="••••••••" value={form.password} onChange={set('password')} autoComplete={mode === 'login' ? 'current-password' : 'new-password'} />
-          </div>
-        </div>
-
-        {error && (
-          <div style={{ marginTop: 12, padding: '10px 14px', background: 'rgba(255,80,80,0.15)', borderRadius: 10, border: '1px solid rgba(255,80,80,0.3)' }}>
-            <p style={{ fontSize: 13, color: '#FF8080', textAlign: isRtl ? 'right' : 'left' }}>{error}</p>
+            {resetSent ? (
+              <div style={{ padding: '14px 16px', background: 'rgba(45,107,107,0.12)', borderRadius: 12, border: '1px solid rgba(45,107,107,0.3)', textAlign: isRtl ? 'right' : 'left' }}>
+                <p style={{ fontSize: 14, color: 'var(--teal)', fontWeight: 500 }}>{t.resetSent}</p>
+              </div>
+            ) : (
+              <>
+                <div>
+                  <label style={lbl}>{t.labelEmail}</label>
+                  <input className="input" style={{ direction: 'ltr', textAlign: 'left' }}
+                    type="email" placeholder="you@example.com" value={form.email} onChange={set('email')} autoComplete="email" inputMode="email" />
+                </div>
+                {error && <div style={{ padding: '10px 14px', background: 'rgba(255,80,80,0.15)', borderRadius: 10, border: '1px solid rgba(255,80,80,0.3)' }}><p style={{ fontSize: 13, color: '#FF8080' }}>{error}</p></div>}
+                <button className="btn btn-accent" style={{ width: '100%', fontSize: 16, padding: '15px' }} onClick={handleForgot} disabled={loading}>
+                  {loading ? t.wait : t.resetBtn}
+                </button>
+              </>
+            )}
+            <button onClick={() => { setMode('login'); setError(''); setResetSent(false) }}
+              style={{ fontSize: 13, color: 'var(--ink-muted)', cursor: 'pointer', textDecoration: 'underline', background: 'none', border: 'none', textAlign: isRtl ? 'right' : 'left' }}>
+              ← {t.backToLogin}
+            </button>
           </div>
         )}
 
-        <button className="btn btn-accent" style={{ marginTop: 20, width: '100%', fontSize: 16, padding: '15px' }} onClick={handleSubmit} disabled={loading}>
-          {loading ? t.wait : mode === 'login' ? t.submitLogin : t.submitSignup}
-        </button>
+        {/* Login / Signup form — hidden when in forgot-password mode */}
+        {mode !== 'forgot' && <>
+          <div style={{ display: 'flex', background: 'var(--cream-dark)', borderRadius: 12, padding: 4, marginBottom: 20, gap: 4 }}>
+            {['login', 'signup'].map(m => (
+              <button key={m} onClick={() => { setMode(m); setError('') }} style={{
+                flex: 1, padding: '10px 0', borderRadius: 9, fontSize: 14, fontWeight: 500,
+                background: mode === m ? 'var(--white)' : 'transparent',
+                color:      mode === m ? 'var(--ink)'   : 'var(--ink-muted)',
+                border:     mode === m ? '1px solid var(--border)' : 'none',
+                boxShadow:  mode === m ? 'var(--shadow-sm)' : 'none',
+                transition: 'all 0.15s', cursor: 'pointer',
+              }}>
+                {m === 'login' ? t.tabLogin : t.tabSignup}
+              </button>
+            ))}
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {mode === 'signup' && (
+              <div className="anim-up">
+                <label style={lbl}>{t.labelName}</label>
+                <input className="input" style={{ textAlign: isRtl ? 'right' : 'left' }}
+                  placeholder={t.placeholderName} value={form.name} onChange={set('name')} autoComplete="name" />
+              </div>
+            )}
+            <div>
+              <label style={lbl}>{t.labelEmail}</label>
+              <input className="input" style={{ direction: 'ltr', textAlign: 'left' }}
+                type="email" placeholder="you@example.com" value={form.email} onChange={set('email')} autoComplete="email" inputMode="email" />
+            </div>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                <label style={{ ...lbl, marginBottom: 0 }}>{t.labelPassword}</label>
+                {mode === 'login' && (
+                  <button onClick={() => { setMode('forgot'); setError('') }}
+                    style={{ fontSize: 12, color: 'var(--accent)', cursor: 'pointer', background: 'none', border: 'none', textDecoration: 'underline' }}>
+                    {t.forgotPassword}
+                  </button>
+                )}
+              </div>
+              <input className="input" style={{ direction: 'ltr', textAlign: 'left' }}
+                type="password" placeholder="••••••••" value={form.password} onChange={set('password')} autoComplete={mode === 'login' ? 'current-password' : 'new-password'} />
+            </div>
+          </div>
+
+          {error && (
+            <div style={{ marginTop: 12, padding: '10px 14px', background: 'rgba(255,80,80,0.15)', borderRadius: 10, border: '1px solid rgba(255,80,80,0.3)' }}>
+              <p style={{ fontSize: 13, color: '#FF8080', textAlign: isRtl ? 'right' : 'left' }}>{error}</p>
+            </div>
+          )}
+
+          <button className="btn btn-accent" style={{ marginTop: 20, width: '100%', fontSize: 16, padding: '15px' }} onClick={handleSubmit} disabled={loading}>
+            {loading ? t.wait : mode === 'login' ? t.submitLogin : t.submitSignup}
+          </button>
+        </>}
       </div>
     </div>
   )

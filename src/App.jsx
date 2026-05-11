@@ -8,6 +8,9 @@ import HomePage from './pages/HomePage'
 import TripDetailPage from './pages/TripDetailPage'
 import JoinPage from './pages/JoinPage'
 import ViewPage from './pages/ViewPage'
+import ResetPasswordPage from './pages/ResetPasswordPage'
+import PrivacyPage from './pages/PrivacyPage'
+import TermsPage from './pages/TermsPage'
 import './index.css'
 
 // Apply saved theme on load (supports 'light', 'dark', 'system')
@@ -35,18 +38,24 @@ function AppRoutes() {
 
   if (!user) return (
     <Routes>
-      <Route path="/join/:token" element={<AuthPage />} />
-      <Route path="*" element={<AuthPage />} />
+      <Route path="/join/:token"      element={<AuthPage />} />
+      <Route path="/reset-password"   element={<ResetPasswordPage />} />
+      <Route path="/privacy"          element={<PrivacyPage />} />
+      <Route path="/terms"            element={<TermsPage />} />
+      <Route path="*"                 element={<AuthPage />} />
     </Routes>
   )
 
   return (
     <Routes>
-      <Route path="/" element={<HomePage />} />
-      <Route path="/trip/:id" element={<TripDetailPage />} />
-      <Route path="/join/:token" element={<JoinPage />} />
-      <Route path="/view/:token" element={<ViewPage />} />
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="/"                 element={<HomePage />} />
+      <Route path="/trip/:id"         element={<TripDetailPage />} />
+      <Route path="/join/:token"      element={<JoinPage />} />
+      <Route path="/view/:token"      element={<ViewPage />} />
+      <Route path="/reset-password"   element={<ResetPasswordPage />} />
+      <Route path="/privacy"          element={<PrivacyPage />} />
+      <Route path="/terms"            element={<TermsPage />} />
+      <Route path="*"                 element={<Navigate to="/" replace />} />
     </Routes>
   )
 }

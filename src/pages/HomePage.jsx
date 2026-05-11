@@ -41,7 +41,7 @@ function useThemeMode() {
 }
 
 export default function HomePage() {
-  const { user, profile, signOut } = useAuth()
+  const { user, profile, signOut, deleteAccount } = useAuth()
   const navigate = useNavigate()
   const { mode, cycle: cycleTheme } = useThemeMode()
   const [trips, setTrips] = useState([])
@@ -52,6 +52,9 @@ export default function HomePage() {
   const [joinToken, setJoinToken] = useState('')
   const [joining, setJoining] = useState(false)
   const [joinError, setJoinError] = useState('')
+  const [showSettings, setShowSettings] = useState(false)
+  const [deletingAccount, setDeletingAccount] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
 
   useEffect(() => { fetchTrips() }, [user])
 
@@ -99,6 +102,14 @@ export default function HomePage() {
     setEditingTrip(null)
   }
 
+  const handleDeleteAccount = async () => {
+    if (!confirmDelete) { setConfirmDelete(true); return }
+    setDeletingAccount(true)
+    const err = await deleteAccount()
+    if (err) { setDeletingAccount(false); setConfirmDelete(false); alert('Failed to delete account: ' + err.message) }
+    // On success, signOut inside deleteAccount navigates away automatically
+  }
+
   return (
     <div dir="rtl" style={{ height: '100%', display: 'flex', flexDirection: 'column', background: 'var(--cream)' }}>
       <div style={{ padding: 'calc(var(--safe-top) + 20px) 20px 0', background: 'var(--white)', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
@@ -117,9 +128,9 @@ export default function HomePage() {
               style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--cream)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: '1px solid var(--border)' }}>
               <Icon name={mode === 'dark' ? 'sun' : mode === 'system' ? 'monitor' : 'moon'} size={16} color="var(--ink-muted)" />
             </button>
-            <button onClick={signOut}
-              style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--cream)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-              <Icon name="logout" size={16} color="var(--ink-muted)" />
+            <button onClick={() => setShowSettings(true)} aria-label="הגדרות"
+              style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--cream)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: '1px solid var(--border)' }}>
+              <Icon name="settings" size={16} color="var(--ink-muted)" />
             </button>
           </div>
         </div>
@@ -192,6 +203,44 @@ export default function HomePage() {
 
       {showNew && <NewTripModal onClose={() => setShowNew(false)} onCreated={(trip) => { setShowNew(false); fetchTrips(); navigate(`/trip/${trip.id}`) }} />}
       {editingTrip && <EditTripModal trip={editingTrip} onClose={() => setEditingTrip(null)} onUpdated={handleTripUpdated} onDeleted={handleTripDeleted} />}
+
+      {/* Settings sheet */}
+      {showSettings && (
+        <>
+          <div className="overlay" onClick={() => { setShowSettings(false); setConfirmDelete(false) }} />
+          <div className="bottom-sheet" style={{ maxHeight: '60vh' }}>
+            <div className="sheet-handle" />
+            <div style={{ padding: '16px 20px 32px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 500, marginBottom: 4 }}>הגדרות</h2>
+
+              <div style={{ padding: '14px 16px', background: 'var(--cream)', borderRadius: 12, border: '1px solid var(--border)' }}>
+                <p style={{ fontSize: 13, color: 'var(--ink-muted)', marginBottom: 2 }}>מחובר כ</p>
+                <p style={{ fontSize: 14, fontWeight: 500 }}>{profile?.name || user?.email}</p>
+                <p style={{ fontSize: 12, color: 'var(--ink-muted)' }}>{user?.email}</p>
+              </div>
+
+              <button onClick={signOut} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '13px 16px', borderRadius: 12, border: '1px solid var(--border)', background: 'var(--white)', cursor: 'pointer', fontSize: 14, color: 'var(--ink)' }}>
+                <Icon name="logout" size={18} color="var(--ink-muted)" />
+                התנתקות
+              </button>
+
+              <button
+                onClick={handleDeleteAccount}
+                disabled={deletingAccount}
+                style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '13px 16px', borderRadius: 12, border: `1px solid ${confirmDelete ? 'var(--danger-border, #fca5a5)' : 'var(--border)'}`, background: confirmDelete ? 'var(--danger-bg, #fee2e2)' : 'var(--white)', cursor: deletingAccount ? 'wait' : 'pointer', fontSize: 14, color: confirmDelete ? 'var(--danger, #b91c1c)' : 'var(--ink-muted)', opacity: deletingAccount ? 0.6 : 1 }}>
+                <Icon name="trash" size={18} color={confirmDelete ? '#b91c1c' : 'var(--ink-muted)'} />
+                {deletingAccount ? 'מוחק…' : confirmDelete ? 'לחץ שוב לאישור מחיקת חשבון' : 'מחיקת חשבון'}
+              </button>
+
+              <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 4 }}>
+                <a href="/privacy" target="_blank" style={{ fontSize: 11, color: 'var(--ink-muted)', textDecoration: 'underline' }}>מדיניות פרטיות</a>
+                <span style={{ fontSize: 11, color: 'var(--border-strong)' }}>·</span>
+                <a href="/terms" target="_blank" style={{ fontSize: 11, color: 'var(--ink-muted)', textDecoration: 'underline' }}>תנאי שימוש</a>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   )
 }
