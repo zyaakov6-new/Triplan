@@ -7,15 +7,15 @@ import Icon from '../components/Icon'
 
 const STRINGS = {
   he: {
-    joining: 'מצטרף לטיול…',
+    joining: 'מצטרפים לטיול…',
     soon: 'זה ייקח רק רגע',
-    inYouAre: 'נכנסת! מעביר אותך…',
+    inYouAre: 'נכנסתם! מעבירים אתכם…',
     invalid: 'קישור הזמנה לא תקין',
     invalidSub: 'ייתכן שהקישור פג או שכבר נעשה בו שימוש.',
-    home: 'חזרה לבית',
-    timeout: 'לוקח יותר מדי זמן…',
+    home: 'חזרה לדף הבית',
+    timeout: 'זה לוקח יותר מדי זמן…',
     checkConn: 'בדקו את החיבור ונסו שוב.',
-    retry: 'נסה שוב',
+    retry: 'נסו שוב',
   },
   en: {
     joining: 'Joining trip…',

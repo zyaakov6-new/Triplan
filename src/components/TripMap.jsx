@@ -2,11 +2,39 @@ import { useEffect, useRef } from 'react'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { MAP_STYLE } from '../lib/supabase'
+import { useLang } from '../hooks/useLang'
+
+// Tell MapLibre how to render Hebrew/Arabic labels correctly.
+// Without this, the renderer outputs RTL text reversed character-by-character.
+// The plugin file is self-hosted in public/ (copied from
+// @mapbox/mapbox-gl-rtl-text/dist/mapbox-gl-rtl-text.js) so the PWA still works
+// offline once cached. Safe to call repeatedly — MapLibre ignores re-calls.
+// `lazy: true` defers download until the first RTL glyph appears on a tile.
+if (typeof window !== 'undefined' && maplibregl.getRTLTextPluginStatus &&
+    maplibregl.getRTLTextPluginStatus() === 'unavailable') {
+  maplibregl.setRTLTextPlugin('/mapbox-gl-rtl-text.js', null, true)
+}
+
+const POPUP_STRINGS = {
+  he: { day: 'יום', stop: 'עצירה', food: 'אוכל/מים', hotel: 'מחנה/לינה', transport: 'תחבורה', waypoint: 'נקודת ציון', attraction: 'נקודת תצפית' },
+  en: { day: 'Day', stop: 'Stop', food: 'Food/Water', hotel: 'Camp/Lodge', transport: 'Transport', waypoint: 'Waypoint', attraction: 'Viewpoint' },
+}
+
+// Tell MapLibre how to render Hebrew/Arabic labels correctly.
+// Without this, the renderer outputs RTL text reversed character-by-character.
+// Must be called BEFORE any map is constructed; safe to call repeatedly —
+// MapLibre ignores second+ calls. `lazy: true` defers download until the
+// first RTL glyph is seen on a tile.
+if (maplibregl.getRTLTextPluginStatus && maplibregl.getRTLTextPluginStatus() === 'unavailable') {
+  maplibregl.setRTLTextPlugin(rtlTextPluginUrl, null, true)
+}
 
 // Props:
 //   days – array of { id, day_number, color, stops: [{ id, name, type, lat, lng, time_slot, note }] }
 //   onSelect – called with stop object when pin is tapped
 export default function TripMap({ days = [], onSelect }) {
+  const { lang } = useLang()
+  const isHe = lang === 'he'
   const containerRef = useRef(null)
   const mapRef = useRef(null)
   const markersRef = useRef([])
@@ -98,13 +126,15 @@ export default function TripMap({ days = [], onSelect }) {
           el.addEventListener('mouseleave', () => el.querySelector('.map-pin').style.transform = '')
           el.addEventListener('click', () => {
             if (popupRef.current) popupRef.current.remove()
-            const typeLabel = stop.type === 'food' ? 'Food/Water' : stop.type === 'hotel' ? 'Camp/Lodge' : stop.type === 'transport' ? 'Transport' : stop.type === 'waypoint' ? 'Waypoint' : 'Viewpoint'
+            const s = POPUP_STRINGS[isHe ? 'he' : 'en']
+            const typeLabel = s[stop.type] || s.attraction
+            const dir = isHe ? 'rtl' : 'ltr'
             const popup = new maplibregl.Popup({ closeButton: false, offset: [0, -42], maxWidth: '240px' })
               .setLngLat([stop.lng, stop.lat])
               .setHTML(`
-                <div style="font-family:'DM Sans',sans-serif;">
+                <div dir="${dir}" style="font-family:'DM Sans',sans-serif;">
                   <div style="font-size:10px;font-weight:600;color:${dayColor};text-transform:uppercase;letter-spacing:0.06em;margin-bottom:3px">
-                    Day ${day.day_number} · Stop ${stopNum}
+                    ${s.day} ${day.day_number} · ${s.stop} ${stopNum}
                   </div>
                   <div style="font-size:15px;font-weight:500;color:#1A1612;margin-bottom:2px">${stop.name}</div>
                   <div style="font-size:11px;color:${dayColor};margin-bottom:2px">${typeLabel}</div>
@@ -137,7 +167,7 @@ export default function TripMap({ days = [], onSelect }) {
 
     if (map.isStyleLoaded()) ready()
     else map.once('load', ready)
-  }, [days])
+  }, [days, isHe])
 
   return (
     <div ref={containerRef} style={{ width: '100%', height: '100%' }} />

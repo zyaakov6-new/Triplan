@@ -26,15 +26,15 @@ const T = {
     badCredentials: 'אימייל או סיסמה שגויים',
     loginFailed:    'הכניסה נכשלה',
     googleFailed:   'כניסה עם גוגל נכשלה',
-    networkError:   'לא ניתן להתחבר לשרת. בדוק את האינטרנט ונסה שוב.',
-    forgotPassword: 'שכחת סיסמה?',
+    networkError:   'לא ניתן להתחבר לשרת. בדקו את החיבור לאינטרנט ונסו שוב.',
+    forgotPassword: 'שכחתם סיסמה?',
     resetTitle:     'איפוס סיסמה',
-    resetSub:       'נשלח אליך קישור לאיפוס הסיסמה',
-    resetBtn:       'שלח קישור',
-    resetSent:      'נשלח! בדוק את תיבת הדואר שלך',
+    resetSub:       'נשלח אליכם קישור לאיפוס הסיסמה',
+    resetBtn:       'שליחת קישור',
+    resetSent:      'נשלח! בדקו את תיבת הדואר',
     backToLogin:    'חזרה לכניסה',
     backToHome:     'חזרה לדף הבית',
-    wait:           'רגע...',
+    wait:           'רגע…',
     submitLogin:    'כניסה',
     submitSignup:   'יצירת חשבון',
     langToggle:     'EN',
@@ -166,7 +166,7 @@ export default function AuthPage() {
           </div>
 
           <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 30, color: 'white', fontWeight: 400, marginBottom: 6, lineHeight: 1.2 }}>
-            {mode === 'forgot' ? t.resetTitle : t.welcomeBack}
+            {mode === 'forgot' ? t.resetTitle : mode === 'signup' ? t.readyToGo : t.welcomeBack}
           </h2>
           <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 14 }}>
             {mode === 'login' ? t.signInSub : mode === 'signup' ? t.signUpSub : t.resetSub}

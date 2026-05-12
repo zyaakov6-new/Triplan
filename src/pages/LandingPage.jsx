@@ -139,9 +139,9 @@ function PhoneMockup({ isHe }) {
         <rect x="20" y="275" width="100" height="3" rx="1.5" fill="#2D9E6E"/>
 
         {[
-          { y: 285, col: '#C4622D', label: isHe ? 'יום 1 — רומא'   : 'Day 1 — Rome',     sub: isHe ? '3 עצירות' : '3 stops' },
-          { y: 310, col: '#2D9E6E', label: isHe ? 'יום 2 — פירנצה' : 'Day 2 — Florence', sub: isHe ? '4 עצירות' : '4 stops' },
-          { y: 335, col: '#5B8FD4', label: isHe ? 'יום 3 — ונציה'  : 'Day 3 — Venice',   sub: isHe ? '5 עצירות' : '5 stops' },
+          { y: 285, col: '#C4622D', label: isHe ? 'יום 1 · רומא'   : 'Day 1 · Rome',     sub: isHe ? '3 עצירות' : '3 stops' },
+          { y: 310, col: '#2D9E6E', label: isHe ? 'יום 2 · פירנצה' : 'Day 2 · Florence', sub: isHe ? '4 עצירות' : '4 stops' },
+          { y: 335, col: '#5B8FD4', label: isHe ? 'יום 3 · ונציה'  : 'Day 3 · Venice',   sub: isHe ? '5 עצירות' : '5 stops' },
         ].map(({ y, col, label, sub }) => (
           <g key={y}>
             <rect x="16" y={y} width="168" height="21" rx="7" fill="white" stroke="rgba(26,22,18,0.07)" strokeWidth="0.75"/>

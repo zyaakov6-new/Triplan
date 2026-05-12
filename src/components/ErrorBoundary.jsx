@@ -29,8 +29,26 @@ export default class ErrorBoundary extends Component {
 
     const msg = this.state.error?.message
 
+    // ErrorBoundary is a class component — useLang can't be called here, so we
+    // read the lang preference directly from localStorage (same source useLang
+    // uses).  Falls back to English if the read fails.
+    let isHe = false
+    try {
+      isHe = (localStorage.getItem('triplan_lang') || (navigator.language?.startsWith('he') ? 'he' : 'en')) === 'he'
+    } catch { /* SSR / private mode — keep English */ }
+
+    const t = isHe ? {
+      title:  'משהו השתבש',
+      body:   'האפליקציה נתקלה בשגיאה לא צפויה. הנתונים שלכם מאובטחים. הקישו למטה לטעינה מחדש.',
+      reload: 'טעינה מחדש של Triplan',
+    } : {
+      title:  'Something went wrong',
+      body:   'The app hit an unexpected error. Your data is safe. Tap below to reload.',
+      reload: 'Reload Triplan',
+    }
+
     return (
-      <div style={{
+      <div dir={isHe ? 'rtl' : 'ltr'} style={{
         height: '100dvh',
         display: 'flex',
         alignItems: 'center',
@@ -50,7 +68,7 @@ export default class ErrorBoundary extends Component {
             marginBottom: 8,
             color: 'var(--ink)',
           }}>
-            Something went wrong
+            {t.title}
           </h2>
           {import.meta.env.DEV && msg && (
             <p style={{
@@ -62,15 +80,17 @@ export default class ErrorBoundary extends Component {
               padding: '6px 10px',
               borderRadius: 8,
               wordBreak: 'break-word',
+              direction: 'ltr',
+              textAlign: 'left',
             }}>
               {msg}
             </p>
           )}
           <p style={{ fontSize: 14, color: 'var(--ink-muted)', marginBottom: 28 }}>
-            The app hit an unexpected error. Your data is safe — tap below to reload.
+            {t.body}
           </p>
           <button className="btn btn-accent" style={{ width: '100%' }} onClick={this.handleReset}>
-            Reload Triplan
+            {t.reload}
           </button>
         </div>
       </div>
