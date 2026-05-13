@@ -14,7 +14,10 @@
  */
 import { supabase } from './supabase'
 
-const EXAMPLE_KEY = 'triplan_example_trip_id'
+// Per-user key so the example trip ID from User A isn't used when User B
+// signs in on the same browser. The plain `triplan_example_trip_id` key was
+// shared across all accounts, which caused stale-ID bugs.
+const EXAMPLE_KEY = (userId) => `triplan_example_trip_id_${userId}`
 
 const SAMPLE = {
   he: {
@@ -107,47 +110,78 @@ const SAMPLE = {
 
 export async function createExampleTrip(userId, lang = 'en') {
   const data = SAMPLE[lang === 'he' ? 'he' : 'en']
+  console.log('[exampleTrip] starting for user', userId, 'lang', lang)
 
-  // 1. Trip row
-  const { data: trip, error: tripErr } = await supabase
-    .from('trips')
-    .insert({
-      owner_id: userId,
-      name: data.name,
-      destination: data.destination,
-      date_start: null,
-      date_end: null,
-      color_theme: 'forest',
-    })
-    .select()
-    .single()
-  if (tripErr || !trip) {
-    console.error('[exampleTrip] trip insert failed', tripErr)
-    return null
-  }
-
-  // 2. Owner member row
-  await supabase.from('trip_members').insert({ trip_id: trip.id, user_id: userId, role: 'owner' })
-
-  // 3. Days + stops. We insert days serially so we get IDs back, then batch
-  //    each day's stops.
-  for (let i = 0; i < data.days.length; i++) {
-    const d = data.days[i]
-    const { data: dayRow } = await supabase
-      .from('trip_days')
+  // 1. Trip row — try a few color_theme values since we don't know which
+  //    ones exist on this Supabase. Some schemas have only 'terracotta'.
+  let trip = null
+  for (const theme of ['forest', 'terracotta']) {
+    const { data: t, error } = await supabase
+      .from('trips')
       .insert({
-        trip_id: trip.id,
-        day_number: i + 1,
-        city: d.city,
-        trip_date: null,
-        physical_note: d.physical_note || null,
-        logistics_note: d.logistics_note || null,
-        journal: d.journal || null,
+        owner_id: userId,
+        name: data.name,
+        destination: data.destination,
+        date_start: null,
+        date_end: null,
+        color_theme: theme,
       })
       .select()
       .single()
+    if (t) { trip = t; break }
+    if (error) console.warn('[exampleTrip] trip insert with theme=' + theme + ' failed:', error.message)
+  }
+  if (!trip) {
+    console.error('[exampleTrip] could not create trip after retries')
+    return null
+  }
+  console.log('[exampleTrip] trip created', trip.id)
 
-    if (!dayRow) continue
+  // 2. Owner member row (best-effort — schema may auto-add via trigger)
+  const { error: memberErr } = await supabase
+    .from('trip_members')
+    .insert({ trip_id: trip.id, user_id: userId, role: 'owner' })
+  if (memberErr) console.warn('[exampleTrip] member insert (probably already via trigger):', memberErr.message)
+
+  // 3. Days + stops. Days are inserted serially because we need the IDs.
+  //    If the optional note columns (physical_note / logistics_note / journal)
+  //    don't exist in this schema, we fall back to a minimal insert.
+  for (let i = 0; i < data.days.length; i++) {
+    const d = data.days[i]
+    let dayRow = null
+
+    // Try with notes first
+    {
+      const { data: row, error } = await supabase
+        .from('trip_days')
+        .insert({
+          trip_id: trip.id,
+          day_number: i + 1,
+          city: d.city,
+          trip_date: null,
+          physical_note: d.physical_note || null,
+          logistics_note: d.logistics_note || null,
+          journal: d.journal || null,
+        })
+        .select()
+        .single()
+      if (row) dayRow = row
+      else if (error) console.warn('[exampleTrip] day insert (with notes) failed:', error.message)
+    }
+
+    // Fallback: minimal day insert without notes
+    if (!dayRow) {
+      const { data: row, error } = await supabase
+        .from('trip_days')
+        .insert({ trip_id: trip.id, day_number: i + 1, city: d.city, trip_date: null })
+        .select()
+        .single()
+      if (row) dayRow = row
+      else if (error) {
+        console.error('[exampleTrip] day insert (minimal) also failed:', error.message)
+        continue
+      }
+    }
 
     const stopRows = d.stops.map((s, idx) => ({
       day_id: dayRow.id,
@@ -159,30 +193,35 @@ export async function createExampleTrip(userId, lang = 'en') {
       note: s.note || null,
       sort_order: idx,
     }))
-    await supabase.from('stops').insert(stopRows)
+    const { error: stopsErr } = await supabase.from('stops').insert(stopRows)
+    if (stopsErr) console.warn('[exampleTrip] stops insert for day', i + 1, 'failed:', stopsErr.message)
   }
 
   // 4. Packing items
   const packingRows = data.packing.map(text => ({ trip_id: trip.id, text }))
-  await supabase.from('packing_items').insert(packingRows)
+  const { error: packErr } = await supabase.from('packing_items').insert(packingRows)
+  if (packErr) console.warn('[exampleTrip] packing insert failed:', packErr.message)
 
   // Remember which trip is the example so we can delete it on demand.
-  try { localStorage.setItem(EXAMPLE_KEY, trip.id) } catch {}
+  try { localStorage.setItem(EXAMPLE_KEY(userId), trip.id) } catch {}
 
+  console.log('[exampleTrip] done')
   return trip
 }
 
-export function getExampleTripId() {
-  try { return localStorage.getItem(EXAMPLE_KEY) } catch { return null }
+export function getExampleTripId(userId) {
+  if (!userId) return null
+  try { return localStorage.getItem(EXAMPLE_KEY(userId)) } catch { return null }
 }
 
-export function clearExampleTripId() {
-  try { localStorage.removeItem(EXAMPLE_KEY) } catch {}
+export function clearExampleTripId(userId) {
+  if (!userId) return
+  try { localStorage.removeItem(EXAMPLE_KEY(userId)) } catch {}
 }
 
-export async function deleteExampleTrip() {
-  const id = getExampleTripId()
+export async function deleteExampleTrip(userId) {
+  const id = getExampleTripId(userId)
   if (!id) return
   await supabase.from('trips').delete().eq('id', id)
-  clearExampleTripId()
+  clearExampleTripId(userId)
 }

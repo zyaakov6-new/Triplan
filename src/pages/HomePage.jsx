@@ -7,7 +7,7 @@ import NewTripModal from '../components/NewTripModal'
 import EditTripModal from '../components/EditTripModal'
 import OnboardingTour from '../components/OnboardingTour'
 import Icon from '../components/Icon'
-import { createExampleTrip } from '../lib/exampleTrip'
+import { createExampleTrip, getExampleTripId } from '../lib/exampleTrip'
 
 // ── i18n ──────────────────────────────────────────────────────────────────────
 
@@ -139,22 +139,43 @@ export default function HomePage() {
     setTrips(data || [])
     setLoading(false)
 
-    // First-run: if the user has zero trips AND hasn't been onboarded yet,
-    // seed a sample trip and kick off the welcome tour. We guard on both
-    // `triplan_onboarded` and `creatingExample` so a slow network can't
-    // double-trigger.
-    const onboarded = (() => { try { return localStorage.getItem('triplan_onboarded') === '1' } catch { return false } })()
-    if (!onboarded && (data || []).length === 0 && !creatingExample) {
-      setCreatingExample(true)
-      const trip = await createExampleTrip(user.id, lang)
-      setCreatingExample(false)
-      if (trip) {
-        setTrips([trip])
-        setShowOnboarding(true)
+    // First-run: if this user hasn't been onboarded yet, kick off the tour.
+    //
+    // The onboarded flag is keyed by user ID (`triplan_onboarded_<uid>`)
+    // because localStorage is shared across accounts in the same browser —
+    // an earlier "I've onboarded" flag from User A must not block User B.
+    //
+    // If the user has zero trips we also seed the sample trek.  If the seed
+    // call fails (RLS, missing column, network) we DO NOT set the onboarded
+    // flag — that way the next page-load retries, and a transient failure
+    // doesn't permanently disable the tour.  The flag is set by OnboardingTour
+    // only when the user reaches the keep/delete step or hits Skip.
+    const onboardKey = `triplan_onboarded_${user.id}`
+    const onboarded = (() => { try { return localStorage.getItem(onboardKey) === '1' } catch { return false } })()
+    console.log('[onboarding] check', { onboardKey, onboarded, tripCount: (data || []).length, creatingExample })
+
+    if (!onboarded && !creatingExample) {
+      if ((data || []).length === 0) {
+        setCreatingExample(true)
+        console.log('[onboarding] seeding sample trip for user', user.id)
+        const trip = await createExampleTrip(user.id, lang)
+        setCreatingExample(false)
+        if (trip) {
+          console.log('[onboarding] sample trip created', trip.id)
+          setTrips([trip])
+          setShowOnboarding(true)
+        } else {
+          // Sample creation failed — log loudly but DO NOT set the onboarded
+          // flag.  Surface the tour anyway so the user at least sees what the
+          // app does, even without a sample to play with.
+          console.warn('[onboarding] sample trip creation failed — showing tour without sample')
+          setShowOnboarding(true)
+        }
       } else {
-        // If example creation failed (network, RLS, etc.) still mark
-        // onboarded so we don't keep retrying forever.
-        try { localStorage.setItem('triplan_onboarded', '1') } catch {}
+        // User has trips (e.g. they were invited to one before they signed
+        // up via the deep link).  Still show the tour, just without seeding.
+        console.log('[onboarding] user has existing trips, showing tour without sample')
+        setShowOnboarding(true)
       }
     }
   }
@@ -329,7 +350,13 @@ export default function HomePage() {
         <EditTripModal trip={editingTrip} onClose={() => setEditingTrip(null)} onUpdated={handleTripUpdated} onDeleted={handleTripDeleted} />
       )}
 
-      {showOnboarding && <OnboardingTour onClose={handleOnboardingClose} />}
+      {showOnboarding && (
+        <OnboardingTour
+          userId={user.id}
+          hasExample={!!getExampleTripId(user.id)}
+          onClose={handleOnboardingClose}
+        />
+      )}
 
       {/* Settings sheet */}
       {showSettings && (

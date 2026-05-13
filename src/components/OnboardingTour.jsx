@@ -83,18 +83,22 @@ const STRINGS = {
   }
 }
 
-export default function OnboardingTour({ onClose }) {
+export default function OnboardingTour({ userId, hasExample = true, onClose }) {
   const { lang } = useLang()
   const t = STRINGS[lang === 'he' ? 'he' : 'en']
   const isHe = lang === 'he'
   const [step, setStep] = useState(0)
   const [deleting, setDeleting] = useState(false)
 
+  // Onboarded flag is per-user so a new account in the same browser still
+  // gets the tour even if a previous account already completed it.
+  const onboardKey = `triplan_onboarded_${userId}`
+
   const current = t.steps[step]
   const isLast = step === t.steps.length - 1
 
   const finish = (kept) => {
-    try { localStorage.setItem('triplan_onboarded', '1') } catch {}
+    try { localStorage.setItem(onboardKey, '1') } catch {}
     track(kept ? 'example_kept' : 'example_deleted')
     track('onboarding_complete', { step_reached: step + 1, total: t.steps.length })
     onClose(kept)
@@ -104,13 +108,13 @@ export default function OnboardingTour({ onClose }) {
 
   const handleDiscard = async () => {
     setDeleting(true)
-    try { await deleteExampleTrip() } catch (e) { console.warn(e) }
+    try { await deleteExampleTrip(userId) } catch (e) { console.warn(e) }
     setDeleting(false)
     finish(false)
   }
 
   const handleSkip = () => {
-    try { localStorage.setItem('triplan_onboarded', '1') } catch {}
+    try { localStorage.setItem(onboardKey, '1') } catch {}
     track('onboarding_complete', { step_reached: step + 1, total: t.steps.length, skipped: true })
     onClose(true) // keep the sample by default on skip — they can delete later
   }
@@ -212,24 +216,32 @@ export default function OnboardingTour({ onClose }) {
 
         {/* Action row */}
         {current.choices ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <button
-              className="btn btn-accent"
-              style={{ width: '100%' }}
-              onClick={handleKeep}
-              disabled={deleting}
-            >
-              {t.keep}
+          hasExample ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <button
+                className="btn btn-accent"
+                style={{ width: '100%' }}
+                onClick={handleKeep}
+                disabled={deleting}
+              >
+                {t.keep}
+              </button>
+              <button
+                className="btn btn-ghost"
+                style={{ width: '100%' }}
+                onClick={handleDiscard}
+                disabled={deleting}
+              >
+                {deleting ? t.deleting : t.discard}
+              </button>
+            </div>
+          ) : (
+            // No sample trip was created (existing user, or seed failed).
+            // Just give them a single Done button.
+            <button className="btn btn-accent" style={{ width: '100%' }} onClick={() => finish(true)}>
+              {t.start}
             </button>
-            <button
-              className="btn btn-ghost"
-              style={{ width: '100%' }}
-              onClick={handleDiscard}
-              disabled={deleting}
-            >
-              {deleting ? t.deleting : t.discard}
-            </button>
-          </div>
+          )
         ) : (
           <div style={{ display: 'flex', gap: 8 }}>
             {step > 0 && (
