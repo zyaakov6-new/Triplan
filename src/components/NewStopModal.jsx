@@ -1,9 +1,14 @@
-import { useState } from 'react'
+import { useState, lazy, Suspense } from 'react'
 import { supabase } from '../lib/supabase'
 import { useLang } from '../hooks/useLang'
+import { track } from '../lib/analytics'
 import BottomSheet from './BottomSheet'
 import Icon from './Icon'
 import { useLocationSearch } from '../hooks/useLocationSearch'
+
+// Same lazy chunk as TripDetailPage's map view — opening the picker doesn't
+// re-download MapLibre if the user already loaded the Map tab.
+const TripMap = lazy(() => import('./TripMap'))
 
 const STRINGS = {
   he: {
@@ -14,6 +19,9 @@ const STRINGS = {
     namePh: 'למשל פסגת איגל פיק',
     searchLoc: 'חיפוש מיקום',
     searchPh: 'חפשו מקום כדי למלא קואורדינטות אוטומטית…',
+    pickOnMap: 'בחירה במפה',
+    pickHide: 'הסתרת מפה',
+    pickHint: 'הקישו במפה לבחירת המיקום',
     time: 'שעה',
     cost: 'עלות',
     note: 'הערה',
@@ -30,6 +38,9 @@ const STRINGS = {
     namePh: 'e.g. Eagle Peak Summit',
     searchLoc: 'Search location',
     searchPh: 'Search a place to auto-fill coordinates…',
+    pickOnMap: 'Pick on map',
+    pickHide: 'Hide map',
+    pickHint: 'Tap the map to drop a pin',
     time: 'Time',
     cost: 'Cost',
     note: 'Note',
@@ -54,6 +65,7 @@ export default function NewStopModal({ dayId, nextOrder, onClose, onCreated }) {
   const [form, setForm]       = useState({ name: '', type: 'attraction', time_slot: '', note: '', lat: '', lng: '', cost: '' })
   const [loading, setLoading] = useState(false)
   const [error, setError]     = useState('')
+  const [showPicker, setShowPicker] = useState(false)
 
   const { query: placeQuery, results: placeResults, searching: searchingPlace,
           searchError, handleInput: handlePlaceInput, clearResults, setQuery: setPlaceQuery } = useLocationSearch()
@@ -89,6 +101,7 @@ export default function NewStopModal({ dayId, nextOrder, onClose, onCreated }) {
       sort_order: nextOrder,
     }).select().single()
     if (err) { setError(err.message); setLoading(false); return }
+    track('stop_added', { type: form.type, hasCoords: !!(form.lat && form.lng) })
     setLoading(false); onCreated(data)
   }
 
@@ -148,6 +161,40 @@ export default function NewStopModal({ dayId, nextOrder, onClose, onCreated }) {
             <p style={{ fontSize: 11, color: 'var(--teal)', marginTop: 5, direction: 'ltr' }}>
               {parseFloat(form.lat).toFixed(4)}, {parseFloat(form.lng).toFixed(4)}
             </p>
+          )}
+
+          {/* Drop-pin-on-map alternative — collapsed by default, search is the
+              primary path. Useful when the user knows the spot but doesn't
+              know its name (a viewpoint by the road, a campsite off-trail). */}
+          <button
+            type="button"
+            onClick={() => setShowPicker(s => !s)}
+            style={{ marginTop: 8, display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--accent)', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0, fontWeight: 500 }}
+          >
+            <Icon name="pin" size={12} color="var(--accent)" />
+            {showPicker ? t.pickHide : t.pickOnMap}
+          </button>
+
+          {showPicker && (
+            <div style={{ marginTop: 8, borderRadius: 12, overflow: 'hidden', border: '1px solid var(--border)', position: 'relative' }}>
+              <div style={{ height: 260, background: 'var(--cream-dark)' }}>
+                <Suspense fallback={
+                  <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ink-muted)', fontSize: 12 }}>
+                    <Icon name="map" size={20} color="var(--sand-dark)" />
+                  </div>
+                }>
+                  <TripMap
+                    days={[]}
+                    pickMode
+                    initialPick={form.lat && form.lng ? { lat: parseFloat(form.lat), lng: parseFloat(form.lng) } : null}
+                    onPick={({ lat, lng }) => setForm(f => ({ ...f, lat: lat.toFixed(6), lng: lng.toFixed(6) }))}
+                  />
+                </Suspense>
+              </div>
+              <div style={{ position: 'absolute', top: 8, insetInlineStart: 8, background: 'rgba(26,22,18,0.85)', color: '#F5F0E8', padding: '5px 10px', borderRadius: 8, fontSize: 11, fontWeight: 500, pointerEvents: 'none' }}>
+                {t.pickHint}
+              </div>
+            </div>
           )}
         </div>
 

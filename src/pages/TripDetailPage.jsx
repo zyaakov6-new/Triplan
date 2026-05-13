@@ -1,9 +1,12 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { useLang } from '../hooks/useLang'
-import TripMap from '../components/TripMap'
+// Lazy-load TripMap — pulls in the 800KB MapLibre bundle only when a user
+// actually opens a trip and lands on the Map tab. The Days/Photos/Packing
+// tabs render without it. Big win on first paint over cellular.
+const TripMap = lazy(() => import('../components/TripMap'))
 import BottomSheet from '../components/BottomSheet'
 import NewDayModal from '../components/NewDayModal'
 import NewStopModal from '../components/NewStopModal'
@@ -16,6 +19,7 @@ import Icon from '../components/Icon'
 import { THEMES, getThemeVars } from '../lib/themes'
 import { getDayDistance, optimizeRoute } from '../lib/tripUtils'
 import BeautifulPrintView from '../components/BeautifulPrintView'
+import { track } from '../lib/analytics'
 
 const STRINGS = {
   he: {
@@ -825,6 +829,7 @@ export default function TripDetailPage() {
 
   const handleCopyInvite = () => {
     const url = `${window.location.origin}/join/${trip?.invite_token}`
+    track('invite_link_copied')
     copyToClipboard(url)
       .then(() => { setCopied(true); setTimeout(() => setCopied(false), 2200) })
       .catch(() => { setCopied(true); setTimeout(() => setCopied(false), 2200) }) // still show feedback
@@ -832,12 +837,13 @@ export default function TripDetailPage() {
 
   const handleCopyViewLink = () => {
     const url = `${window.location.origin}/view/${trip?.view_token}`
+    track('view_link_copied')
     copyToClipboard(url)
       .then(() => { setCopiedView(true); setTimeout(() => setCopiedView(false), 2200) })
       .catch(() => { setCopiedView(true); setTimeout(() => setCopiedView(false), 2200) })
   }
 
-  const handleExportPDF = () => setShowPdfPreview(true)
+  const handleExportPDF = () => { track('pdf_exported'); setShowPdfPreview(true) }
 
   const handleExportIcal = async () => {
     setExportingIcal(true)
@@ -1044,7 +1050,14 @@ export default function TripDetailPage() {
       {tab === 'map' && (
         <div className={`no-print ${tabDir === 'left' ? 'tab-content' : 'tab-content-back'}`}
           style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
-          <TripMap days={mapDays} onSelect={() => {}} />
+          <Suspense fallback={
+            <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 10 }}>
+              <Icon name="map" size={32} color="var(--sand-dark)" />
+              <p style={{ fontSize: 13, color: 'var(--ink-muted)' }}>{isHe ? 'טוען מפה…' : 'Loading map…'}</p>
+            </div>
+          }>
+            <TripMap days={mapDays} onSelect={() => {}} />
+          </Suspense>
           {(() => {
             const missingCoords = allStops.filter(s => !s.lat || !s.lng).length
             return missingCoords > 0 ? (

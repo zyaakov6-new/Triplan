@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './hooks/useAuth'
 import Icon from './components/Icon'
 import ErrorBoundary from './components/ErrorBoundary'
+import PWAUpdatePrompt from './components/PWAUpdatePrompt'
 import LandingPage from './pages/LandingPage'
 import AuthPage from './pages/AuthPage'
 import HomePage from './pages/HomePage'
@@ -76,6 +77,7 @@ export default function App() {
       <BrowserRouter>
         <AuthProvider>
           <AppRoutes />
+          <PWAUpdatePrompt />
         </AuthProvider>
       </BrowserRouter>
     </ErrorBoundary>

@@ -6,10 +6,9 @@ import { useLang } from '../hooks/useLang'
 
 // Tell MapLibre how to render Hebrew/Arabic labels correctly.
 // Without this, the renderer outputs RTL text reversed character-by-character.
-// The plugin file is self-hosted in public/ (copied from
-// @mapbox/mapbox-gl-rtl-text/dist/mapbox-gl-rtl-text.js) so the PWA still works
-// offline once cached. Safe to call repeatedly — MapLibre ignores re-calls.
-// `lazy: true` defers download until the first RTL glyph appears on a tile.
+// The plugin is self-hosted in public/ so the PWA still works offline once
+// cached. Safe to call repeatedly; MapLibre ignores re-calls. lazy:true defers
+// download until the first RTL glyph appears on a tile.
 if (typeof window !== 'undefined' && maplibregl.getRTLTextPluginStatus &&
     maplibregl.getRTLTextPluginStatus() === 'unavailable') {
   maplibregl.setRTLTextPlugin('/mapbox-gl-rtl-text.js', null, true)
@@ -20,25 +19,20 @@ const POPUP_STRINGS = {
   en: { day: 'Day', stop: 'Stop', food: 'Food/Water', hotel: 'Camp/Lodge', transport: 'Transport', waypoint: 'Waypoint', attraction: 'Viewpoint' },
 }
 
-// Tell MapLibre how to render Hebrew/Arabic labels correctly.
-// Without this, the renderer outputs RTL text reversed character-by-character.
-// Must be called BEFORE any map is constructed; safe to call repeatedly —
-// MapLibre ignores second+ calls. `lazy: true` defers download until the
-// first RTL glyph is seen on a tile.
-if (maplibregl.getRTLTextPluginStatus && maplibregl.getRTLTextPluginStatus() === 'unavailable') {
-  maplibregl.setRTLTextPlugin(rtlTextPluginUrl, null, true)
-}
-
 // Props:
-//   days – array of { id, day_number, color, stops: [{ id, name, type, lat, lng, time_slot, note }] }
-//   onSelect – called with stop object when pin is tapped
-export default function TripMap({ days = [], onSelect }) {
+//   days        – array of { id, day_number, color, stops: [{ id, name, type, lat, lng, time_slot, note }] }
+//   onSelect    – called with stop object when a pin is tapped
+//   pickMode    – when true, tapping the map drops a single pin and calls onPick
+//   initialPick – { lat, lng } to seed the picker pin
+//   onPick      – called with ({ lat, lng }) when the user taps in pick mode
+export default function TripMap({ days = [], onSelect, pickMode = false, initialPick = null, onPick = null }) {
   const { lang } = useLang()
   const isHe = lang === 'he'
   const containerRef = useRef(null)
   const mapRef = useRef(null)
   const markersRef = useRef([])
   const popupRef = useRef(null)
+  const pickMarkerRef = useRef(null)
 
   // Init map once
   useEffect(() => {
@@ -46,18 +40,42 @@ export default function TripMap({ days = [], onSelect }) {
     const map = new maplibregl.Map({
       container: containerRef.current,
       style: MAP_STYLE,
-      center: [0, 20],
-      zoom: 2,
-      attributionControl: false, // we add a compact one below
+      center: initialPick ? [initialPick.lng, initialPick.lat] : [0, 20],
+      zoom: initialPick ? 12 : 2,
+      attributionControl: false,
     })
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right')
-    // Required by ODbL license: show OpenStreetMap attribution
     map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-left')
     mapRef.current = map
     return () => { map.remove(); mapRef.current = null }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Update markers + routes whenever days change
+  // Pick-mode click handler + seed marker
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !pickMode) return
+
+    // Seed marker from initialPick
+    if (initialPick && !pickMarkerRef.current) {
+      pickMarkerRef.current = makePickMarker(initialPick.lng, initialPick.lat).addTo(map)
+    }
+
+    const handler = (e) => {
+      const { lng, lat } = e.lngLat
+      if (pickMarkerRef.current) pickMarkerRef.current.setLngLat([lng, lat])
+      else pickMarkerRef.current = makePickMarker(lng, lat).addTo(map)
+      if (onPick) onPick({ lat, lng })
+    }
+    map.on('click', handler)
+    map.getCanvas().style.cursor = 'crosshair'
+    return () => {
+      map.off('click', handler)
+      map.getCanvas().style.cursor = ''
+    }
+  }, [pickMode, onPick, initialPick])
+
+  // Update markers + routes whenever days change (skipped in pick mode for clarity)
   useEffect(() => {
     const map = mapRef.current
     if (!map) return
@@ -73,6 +91,8 @@ export default function TripMap({ days = [], onSelect }) {
       existingLayers.forEach(id => { if (map.getLayer(id)) map.removeLayer(id) })
       const existingSources = Object.keys(map.getStyle().sources).filter(id => id.startsWith('route-day-'))
       existingSources.forEach(id => { if (map.getSource(id)) map.removeSource(id) })
+
+      if (pickMode) return // pick mode shows just the picker pin, no day routes
 
       const allValid = []
       let globalStopIndex = 1
@@ -167,9 +187,27 @@ export default function TripMap({ days = [], onSelect }) {
 
     if (map.isStyleLoaded()) ready()
     else map.once('load', ready)
-  }, [days, isHe])
+  }, [days, isHe, pickMode])
 
   return (
     <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
   )
+}
+
+// Picker pin — distinguished from numbered day pins. Larger, terracotta,
+// has a soft pulse so it's obvious where the user just dropped it.
+function makePickMarker(lng, lat) {
+  const el = document.createElement('div')
+  el.innerHTML = `
+    <div style="
+      position:relative; transform-origin: center bottom;
+      filter: drop-shadow(0 3px 8px rgba(0,0,0,0.35));
+    ">
+      <svg width="34" height="42" viewBox="0 0 32 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M16 0C7.163 0 0 7.163 0 16c0 10 16 24 16 24S32 26 32 16C32 7.163 24.837 0 16 0z" fill="#C4622D"/>
+        <circle cx="16" cy="16" r="5" fill="white"/>
+      </svg>
+    </div>`
+  el.style.cssText = 'width:34px;height:42px;'
+  return new maplibregl.Marker({ element: el, anchor: 'bottom' }).setLngLat([lng, lat])
 }

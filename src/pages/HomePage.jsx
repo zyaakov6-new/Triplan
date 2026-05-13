@@ -5,7 +5,9 @@ import { useAuth } from '../hooks/useAuth'
 import { useLang } from '../hooks/useLang'
 import NewTripModal from '../components/NewTripModal'
 import EditTripModal from '../components/EditTripModal'
+import OnboardingTour from '../components/OnboardingTour'
 import Icon from '../components/Icon'
+import { createExampleTrip } from '../lib/exampleTrip'
 
 // ── i18n ──────────────────────────────────────────────────────────────────────
 
@@ -116,6 +118,8 @@ export default function HomePage() {
   const [showSettings, setShowSettings] = useState(false)
   const [deletingAccount, setDeletingAccount] = useState(false)
   const [confirmDelete, setConfirmDelete]     = useState(false)
+  const [showOnboarding, setShowOnboarding] = useState(false)
+  const [creatingExample, setCreatingExample] = useState(false)
 
   useEffect(() => { fetchTrips() }, [user])
 
@@ -130,6 +134,32 @@ export default function HomePage() {
     if (error) { setFetchError(true); setLoading(false); return }
     setTrips(data || [])
     setLoading(false)
+
+    // First-run: if the user has zero trips AND hasn't been onboarded yet,
+    // seed a sample trip and kick off the welcome tour. We guard on both
+    // `triplan_onboarded` and `creatingExample` so a slow network can't
+    // double-trigger.
+    const onboarded = (() => { try { return localStorage.getItem('triplan_onboarded') === '1' } catch { return false } })()
+    if (!onboarded && (data || []).length === 0 && !creatingExample) {
+      setCreatingExample(true)
+      const trip = await createExampleTrip(user.id, lang)
+      setCreatingExample(false)
+      if (trip) {
+        setTrips([trip])
+        setShowOnboarding(true)
+      } else {
+        // If example creation failed (network, RLS, etc.) still mark
+        // onboarded so we don't keep retrying forever.
+        try { localStorage.setItem('triplan_onboarded', '1') } catch {}
+      }
+    }
+  }
+
+  const handleOnboardingClose = (kept) => {
+    setShowOnboarding(false)
+    // If they discarded the sample, the trip is gone from the DB. Refresh
+    // the local list so the UI matches.
+    if (!kept) fetchTrips()
   }
 
   const handleJoin = async () => {
@@ -280,6 +310,8 @@ export default function HomePage() {
       {editingTrip && (
         <EditTripModal trip={editingTrip} onClose={() => setEditingTrip(null)} onUpdated={handleTripUpdated} onDeleted={handleTripDeleted} />
       )}
+
+      {showOnboarding && <OnboardingTour onClose={handleOnboardingClose} />}
 
       {/* Settings sheet */}
       {showSettings && (

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { useLang } from '../hooks/useLang'
+import { track } from '../lib/analytics'
 import BottomSheet from './BottomSheet'
 import Icon from './Icon'
 import { THEMES } from '../lib/themes'
@@ -61,6 +62,7 @@ export default function NewTripModal({ onClose, onCreated }) {
     if (err) { setError(err.message); setLoading(false); return }
     // Add owner as member too
     await supabase.from('trip_members').insert({ trip_id: data.id, user_id: user.id, role: 'owner' })
+    track('trip_created', { theme: form.color_theme, hasDates: !!form.date_start })
     setLoading(false)
     onCreated(data)
   }

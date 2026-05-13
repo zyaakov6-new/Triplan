@@ -6,7 +6,11 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'autoUpdate',
+      // 'prompt' instead of 'autoUpdate' so we can show a banner asking the
+      // user to reload. With autoUpdate the new bundle activates only on the
+      // next navigation, which means a critical fix might sit unseen for days
+      // while a user keeps Triplan open in a tab.
+      registerType: 'prompt',
       includeAssets: ['favicon.ico', 'favicon.svg', 'apple-touch-icon-180x180.png'],
       manifest: {
         name: 'Triplan',
