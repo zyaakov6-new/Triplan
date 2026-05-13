@@ -163,15 +163,30 @@ export default function NewStopModal({ dayId, nextOrder, onClose, onCreated }) {
             </p>
           )}
 
-          {/* Drop-pin-on-map alternative — collapsed by default, search is the
-              primary path. Useful when the user knows the spot but doesn't
-              know its name (a viewpoint by the road, a campsite off-trail). */}
+          {/* Drop-pin-on-map alternative — visible button so users know
+              there's an option to point on the map instead of searching by
+              name. Useful when you know the spot but can't name it (a
+              viewpoint off the road, an unmarked campsite). */}
           <button
             type="button"
             onClick={() => setShowPicker(s => !s)}
-            style={{ marginTop: 8, display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--accent)', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0, fontWeight: 500 }}
+            style={{
+              marginTop: 10,
+              width: '100%',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              padding: '10px 14px',
+              borderRadius: 10,
+              border: `1.5px ${showPicker ? 'solid' : 'dashed'} var(--accent)`,
+              background: showPicker ? 'var(--accent-pale)' : 'transparent',
+              color: 'var(--accent)',
+              cursor: 'pointer',
+              fontSize: 13,
+              fontWeight: 600,
+              fontFamily: 'var(--font-body)',
+              transition: 'all 0.15s',
+            }}
           >
-            <Icon name="pin" size={12} color="var(--accent)" />
+            <Icon name="pin" size={14} color="var(--accent)" />
             {showPicker ? t.pickHide : t.pickOnMap}
           </button>
 

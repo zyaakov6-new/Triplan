@@ -30,6 +30,8 @@ const T = {
     noDates:         'ללא תאריכים',
     settingsTitle:   'הגדרות',
     loggedInAs:      'מחוברים כ',
+    replayTour:      'הצגת סיור היכרות + טיול לדוגמה',
+    creatingSample:  'יוצר טיול לדוגמה…',
     signOut:         'התנתקות',
     deleteAccount:   'מחיקת חשבון',
     deleteConfirm:   'הקישו שוב לאישור מחיקת החשבון',
@@ -55,6 +57,8 @@ const T = {
     noDates:         'No dates set',
     settingsTitle:   'Settings',
     loggedInAs:      'Signed in as',
+    replayTour:      'Show tour + sample trip',
+    creatingSample:  'Creating sample trip…',
     signOut:         'Sign out',
     deleteAccount:   'Delete account',
     deleteConfirm:   'Tap again to confirm account deletion',
@@ -160,6 +164,20 @@ export default function HomePage() {
     // If they discarded the sample, the trip is gone from the DB. Refresh
     // the local list so the UI matches.
     if (!kept) fetchTrips()
+  }
+
+  // Manual trigger from Settings — useful for users who already onboarded
+  // but want to re-watch the tour or get the sample trip back. Always seeds
+  // a fresh sample (even if they already have one).
+  const handleReplayTour = async () => {
+    setShowSettings(false)
+    setCreatingExample(true)
+    const trip = await createExampleTrip(user.id, lang)
+    setCreatingExample(false)
+    if (trip) {
+      setTrips(prev => [trip, ...prev.filter(t => t.id !== trip.id)])
+      setShowOnboarding(true)
+    }
   }
 
   const handleJoin = async () => {
@@ -329,6 +347,12 @@ export default function HomePage() {
                 <p style={{ fontSize: 14, fontWeight: 500 }}>{profile?.name || user?.email}</p>
                 <p style={{ fontSize: 12, color: 'var(--ink-muted)' }}>{user?.email}</p>
               </div>
+
+              <button onClick={handleReplayTour} disabled={creatingExample}
+                style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '13px 16px', borderRadius: 12, border: '1px solid var(--border)', background: 'var(--white)', cursor: creatingExample ? 'wait' : 'pointer', fontSize: 14, color: 'var(--ink)', opacity: creatingExample ? 0.6 : 1 }}>
+                <Icon name="info" size={18} color="var(--ink-muted)" />
+                {creatingExample ? t.creatingSample : t.replayTour}
+              </button>
 
               <button onClick={signOut} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '13px 16px', borderRadius: 12, border: '1px solid var(--border)', background: 'var(--white)', cursor: 'pointer', fontSize: 14, color: 'var(--ink)' }}>
                 <Icon name="logout" size={18} color="var(--ink-muted)" />
