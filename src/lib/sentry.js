@@ -12,7 +12,7 @@ const DSN = import.meta.env.VITE_SENTRY_DSN
 let _Sentry = null
 
 export async function initSentry() {
-  if (!DSN) return   // Sentry disabled — no DSN configured
+  if (!DSN) return   // Sentry disabled - no DSN configured
 
   try {
     const Sentry = await import('@sentry/react')

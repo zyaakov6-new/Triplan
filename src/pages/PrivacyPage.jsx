@@ -46,7 +46,7 @@ export default function PrivacyPage() {
 
           <section>
             <h2 style={h2}>4. Legal basis (GDPR)</h2>
-            <p>We process your data on the basis of <strong>contract performance</strong> (Art. 6(1)(b) GDPR) — to deliver the service you signed up for — and <strong>legitimate interests</strong> (Art. 6(1)(f)) for error monitoring and abuse prevention.</p>
+            <p>We process your data on the basis of <strong>contract performance</strong> (Art. 6(1)(b) GDPR) - to deliver the service you signed up for - and <strong>legitimate interests</strong> (Art. 6(1)(f)) for error monitoring and abuse prevention.</p>
           </section>
 
           <section>
@@ -60,8 +60,8 @@ export default function PrivacyPage() {
             <ul style={ul}>
               <li><strong>Access</strong> your personal data.</li>
               <li><strong>Rectify</strong> inaccurate data.</li>
-              <li><strong>Delete</strong> your account and all associated data — available in the app under Settings → Delete account.</li>
-              <li><strong>Export</strong> your data — contact us at <a href="mailto:privacy@triplan.app" style={link}>privacy@triplan.app</a>.</li>
+              <li><strong>Delete</strong> your account and all associated data - available in the app under Settings → Delete account.</li>
+              <li><strong>Export</strong> your data - contact us at <a href="mailto:privacy@triplan.app" style={link}>privacy@triplan.app</a>.</li>
               <li><strong>Object</strong> to processing or lodge a complaint with your local data protection authority.</li>
             </ul>
           </section>
@@ -69,10 +69,10 @@ export default function PrivacyPage() {
           <section>
             <h2 style={h2}>7. Third-party services</h2>
             <ul style={ul}>
-              <li><strong>Supabase</strong> — database and authentication (<a href="https://supabase.com/privacy" target="_blank" rel="noopener noreferrer" style={link}>privacy policy</a>).</li>
-              <li><strong>Vercel</strong> — hosting and analytics (<a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer" style={link}>privacy policy</a>).</li>
-              <li><strong>OpenFreeMap / OpenStreetMap</strong> — map tiles. No personal data is sent. Map data © OpenStreetMap contributors (ODbL).</li>
-              <li><strong>Google OAuth</strong> — optional sign-in. Only your name and email are transferred.</li>
+              <li><strong>Supabase</strong> - database and authentication (<a href="https://supabase.com/privacy" target="_blank" rel="noopener noreferrer" style={link}>privacy policy</a>).</li>
+              <li><strong>Vercel</strong> - hosting and analytics (<a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer" style={link}>privacy policy</a>).</li>
+              <li><strong>OpenFreeMap / OpenStreetMap</strong> - map tiles. No personal data is sent. Map data © OpenStreetMap contributors (ODbL).</li>
+              <li><strong>Google OAuth</strong> - optional sign-in. Only your name and email are transferred.</li>
             </ul>
           </section>
 

@@ -6,7 +6,7 @@ import BottomSheet from './BottomSheet'
 import Icon from './Icon'
 import { useLocationSearch } from '../hooks/useLocationSearch'
 
-// Same lazy chunk as TripDetailPage's map view — opening the picker doesn't
+// Same lazy chunk as TripDetailPage's map view - opening the picker doesn't
 // re-download MapLibre if the user already loaded the Map tab.
 const TripMap = lazy(() => import('./TripMap'))
 
@@ -163,7 +163,7 @@ export default function NewStopModal({ dayId, nextOrder, onClose, onCreated }) {
             </p>
           )}
 
-          {/* Drop-pin-on-map alternative — visible button so users know
+          {/* Drop-pin-on-map alternative - visible button so users know
               there's an option to point on the map instead of searching by
               name. Useful when you know the spot but can't name it (a
               viewpoint off the road, an unmarked campsite). */}

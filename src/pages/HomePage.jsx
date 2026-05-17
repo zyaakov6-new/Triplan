@@ -142,12 +142,12 @@ export default function HomePage() {
     // First-run: if this user hasn't been onboarded yet, kick off the tour.
     //
     // The onboarded flag is keyed by user ID (`triplan_onboarded_<uid>`)
-    // because localStorage is shared across accounts in the same browser —
+    // because localStorage is shared across accounts in the same browser -
     // an earlier "I've onboarded" flag from User A must not block User B.
     //
     // If the user has zero trips we also seed the sample trek.  If the seed
     // call fails (RLS, missing column, network) we DO NOT set the onboarded
-    // flag — that way the next page-load retries, and a transient failure
+    // flag - that way the next page-load retries, and a transient failure
     // doesn't permanently disable the tour.  The flag is set by OnboardingTour
     // only when the user reaches the keep/delete step or hits Skip.
     const onboardKey = `triplan_onboarded_${user.id}`
@@ -165,10 +165,10 @@ export default function HomePage() {
           setTrips([trip])
           setShowOnboarding(true)
         } else {
-          // Sample creation failed — log loudly but DO NOT set the onboarded
+          // Sample creation failed - log loudly but DO NOT set the onboarded
           // flag.  Surface the tour anyway so the user at least sees what the
           // app does, even without a sample to play with.
-          console.warn('[onboarding] sample trip creation failed — showing tour without sample')
+          console.warn('[onboarding] sample trip creation failed - showing tour without sample')
           setShowOnboarding(true)
         }
       } else {
@@ -187,7 +187,7 @@ export default function HomePage() {
     if (!kept) fetchTrips()
   }
 
-  // Manual trigger from Settings — useful for users who already onboarded
+  // Manual trigger from Settings - useful for users who already onboarded
   // but want to re-watch the tour or get the sample trip back. Always seeds
   // a fresh sample (even if they already have one).
   const handleReplayTour = async () => {

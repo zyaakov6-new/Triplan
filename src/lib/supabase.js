@@ -12,5 +12,5 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
-// OpenFreeMap — completely free, no API key, beautiful OSM tiles
+// OpenFreeMap - completely free, no API key, beautiful OSM tiles
 export const MAP_STYLE = 'https://tiles.openfreemap.org/styles/bright'

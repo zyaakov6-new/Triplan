@@ -39,8 +39,8 @@ const STRINGS = {
         body:   'משתפים קישור עריכה עם החברים, וכולם רואים שינויים מיד. אפשר גם לשתף קישור לצפייה בלבד עם ההורים, בלי להירשם.',
       },
       {
-        title:  'רשימת אריזה, תמונות, יומן',
-        body:   'בכל טיול יש רשימת אריזה משותפת, אלבום תמונות לכל יום, ויומן להערות. הכל עובד גם בלי אינטרנט.',
+        title:  'רשימת ציוד, תמונות, יומן',
+        body:   'בכל טיול יש רשימת ציוד משותפת, אלבום תמונות לכל יום, ויומן להערות. הכל עובד גם בלי אינטרנט.',
       },
       {
         title:  'הכנו לכם טיול לדוגמה',
@@ -116,7 +116,7 @@ export default function OnboardingTour({ userId, hasExample = true, onClose }) {
   const handleSkip = () => {
     try { localStorage.setItem(onboardKey, '1') } catch {}
     track('onboarding_complete', { step_reached: step + 1, total: t.steps.length, skipped: true })
-    onClose(true) // keep the sample by default on skip — they can delete later
+    onClose(true) // keep the sample by default on skip - they can delete later
   }
 
   return (
@@ -137,7 +137,7 @@ export default function OnboardingTour({ userId, hasExample = true, onClose }) {
         fontFamily: 'var(--font-body)',
       }}
     >
-      {/* Skip in the corner — explicit "I get it, let me out" */}
+      {/* Skip in the corner - explicit "I get it, let me out" */}
       {!isLast && (
         <button
           onClick={handleSkip}

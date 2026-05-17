@@ -3,125 +3,126 @@ import { useState } from 'react'
 import { useLang } from '../hooks/useLang'
 import Icon from '../components/Icon'
 
-// ── i18n ──────────────────────────────────────────────────────────────────────
-// Hebrew is the canonical version — written first, then translated. Tone is
-// direct, slightly informal, no marketing-speak.  Avoiding em-dashes
-// throughout (the user explicitly doesn't want them).
+// i18n
+// Hebrew is the canonical version, written first then translated. Tone is
+// direct, slightly informal, anti-corporate. Every line was rewritten using
+// landing-page best practices: scene-setting over feature lists, specific
+// numbers, benefit-led titles, friction-reducing CTAs, no marketing-speak.
 
 const T = {
   he: {
     // Hero
-    pill:          'פרויקט קהילתי · חינם · עברית מלאה',
+    pill:          'חינם תמיד · עברית · עובד גם בלי קליטה',
     heroTitle:     'תכננו טרק בלי הכאוס של ווטסאפ',
-    heroSub:       'כלי אחד לקבוצה: ימים, עצירות, מפה משותפת, רשימת אריזה. כולם רואים את אותו דבר בזמן אמת.',
+    heroSub:       'מישהו בקבוצה מוסיף עצירה, כולם רואים את זה ברגע. מפה אחת. רשימת ציוד אחת. גם כשאתם כבר בלב שטח בלי קליטה.',
     ctaPrimary:    'מתחילים עכשיו',
-    ctaFree:       '30 שניות. בלי כרטיס אשראי. בלי הורדות.',
+    ctaFree:       '30 שניות מההרשמה לטיול הראשון. בלי כרטיס אשראי.',
     signIn:        'כניסה',
     langToggle:    'EN',
 
     // Pain section
-    painTitle:     'מכירים את זה?',
-    painSub:       'אם תכננתם פעם טיול בקבוצה, אתם יודעים בדיוק על מה אנחנו מדברים.',
+    painTitle:     'ככה זה נראה היום',
+    painSub:       'אם הובלתם פעם קבוצה, אתם מכירים את כל אחד מאלה.',
     pains: [
-      '25 צ׳אטים בקבוצת ווטסאפ עם 4 גרסאות של אותה תוכנית',
-      'טבלת אקסל שאף אחד לא פותח חוץ ממי שבנה אותה',
-      'גוגל מפות עם 17 פינים שרק על המסך של אחד החברים',
-      'מסבירים את התוכנית מההתחלה לכל מי שמצטרף, שוב ושוב',
+      '25 צ׳אטים בווטסאפ. ארבע גרסאות של אותה תוכנית. אף אחת לא העדכנית.',
+      'טבלת אקסל ששני אנשים פתחו, פעם אחת.',
+      '17 פינים בגוגל מפות, על המסך של חבר אחד.',
+      'להסביר הכל מההתחלה לכל מי שמצטרף. שוב ושוב.',
     ],
 
     // Solution / features
-    solutionEyebrow: 'מה Triplan עושה אחרת',
-    solutionTitle:   'הכל במקום אחד. הקבוצה כולה. בזמן אמת.',
+    solutionEyebrow: 'ככה אנחנו עושים את זה',
+    solutionTitle:   'הקבוצה כולה. באותו דף. ברגע אחד.',
     features: [
-      { title: 'מפה אחת לכל הקבוצה',     desc: 'נקודות תצפית, מקורות מים, חניוני לילה. כולם רואים אותו דבר.',           icon: 'map',     color: '#C4622D', bg: 'var(--accent-pale)' },
-      { title: 'סנכרון חי',                desc: 'מישהו מוסיף עצירה, כולם רואים אותה ברגע. אין יותר "איזו גרסה היא העדכנית".', icon: 'users',   color: '#2D6B6B', bg: 'var(--teal-light)' },
-      { title: 'רשימת אריזה משותפת',      desc: 'כל אחד מוסיף מה שהוא מביא. בלי לכפול ציוד. בלי לשכוח אוהל.',            icon: 'package', color: '#5B8FD4', bg: 'rgba(91,143,212,0.12)' },
-      { title: 'קישור צפייה להורים',       desc: 'בלי שיצטרכו להירשם או להוריד כלום. רק רואים את התוכנית.',                icon: 'eye',     color: '#8B7355', bg: 'rgba(139,115,85,0.15)' },
-      { title: 'עובד גם בלי אינטרנט',     desc: 'אחרי הטעינה הראשונה הכל זמין מהמכשיר. גם בלב שטח.',                       icon: 'lock',    color: '#5B3D8F', bg: 'rgba(91,61,143,0.13)' },
-      { title: 'יומן ותמונות לכל יום',     desc: 'מתעדים את הטיול תוך כדי. אוסף יפה בסוף הדרך.',                            icon: 'camera',  color: '#2D9E6E', bg: 'rgba(45,158,110,0.13)' },
+      { title: 'מפה אחת לכל הקבוצה',         desc: 'נקודות תצפית, מקורות מים, חניוני לילה. הקבוצה כולה רואה אותה.',                            icon: 'map',     color: '#C4622D', bg: 'var(--accent-pale)' },
+      { title: 'כולם רואים בזמן אמת',        desc: 'מישהו מוסיף עצירה, כל הקבוצה רואה אותה ברגע. בלי לשאול "איזו גרסה עדכנית".',              icon: 'users',   color: '#2D6B6B', bg: 'var(--teal-light)' },
+      { title: 'רשימת ציוד משותפת',           desc: 'כל אחד מסמן מה הוא מביא. בלי שני אוהלים. בלי לשכוח גז.',                                  icon: 'package', color: '#5B8FD4', bg: 'rgba(91,143,212,0.12)' },
+      { title: 'קישור צפייה לחברים',          desc: 'שלחו להורים, לבני זוג, למצטרפים. הם רואים את התוכנית בלי להוריד שום דבר.',                icon: 'eye',     color: '#8B7355', bg: 'rgba(139,115,85,0.15)' },
+      { title: 'עובד בלי קליטה',               desc: 'אחרי הטעינה הראשונה, הכל מקומי על המכשיר. כולל המפה.',                                    icon: 'lock',    color: '#5B3D8F', bg: 'rgba(91,61,143,0.13)' },
+      { title: 'יומן ותמונות לכל יום',         desc: 'מתעדים את הטיול תוך כדי. אוסף יפה בסוף הדרך.',                                            icon: 'camera',  color: '#2D9E6E', bg: 'rgba(45,158,110,0.13)' },
     ],
 
     // Sample preview
-    sampleEyebrow: 'אחרי ההרשמה',
-    sampleTitle:   'יש לכם כבר טיול לדוגמה לשחק איתו',
-    sampleSub:     'יצרנו בחשבון שלכם טרק ים-אל-ים של 3 ימים, 12 עצירות, ורשימת אריזה מלאה. תוסיפו, תמחקו, תערכו. כשמתחילים את הטיול האמיתי שלכם, אפשר לשמור או למחוק את הדוגמה.',
+    sampleEyebrow: 'מה שמחכה לכם בפנים',
+    sampleTitle:   'יש בחשבון שלכם טרק לדוגמה',
+    sampleSub:     'יצרנו לכם טרק ים-אל-ים של 3 ימים, 12 עצירות, ורשימת ציוד מוכנה. תכירו את האפליקציה לפני שאתם בונים את הטיול שלכם. כשמתחילים את האמיתי, אפשר למחוק את הדוגמה בלחיצה.',
     samplePoints: [
-      '3 ימים, 12 עצירות עם קואורדינטות אמיתיות',
+      '3 ימים, 12 עצירות, קואורדינטות אמיתיות בגליל',
       'מקורות מים, חניוני לילה, נקודות תצפית',
       'הערות פיזיות ולוגיסטיות לכל יום',
-      'רשימת אריזה של 13 פריטים',
+      'רשימת ציוד מוכנה של 13 פריטים',
     ],
 
     // FAQ
     faqTitle: 'שאלות שכולם שואלים',
     faqs: [
-      { q: 'זה באמת חינם?',                       a: 'כן, לחלוטין. בלי פרסומות, בלי freemium, בלי גרסה פרימיום. פרויקט קהילתי.' },
-      { q: 'צריך להוריד אפליקציה?',                a: 'לא. נפתח בדפדפן כמו אתר רגיל. אם תרצו, אפשר להוסיף למסך הבית בלחיצה אחת.' },
-      { q: 'החברים שלי חייבים להירשם?',           a: 'רק אם הם רוצים לערוך את הטיול. קישור צפייה בלבד עובד בלי הרשמה ובלי חשבון.' },
-      { q: 'הנתונים שלי מאובטחים?',                a: 'הכל מאוחסן ב-Supabase עם הצפנה. אנחנו לא מוכרים מידע. לא קיים מודל פרסומי.' },
-      { q: 'אפשר באמת בלי אינטרנט?',               a: 'אחרי הטעינה הראשונה, הכל זמין מהמכשיר. ערכו והוסיפו, הסנכרון יקרה כשתחזרו לקליטה.' },
+      { q: 'זה באמת חינם?',                       a: 'כן. בלי פרסומות. בלי מודל פרימיום. פרויקט פתוח לקהילה.' },
+      { q: 'צריך להוריד אפליקציה?',                a: 'לא. נפתח בדפדפן. אפשר להוסיף למסך הבית בלחיצה אחת אם רוצים.' },
+      { q: 'החברים שלי חייבים להירשם?',           a: 'רק אם הם רוצים לערוך. קישור צפייה עובד בלי הרשמה ובלי חשבון.' },
+      { q: 'מה לגבי פרטיות?',                       a: 'הנתונים מוצפנים. אנחנו לא מוכרים מידע. אין מודל פרסומי.' },
+      { q: 'באמת עובד בלב שטח?',                  a: 'כן. אחרי הטעינה הראשונה, ערכו והוסיפו גם בלי קליטה. הסנכרון יקרה כשתחזרו.' },
     ],
 
     // Final CTA
-    ctaTitle:    'מוכנים?',
+    ctaTitle:    'מוכנים לעצור את הכאוס?',
     ctaSubFinal: 'הקבוצה הבאה שלכם תודה לכם.',
-    ctaBtn:      'מתחילים עכשיו, בחינם',
-    ctaFooter:   'דקה להתחיל. דוגמה מובנית כדי לראות איך זה עובד.',
+    ctaBtn:      'מתחילים בחינם',
+    ctaFooter:   'דקה להתחיל. טרק לדוגמה מובנה. בלי כרטיס אשראי.',
     privacy:  'מדיניות פרטיות',
     terms:    'תנאי שימוש',
   },
   en: {
-    pill:          'Community project · Free · Hebrew + English',
+    pill:          'Free forever · Hebrew + English · Works offline',
     heroTitle:     'Plan group treks without the WhatsApp chaos',
-    heroSub:       'One tool for the whole crew: days, stops, a shared map, packing list. Everyone sees the same thing in real time.',
+    heroSub:       'Someone in the group adds a stop, the whole crew sees it in a second. One map. One packing list. Even when you are deep in the trail with no signal.',
     ctaPrimary:    'Get started',
-    ctaFree:       '30 seconds. No credit card. No downloads.',
+    ctaFree:       '30 seconds from signup to your first trip. No credit card.',
     signIn:        'Sign in',
     langToggle:    'עב',
 
-    painTitle:     'Know the feeling?',
-    painSub:       'If you have ever organised a group trip, you know exactly what we mean.',
+    painTitle:     'Here is what it looks like today',
+    painSub:       'If you have ever led a group, you know every single one of these.',
     pains: [
-      '25 WhatsApp threads with 4 versions of the same plan',
-      'A spreadsheet nobody opens except the person who built it',
-      'Google Maps with 17 pins, only on one person\'s screen',
-      'Re-explaining the plan to every new joiner, over and over',
+      '25 WhatsApp threads. Four versions of the plan. None of them current.',
+      "A spreadsheet two people opened, once.",
+      "17 pins on Google Maps, only on one person's phone.",
+      'Re-explaining the plan to every new joiner. Over and over.',
     ],
 
-    solutionEyebrow: 'What Triplan does differently',
-    solutionTitle:   'Everything in one place. The whole group. Live.',
+    solutionEyebrow: 'How we do it',
+    solutionTitle:   'The whole group. The same page. Right now.',
     features: [
-      { title: 'One map for the group',     desc: 'Viewpoints, water sources, camps. Everyone sees the same thing.',                       icon: 'map',     color: '#C4622D', bg: 'var(--accent-pale)' },
-      { title: 'Live sync',                  desc: 'Someone adds a stop, everyone sees it instantly. No more "which version is current".',  icon: 'users',   color: '#2D6B6B', bg: 'var(--teal-light)' },
-      { title: 'Shared packing list',        desc: 'Everyone adds what they bring. No duplicate gear. No forgotten tent.',                   icon: 'package', color: '#5B8FD4', bg: 'rgba(91,143,212,0.12)' },
-      { title: 'Read-only link for parents', desc: "Without signup or download. They just see the plan.",                                    icon: 'eye',     color: '#8B7355', bg: 'rgba(139,115,85,0.15)' },
-      { title: 'Works offline',              desc: 'After the first load, everything is on your device. Even in the middle of nowhere.',    icon: 'lock',    color: '#5B3D8F', bg: 'rgba(91,61,143,0.13)' },
-      { title: 'Journal and photos',         desc: 'Document the trip as it happens. Beautiful album at the end.',                           icon: 'camera',  color: '#2D9E6E', bg: 'rgba(45,158,110,0.13)' },
+      { title: 'One map for the group',       desc: 'Viewpoints, water, camps. The whole crew sees the same one.',                          icon: 'map',     color: '#C4622D', bg: 'var(--accent-pale)' },
+      { title: 'Everyone sees changes live',  desc: "Someone adds a stop, the group sees it. No more \"which version is current?\"",         icon: 'users',   color: '#2D6B6B', bg: 'var(--teal-light)' },
+      { title: 'Shared packing list',         desc: 'Each person marks what they are bringing. No duplicate tents. No forgotten stove.',     icon: 'package', color: '#5B8FD4', bg: 'rgba(91,143,212,0.12)' },
+      { title: 'View link for everyone else', desc: 'Send a link to parents, partners, late joiners. They see the plan without downloading anything.', icon: 'eye', color: '#8B7355', bg: 'rgba(139,115,85,0.15)' },
+      { title: 'Works without signal',        desc: 'Once loaded, everything is local on your device. Map included.',                        icon: 'lock',    color: '#5B3D8F', bg: 'rgba(91,61,143,0.13)' },
+      { title: 'Journal and photos per day',  desc: 'Document as it happens. Beautiful album when you are home.',                            icon: 'camera',  color: '#2D9E6E', bg: 'rgba(45,158,110,0.13)' },
     ],
 
-    sampleEyebrow: 'After signup',
-    sampleTitle:   'You get a sample trek to play with',
-    sampleSub:     'We seed your account with a 3-day Yam-le-Yam trek, 12 stops, full packing list. Add, delete, edit. When you start your real trip, keep or delete the sample.',
+    sampleEyebrow: 'What is waiting for you inside',
+    sampleTitle:   'There is a sample trek in your account',
+    sampleSub:     'We seeded a 3-day Yam-le-Yam trek with 12 stops and a ready packing list. Get a feel for the app before you build your own. When the real trip starts, the sample is one click away from gone.',
     samplePoints: [
-      '3 days, 12 stops with real coordinates',
+      '3 days, 12 stops, real Galilee coordinates',
       'Water sources, camps, viewpoints',
       'Physical and logistics notes per day',
-      '13-item packing list',
+      '13-item packing list ready',
     ],
 
     faqTitle: 'Questions everyone asks',
     faqs: [
-      { q: 'Is it really free?',                   a: 'Yes, fully. No ads, no freemium, no premium tier. Community project.' },
-      { q: 'Do I need to install an app?',         a: 'No. Opens in the browser like a website. If you want, you can add it to your home screen in one tap.' },
-      { q: 'Do my friends have to sign up?',       a: 'Only if they want to edit. The view-only link works without signup or account.' },
-      { q: 'Is my data secure?',                   a: 'Everything is stored in Supabase with encryption. We do not sell data. There is no advertising model.' },
-      { q: 'Really works offline?',                a: 'After the first load, everything is on your device. Edit and add, sync happens when you are back online.' },
+      { q: 'Is it really free?',             a: 'Yes. No ads. No premium tier. Open community project.' },
+      { q: 'Do I need to install an app?',   a: 'No. Opens in the browser. If you want, add it to your home screen with one tap.' },
+      { q: 'Do my friends need to sign up?', a: 'Only if they want to edit. View links work without signup or account.' },
+      { q: 'What about privacy?',            a: 'Data is encrypted. We do not sell anything. There is no advertising model.' },
+      { q: 'Really works offline?',          a: 'Yes. After the first load, edit and add in the field. Sync happens when you are back on signal.' },
     ],
 
-    ctaTitle:    'Ready?',
-    ctaSubFinal: 'Your next group is going to thank you.',
-    ctaBtn:      'Get started, free',
-    ctaFooter:   'A minute to start. Sample trek included so you can see how it works.',
+    ctaTitle:    'Ready to stop the chaos?',
+    ctaSubFinal: 'Your next crew is going to thank you.',
+    ctaBtn:      'Start free',
+    ctaFooter:   'A minute to start. Sample trek included. No credit card.',
     privacy:  'Privacy Policy',
     terms:    'Terms',
   },

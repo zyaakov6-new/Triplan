@@ -6,9 +6,9 @@ import Icon from './Icon'
 const STRINGS = {
   he: {
     suggestions: ['דרכון', 'ביטוח נסיעות', 'מטען טלפון', 'מתאם חשמל', 'קרם הגנה', 'נעליים נוחות', 'מצלמה', 'אוזניות', 'בקבוק מים', 'כרית נסיעה', 'תרופות', 'מזומן'],
-    addPh: 'הוסיפו פריט אריזה…',
+    addPh: 'הוסיפו פריט לציוד…',
     quickAdd: 'הוספה מהירה',
-    packing: 'התקדמות האריזה',
+    packing: 'כמה ארזתם כבר',
     emptyTitle: 'עדיין לא נארז כלום',
     emptySub: 'הוסיפו פריטים למעלה או הקישו על הצעה',
     packed: 'נארזו',
@@ -46,7 +46,7 @@ export default function PackingList({ tripId }) {
 
   useEffect(() => { fetchItems() }, [tripId])
 
-  // Realtime sync — keep collaborators' changes in view without reload
+  // Realtime sync - keep collaborators' changes in view without reload
   useEffect(() => {
     const channel = supabase
       .channel(`packing:${tripId}`)

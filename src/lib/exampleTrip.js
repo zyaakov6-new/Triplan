@@ -9,7 +9,7 @@
  * you'd actually bring for a multi-day hike.
  *
  * We tag the trip ID in localStorage so the onboarding flow's "delete this
- * sample and start fresh" button knows which trip to remove — without
+ * sample and start fresh" button knows which trip to remove - without
  * needing an `is_example` column on the trips table.
  */
 import { supabase } from './supabase'
@@ -112,7 +112,7 @@ export async function createExampleTrip(userId, lang = 'en') {
   const data = SAMPLE[lang === 'he' ? 'he' : 'en']
   console.log('[exampleTrip] starting for user', userId, 'lang', lang)
 
-  // 1. Trip row — try a few color_theme values since we don't know which
+  // 1. Trip row - try a few color_theme values since we don't know which
   //    ones exist on this Supabase. Some schemas have only 'terracotta'.
   let trip = null
   for (const theme of ['forest', 'terracotta']) {
@@ -137,7 +137,7 @@ export async function createExampleTrip(userId, lang = 'en') {
   }
   console.log('[exampleTrip] trip created', trip.id)
 
-  // 2. Owner member row (best-effort — schema may auto-add via trigger)
+  // 2. Owner member row (best-effort - schema may auto-add via trigger)
   const { error: memberErr } = await supabase
     .from('trip_members')
     .insert({ trip_id: trip.id, user_id: userId, role: 'owner' })

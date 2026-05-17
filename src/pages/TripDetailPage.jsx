@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { useLang } from '../hooks/useLang'
-// Lazy-load TripMap — pulls in the 800KB MapLibre bundle only when a user
+// Lazy-load TripMap - pulls in the 800KB MapLibre bundle only when a user
 // actually opens a trip and lands on the Map tab. The Days/Photos/Packing
 // tabs render without it. Big win on first paint over cellular.
 const TripMap = lazy(() => import('../components/TripMap'))
@@ -49,9 +49,9 @@ const STRINGS = {
     checkConn: 'בדקו את החיבור ונסו שוב',
     retry: 'נסו שוב',
     syncing: 'מסתנכרן',
-    live: 'מחובר',
+    live: 'פעיל',
     exportPDF: 'ייצוא PDF',
-    tabMap: 'מפה', tabDays: 'ימים', tabPhotos: 'תמונות', tabPack: 'אריזה',
+    tabMap: 'מפה', tabDays: 'ימים', tabPhotos: 'תמונות', tabPack: 'ציוד',
     subRoute: 'מסלול', subStats: 'נתונים', subGas: 'דלק',
     searchStops: 'חיפוש עצירות…',
     noDaysYet: 'אין ימים עדיין',
@@ -122,7 +122,7 @@ const STRINGS = {
     inviteSub: 'Anyone with this link can view and edit the trip.',
     copy: 'Copy', copied: 'Copied!',
     readonlyShare: 'Read-only share link',
-    readonlySub: 'Share a view-only version — no login required.',
+    readonlySub: 'Share a view-only version. No login required.',
     exportIcal: 'Export iCal',
     exporting: 'Exporting…',
     members: 'Members',
@@ -228,7 +228,7 @@ function AgendaView({ days, onDirections }) {
                   : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(stop.name)}`
                 return (
                   <div key={stop.id} className="agenda-time-row" style={{ padding: '10px 14px' }}>
-                    <span className="agenda-time">{stop.time_slot || '—'}</span>
+                    <span className="agenda-time">{stop.time_slot || '-'}</span>
                     <Icon name={meta.icon} size={15} color={meta.color} />
                     <div style={{ flex: 1 }}>
                       <p style={{ fontSize: 14, fontWeight: 500, color: stop.done ? 'var(--ink-muted)' : 'var(--ink)', textDecoration: stop.done ? 'line-through' : 'none' }}>{stop.name}</p>
@@ -590,7 +590,7 @@ export default function TripDetailPage() {
       })
       .subscribe((status, err) => {
         if (err) console.error('[Triplan RT] subscription error:', err)
-        if (status === 'CHANNEL_ERROR') console.warn('[Triplan RT] channel error — realtime sync may be degraded')
+        if (status === 'CHANNEL_ERROR') console.warn('[Triplan RT] channel error - realtime sync may be degraded')
       })
     return () => { supabase.removeChannel(channel) }
   }, [id])
@@ -615,7 +615,7 @@ export default function TripDetailPage() {
         }
         return
       }
-      // Permission check — user must be a member of this trip
+      // Permission check - user must be a member of this trip
       const members = membersRes.data || []
       const isMember = members.some(m => m.user_id === user.id)
       if (!isMember) { setAccessDenied(true); setLoading(false); return }
@@ -1343,7 +1343,7 @@ export default function TripDetailPage() {
 
       {/* ── Day detail sheet ── */}
       {openDaySheet && (
-        <BottomSheet title={`${t.dayLabel} ${openDaySheet.day_number} — ${openDaySheet.city}`} onClose={() => setOpenDaySheet(null)}>
+        <BottomSheet title={`${t.dayLabel} ${openDaySheet.day_number} · ${openDaySheet.city}`} onClose={() => setOpenDaySheet(null)}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {openDaySheet.physical_note && <InfoBox icon="walk" color="var(--accent)" label={t.physical} text={openDaySheet.physical_note} />}
             {openDaySheet.logistics_note && <InfoBox icon="bag" color="var(--teal)" label={t.logistics} text={openDaySheet.logistics_note} />}

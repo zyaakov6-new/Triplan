@@ -29,13 +29,13 @@ export default class ErrorBoundary extends Component {
 
     const msg = this.state.error?.message
 
-    // ErrorBoundary is a class component — useLang can't be called here, so we
+    // ErrorBoundary is a class component - useLang can't be called here, so we
     // read the lang preference directly from localStorage (same source useLang
     // uses).  Falls back to English if the read fails.
     let isHe = false
     try {
       isHe = (localStorage.getItem('triplan_lang') || (navigator.language?.startsWith('he') ? 'he' : 'en')) === 'he'
-    } catch { /* SSR / private mode — keep English */ }
+    } catch { /* SSR / private mode - keep English */ }
 
     const t = isHe ? {
       title:  'משהו השתבש',

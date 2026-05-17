@@ -194,7 +194,7 @@ export default function TripMap({ days = [], onSelect, pickMode = false, initial
   )
 }
 
-// Picker pin — distinguished from numbered day pins. Larger, terracotta,
+// Picker pin - distinguished from numbered day pins. Larger, terracotta,
 // has a soft pulse so it's obvious where the user just dropped it.
 function makePickMarker(lng, lat) {
   const el = document.createElement('div')

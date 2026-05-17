@@ -19,7 +19,7 @@
     <circle cx="184" cy="72" r="10" fill="#1A1612" fill-opacity="0.18"/>
   </g>
 
-  <!-- Wordmark — "Triplan" in display serif, coffee on transparent so it can
+  <!-- Wordmark - "Triplan" in display serif, coffee on transparent so it can
        sit on any light background -->
   <text x="296" y="168" font-family="Georgia, 'Playfair Display', serif"
         font-size="128" fill="#1A1612" letter-spacing="-3">Triplan</text>

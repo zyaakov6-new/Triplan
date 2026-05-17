@@ -70,7 +70,7 @@ export default function NewTripModal({ onClose, onCreated }) {
   return (
     <BottomSheet onClose={onClose} title={t.title}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-        {/* Color theme — compact row */}
+        {/* Color theme - compact row */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--ink-muted)', whiteSpace: 'nowrap' }}>{t.theme}</span>
           <div style={{ display: 'flex', gap: 6 }}>

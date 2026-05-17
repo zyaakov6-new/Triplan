@@ -12,7 +12,7 @@ export default function ResetPasswordPage() {
   const [done, setDone]           = useState(false)
   const [ready, setReady]         = useState(false)
 
-  // Supabase sends the recovery token as a URL fragment — detect the session
+  // Supabase sends the recovery token as a URL fragment - detect the session
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'PASSWORD_RECOVERY') setReady(true)

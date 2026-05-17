@@ -5,7 +5,7 @@
 // Run with:  node scripts/generate-og-image.js
 //
 // The design mirrors the in-app brand: coffee #1A1612 backdrop, sand #F5F0E8
-// foreground, terracotta #C4622D accent — same palette as the favicon and
+// foreground, terracotta #C4622D accent - same palette as the favicon and
 // the dark hero on LandingPage / AuthPage.
 
 import sharp from 'sharp'

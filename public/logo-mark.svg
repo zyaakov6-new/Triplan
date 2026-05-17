@@ -17,7 +17,7 @@
     <ellipse rx="34" ry="68"/>
   </g>
 
-  <!-- Terracotta pin marker — the "you-are-here" dot -->
+  <!-- Terracotta pin marker - the "you-are-here" dot -->
   <circle cx="184" cy="72" r="28" fill="#C4622D"/>
   <circle cx="184" cy="72" r="10" fill="#1A1612" fill-opacity="0.18"/>
 </svg>
