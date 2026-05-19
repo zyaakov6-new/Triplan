@@ -3,280 +3,386 @@ import { useState } from 'react'
 import { useLang } from '../hooks/useLang'
 import Icon from '../components/Icon'
 
-// i18n
-// Hebrew is the canonical version, written first then translated. Tone is
-// direct, slightly informal, anti-corporate. Every line was rewritten using
-// landing-page best practices: scene-setting over feature lists, specific
-// numbers, benefit-led titles, friction-reducing CTAs, no marketing-speak.
+/* ─────────────────────────────────────────────────────────────────────────
+   Landing page, v3
+   Aesthetic: outdoor field guide x software craft. Topographic contour
+   lines, trail-blaze markers, mono section dividers, big serif Hebrew at
+   editorial scale. Hebrew-first. No phone-mockup hero, no purple gradients,
+   no glassmorphism. Every section earns its space.
+
+   Copy notes:
+   - Headline kept (most-direct pain hook from the prior version).
+   - Everything else rewritten for rhythm and field-guide tone: short
+     declarative sentences, mono labels with section numbers, "§" markers.
+   - No em-dashes anywhere.
+   ───────────────────────────────────────────────────────────────────────── */
 
 const T = {
   he: {
-    // Hero
-    pill:          'חינם תמיד · עברית · עובד גם בלי קליטה',
-    heroTitle:     'תכננו טרק בלי הכאוס של ווטסאפ',
-    heroSub:       'מישהו בקבוצה מוסיף עצירה, כולם רואים את זה ברגע. מפה אחת. רשימת ציוד אחת. גם כשאתם כבר בלב שטח בלי קליטה.',
-    ctaPrimary:    'מתחילים עכשיו',
-    ctaFree:       '30 שניות מההרשמה לטיול הראשון. בלי כרטיס אשראי.',
+    // Nav
     signIn:        'כניסה',
     langToggle:    'EN',
 
-    // Pain section
-    painTitle:     'ככה זה נראה היום',
-    painSub:       'אם הובלתם פעם קבוצה, אתם מכירים את כל אחד מאלה.',
+    // Hero
+    eyebrow:       'מדריך לתכנון טרק קבוצתי',
+    eyebrowEdition:'גרסה 2026',
+    heroTitle:     'תכננו טרק בלי הכאוס של ווטסאפ',
+    heroSubA:      'מתכננים יחד.',
+    heroSubB:      'רואים יחד.',
+    heroSubC:      'גם בלי קליטה.',
+    ctaPrimary:    'התחילו עכשיו',
+    ctaMicro:      '30 שניות. בלי כרטיס אשראי. בלי הורדה.',
+    trustA:        'חינם תמיד',
+    trustB:        'עברית מלאה',
+    trustC:        'עובד בלב שטח',
+    scrollHint:    'גלילה',
+    scrollHintTo:  'סצנה ראשונה',
+
+    // § 01
+    s01Eyebrow:    'סצנה',
+    s01Number:     '§ 01',
+    s01Title:      'ככה זה נראה היום',
+    s01Sub:        'אם הובלתם פעם קבוצה, אתם מכירים את כל אחד מאלה.',
     pains: [
-      '25 צ׳אטים בווטסאפ. ארבע גרסאות של אותה תוכנית. אף אחת לא העדכנית.',
+      '25 צ׳אטים בווטסאפ. ארבע גרסאות. אף אחת לא העדכנית.',
       'טבלת אקסל ששני אנשים פתחו, פעם אחת.',
       '17 פינים בגוגל מפות, על המסך של חבר אחד.',
       'להסביר הכל מההתחלה לכל מי שמצטרף. שוב ושוב.',
     ],
 
-    // Solution / features
-    solutionEyebrow: 'ככה אנחנו עושים את זה',
-    solutionTitle:   'הקבוצה כולה. באותו דף. ברגע אחד.',
+    // § 02
+    s02Eyebrow:    'שיטה',
+    s02Number:     '§ 02',
+    s02Title:      'הקבוצה כולה. באותו דף. ברגע אחד.',
+    s02Sub:        'כלי אחד עם כל מה שצריך כדי להוציא טרק לפועל.',
     features: [
-      { title: 'מפה אחת לכל הקבוצה',         desc: 'נקודות תצפית, מקורות מים, חניוני לילה. הקבוצה כולה רואה אותה.',                            icon: 'map',     color: '#C4622D', bg: 'var(--accent-pale)' },
-      { title: 'כולם רואים בזמן אמת',        desc: 'מישהו מוסיף עצירה, כל הקבוצה רואה אותה ברגע. בלי לשאול "איזו גרסה עדכנית".',              icon: 'users',   color: '#2D6B6B', bg: 'var(--teal-light)' },
-      { title: 'רשימת ציוד משותפת',           desc: 'כל אחד מסמן מה הוא מביא. בלי שני אוהלים. בלי לשכוח גז.',                                  icon: 'package', color: '#5B8FD4', bg: 'rgba(91,143,212,0.12)' },
-      { title: 'קישור צפייה לחברים',          desc: 'שלחו להורים, לבני זוג, למצטרפים. הם רואים את התוכנית בלי להוריד שום דבר.',                icon: 'eye',     color: '#8B7355', bg: 'rgba(139,115,85,0.15)' },
-      { title: 'עובד בלי קליטה',               desc: 'אחרי הטעינה הראשונה, הכל מקומי על המכשיר. כולל המפה.',                                    icon: 'lock',    color: '#5B3D8F', bg: 'rgba(91,61,143,0.13)' },
-      { title: 'יומן ותמונות לכל יום',         desc: 'מתעדים את הטיול תוך כדי. אוסף יפה בסוף הדרך.',                                            icon: 'camera',  color: '#2D9E6E', bg: 'rgba(45,158,110,0.13)' },
+      { n: '01', title: 'מפה אחת לקבוצה',         body: 'נקודות תצפית, מקורות מים, חניוני לילה. הקבוצה כולה רואה אותה.', icon: 'map',     accent: '#C4622D' },
+      { n: '02', title: 'סנכרון בזמן אמת',         body: 'מישהו מוסיף עצירה, כל הקבוצה רואה אותה ברגע. אין "איזו גרסה עדכנית".', icon: 'users',   accent: '#2D6B6B' },
+      { n: '03', title: 'רשימת ציוד משותפת',       body: 'כל אחד מסמן מה הוא מביא. בלי שני אוהלים. בלי לשכוח גז.',         icon: 'package', accent: '#5B8FD4' },
+      { n: '04', title: 'קישור צפייה לחברים',       body: 'שלחו להורים, לבני זוג, למצטרפים. רואים את התוכנית בלי להוריד שום דבר.', icon: 'eye',     accent: '#8B7355' },
+      { n: '05', title: 'עובד בלב שטח',              body: 'אחרי הטעינה הראשונה, הכל מקומי על המכשיר. כולל המפה.',          icon: 'lock',    accent: '#5B3D8F' },
+      { n: '06', title: 'יומן ותמונות לכל יום',      body: 'מתעדים תוך כדי. אוסף יפה בסוף הדרך.',                              icon: 'camera',  accent: '#2D9E6E' },
     ],
 
-    // Sample preview
-    sampleEyebrow: 'מה שמחכה לכם בפנים',
-    sampleTitle:   'יש בחשבון שלכם טרק לדוגמה',
-    sampleSub:     'יצרנו לכם טרק ים-אל-ים של 3 ימים, 12 עצירות, ורשימת ציוד מוכנה. תכירו את האפליקציה לפני שאתם בונים את הטיול שלכם. כשמתחילים את האמיתי, אפשר למחוק את הדוגמה בלחיצה.',
-    samplePoints: [
-      '3 ימים, 12 עצירות, קואורדינטות אמיתיות בגליל',
-      'מקורות מים, חניוני לילה, נקודות תצפית',
-      'הערות פיזיות ולוגיסטיות לכל יום',
-      'רשימת ציוד מוכנה של 13 פריטים',
+    // § 03
+    s03Eyebrow:    'מסלול לדוגמה',
+    s03Number:     '§ 03',
+    s03Title:      'יש בחשבון שלכם טרק מוכן',
+    s03Sub:        'יצרנו לכם טיול ים אל ים של 3 ימים, 12 עצירות, ורשימת ציוד מוכנה. תכירו את האפליקציה לפני שאתם בונים את הטיול שלכם.',
+    s03Trek:       'ים אל ים',
+    s03TrekSub:    'הגליל העליון',
+    s03Stats:      [
+      { k: '3',  v: 'ימים' },
+      { k: '12', v: 'עצירות' },
+      { k: '47', v: 'ק״מ' },
+    ],
+    s03Days:       [
+      { n: 1, name: 'נחל כזיב',     stops: 4 },
+      { n: 2, name: 'פארק גורן',     stops: 4 },
+      { n: 3, name: 'חוף גינוסר',   stops: 4 },
     ],
 
-    // FAQ
-    faqTitle: 'שאלות שכולם שואלים',
+    // § 04
+    s04Eyebrow:    'שאלות',
+    s04Number:     '§ 04',
+    s04Title:      'מה כולם שואלים לפני שמתחילים',
     faqs: [
-      { q: 'זה באמת חינם?',                       a: 'כן. בלי פרסומות. בלי מודל פרימיום. פרויקט פתוח לקהילה.' },
-      { q: 'צריך להוריד אפליקציה?',                a: 'לא. נפתח בדפדפן. אפשר להוסיף למסך הבית בלחיצה אחת אם רוצים.' },
-      { q: 'החברים שלי חייבים להירשם?',           a: 'רק אם הם רוצים לערוך. קישור צפייה עובד בלי הרשמה ובלי חשבון.' },
-      { q: 'מה לגבי פרטיות?',                       a: 'הנתונים מוצפנים. אנחנו לא מוכרים מידע. אין מודל פרסומי.' },
-      { q: 'באמת עובד בלב שטח?',                  a: 'כן. אחרי הטעינה הראשונה, ערכו והוסיפו גם בלי קליטה. הסנכרון יקרה כשתחזרו.' },
+      { q: 'זה באמת חינם?',             a: 'כן. בלי פרסומות. בלי מודל פרימיום. פרויקט פתוח לקהילת המטיילים.' },
+      { q: 'צריך להוריד אפליקציה?',     a: 'לא. נפתח בדפדפן. אפשר להוסיף למסך הבית בלחיצה אחת אם רוצים.' },
+      { q: 'החברים שלי חייבים להירשם?', a: 'רק אם הם רוצים לערוך. קישור צפייה עובד בלי הרשמה ובלי חשבון.' },
+      { q: 'מה לגבי פרטיות?',            a: 'הנתונים מוצפנים בענן. אנחנו לא מוכרים מידע. אין מודל פרסומי.' },
+      { q: 'באמת עובד בלב שטח?',         a: 'כן. אחרי הטעינה הראשונה, ערכו והוסיפו גם בלי קליטה. הסנכרון יקרה כשתחזרו.' },
     ],
 
-    // Final CTA
-    ctaTitle:    'מוכנים לעצור את הכאוס?',
-    ctaSubFinal: 'הקבוצה הבאה שלכם תודה לכם.',
-    ctaBtn:      'מתחילים בחינם',
-    ctaFooter:   'דקה להתחיל. טרק לדוגמה מובנה. בלי כרטיס אשראי.',
-    privacy:  'מדיניות פרטיות',
-    terms:    'תנאי שימוש',
+    // Final
+    finalEyebrow:  'יוצאים לדרך',
+    finalTitle:    'הטרק הבא שלכם מתחיל פה',
+    finalSub:      'הקבוצה הבאה שלכם תודה לכם.',
+    finalCta:      'מתחילים בחינם',
+    finalMicro:    'דקה להתחיל. טרק לדוגמה מובנה. בלי כרטיס אשראי.',
+    privacy:       'מדיניות פרטיות',
+    terms:         'תנאי שימוש',
+    madeWith:      'נבנה בישראל, בידי מטייל אחד',
   },
   en: {
-    pill:          'Free forever · Hebrew + English · Works offline',
-    heroTitle:     'Plan group treks without the WhatsApp chaos',
-    heroSub:       'Someone in the group adds a stop, the whole crew sees it in a second. One map. One packing list. Even when you are deep in the trail with no signal.',
-    ctaPrimary:    'Get started',
-    ctaFree:       '30 seconds from signup to your first trip. No credit card.',
     signIn:        'Sign in',
     langToggle:    'עב',
 
-    painTitle:     'Here is what it looks like today',
-    painSub:       'If you have ever led a group, you know every single one of these.',
+    eyebrow:       'A field guide to group trip planning',
+    eyebrowEdition:'2026 edition',
+    heroTitle:     'Plan group treks without the WhatsApp chaos',
+    heroSubA:      'Plan together.',
+    heroSubB:      'See together.',
+    heroSubC:      'Even with no signal.',
+    ctaPrimary:    'Get started',
+    ctaMicro:      '30 seconds. No credit card. No download.',
+    trustA:        'Free forever',
+    trustB:        'Hebrew + English',
+    trustC:        'Works offline',
+    scrollHint:    'Scroll',
+    scrollHintTo:  'first scene',
+
+    s01Eyebrow:    'Scene',
+    s01Number:     '§ 01',
+    s01Title:      'Here is what it looks like today',
+    s01Sub:        'If you have ever led a group, you know every single one of these.',
     pains: [
-      '25 WhatsApp threads. Four versions of the plan. None of them current.',
-      "A spreadsheet two people opened, once.",
-      "17 pins on Google Maps, only on one person's phone.",
+      '25 WhatsApp threads. Four versions. None of them current.',
+      'A spreadsheet two people opened, once.',
+      "17 pins on Google Maps, on one person's phone.",
       'Re-explaining the plan to every new joiner. Over and over.',
     ],
 
-    solutionEyebrow: 'How we do it',
-    solutionTitle:   'The whole group. The same page. Right now.',
+    s02Eyebrow:    'Method',
+    s02Number:     '§ 02',
+    s02Title:      'The whole crew. The same page. Right now.',
+    s02Sub:        'One tool with everything you need to actually run a trip.',
     features: [
-      { title: 'One map for the group',       desc: 'Viewpoints, water, camps. The whole crew sees the same one.',                          icon: 'map',     color: '#C4622D', bg: 'var(--accent-pale)' },
-      { title: 'Everyone sees changes live',  desc: "Someone adds a stop, the group sees it. No more \"which version is current?\"",         icon: 'users',   color: '#2D6B6B', bg: 'var(--teal-light)' },
-      { title: 'Shared packing list',         desc: 'Each person marks what they are bringing. No duplicate tents. No forgotten stove.',     icon: 'package', color: '#5B8FD4', bg: 'rgba(91,143,212,0.12)' },
-      { title: 'View link for everyone else', desc: 'Send a link to parents, partners, late joiners. They see the plan without downloading anything.', icon: 'eye', color: '#8B7355', bg: 'rgba(139,115,85,0.15)' },
-      { title: 'Works without signal',        desc: 'Once loaded, everything is local on your device. Map included.',                        icon: 'lock',    color: '#5B3D8F', bg: 'rgba(91,61,143,0.13)' },
-      { title: 'Journal and photos per day',  desc: 'Document as it happens. Beautiful album when you are home.',                            icon: 'camera',  color: '#2D9E6E', bg: 'rgba(45,158,110,0.13)' },
+      { n: '01', title: 'One map for the group',        body: 'Viewpoints, water, camps. The whole crew sees the same one.',          icon: 'map',     accent: '#C4622D' },
+      { n: '02', title: 'Live sync',                     body: 'Someone adds a stop, the group sees it. No "which version is current?"', icon: 'users',   accent: '#2D6B6B' },
+      { n: '03', title: 'Shared gear list',              body: 'Each person marks what they bring. No duplicate tents. No forgotten stove.', icon: 'package', accent: '#5B8FD4' },
+      { n: '04', title: 'View link for everyone else',   body: 'Send a link to parents, partners, late joiners. They see the plan without downloading anything.', icon: 'eye',     accent: '#8B7355' },
+      { n: '05', title: 'Works without signal',          body: 'Once loaded, everything is local on your device. Map included.',         icon: 'lock',    accent: '#5B3D8F' },
+      { n: '06', title: 'Journal and photos per day',    body: 'Document as it happens. Beautiful album when you are home.',             icon: 'camera',  accent: '#2D9E6E' },
     ],
 
-    sampleEyebrow: 'What is waiting for you inside',
-    sampleTitle:   'There is a sample trek in your account',
-    sampleSub:     'We seeded a 3-day Yam-le-Yam trek with 12 stops and a ready packing list. Get a feel for the app before you build your own. When the real trip starts, the sample is one click away from gone.',
-    samplePoints: [
-      '3 days, 12 stops, real Galilee coordinates',
-      'Water sources, camps, viewpoints',
-      'Physical and logistics notes per day',
-      '13-item packing list ready',
+    s03Eyebrow:    'Sample route',
+    s03Number:     '§ 03',
+    s03Title:      'A trek is already waiting in your account',
+    s03Sub:        'We seeded a 3-day Yam-le-Yam trek with 12 stops and a ready gear list. Get a feel for the app before you build your own.',
+    s03Trek:       'Yam-le-Yam',
+    s03TrekSub:    'Upper Galilee',
+    s03Stats:      [
+      { k: '3',  v: 'days' },
+      { k: '12', v: 'stops' },
+      { k: '47', v: 'km' },
+    ],
+    s03Days:       [
+      { n: 1, name: 'Nahal Kziv',     stops: 4 },
+      { n: 2, name: 'Goren Park',     stops: 4 },
+      { n: 3, name: 'Ginosar Beach',  stops: 4 },
     ],
 
-    faqTitle: 'Questions everyone asks',
+    s04Eyebrow:    'Questions',
+    s04Number:     '§ 04',
+    s04Title:      'What people ask before they start',
     faqs: [
-      { q: 'Is it really free?',             a: 'Yes. No ads. No premium tier. Open community project.' },
-      { q: 'Do I need to install an app?',   a: 'No. Opens in the browser. If you want, add it to your home screen with one tap.' },
-      { q: 'Do my friends need to sign up?', a: 'Only if they want to edit. View links work without signup or account.' },
-      { q: 'What about privacy?',            a: 'Data is encrypted. We do not sell anything. There is no advertising model.' },
-      { q: 'Really works offline?',          a: 'Yes. After the first load, edit and add in the field. Sync happens when you are back on signal.' },
+      { q: 'Is it really free?',                   a: 'Yes. No ads. No premium tier. Open community project for trekkers.' },
+      { q: 'Do I need to install an app?',         a: 'No. Opens in the browser. Add it to your home screen with one tap if you want.' },
+      { q: 'Do my friends need to sign up?',       a: 'Only if they want to edit. View links work without signup or account.' },
+      { q: 'What about privacy?',                  a: 'Data is encrypted in the cloud. We do not sell anything. There is no advertising model.' },
+      { q: 'Really works offline?',                a: 'Yes. After the first load, edit and add in the field. Sync happens when you are back on signal.' },
     ],
 
-    ctaTitle:    'Ready to stop the chaos?',
-    ctaSubFinal: 'Your next crew is going to thank you.',
-    ctaBtn:      'Start free',
-    ctaFooter:   'A minute to start. Sample trek included. No credit card.',
-    privacy:  'Privacy Policy',
-    terms:    'Terms',
+    finalEyebrow:  'On the trail',
+    finalTitle:    'Your next trek starts here',
+    finalSub:      'Your next crew is going to thank you.',
+    finalCta:      'Start free',
+    finalMicro:    'A minute to start. Sample trek included. No credit card.',
+    privacy:       'Privacy',
+    terms:         'Terms',
+    madeWith:      'Made in Israel, by one trekker',
   },
 }
 
-// ── Phone mockup illustration ─────────────────────────────────────────────────
-// Shows a real Yam-le-Yam trek (not Italy) since the audience is outdoor /
-// trek-focused. The labels match the sample trip we seed for new users so
-// what they see here is what they get.
+/* ── Atmospheric SVGs ──────────────────────────────────────────────────── */
 
-function PhoneMockup({ isHe }) {
+// Topographic contour lines, used as the hero backdrop. Three nested rings
+// with subtle radial fade so the centre stays readable. Animated by parent.
+function ContourBackdrop({ colour = '#F5F0E8', opacity = 0.11 }) {
   return (
     <svg
-      viewBox="0 0 200 400"
-      style={{ width: '100%', height: '100%', filter: 'drop-shadow(0 32px 64px rgba(0,0,0,0.65)) drop-shadow(0 4px 16px rgba(196,98,45,0.2))' }}
+      viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice"
+      style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }}
+      aria-hidden="true"
     >
       <defs>
-        <linearGradient id="pmRoute" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%"   stopColor="#C4622D"/>
-          <stop offset="55%"  stopColor="#2D9E6E"/>
-          <stop offset="100%" stopColor="#5B8FD4"/>
-        </linearGradient>
-        <linearGradient id="pmMapBg" x1="0%" y1="0%" x2="60%" y2="100%">
-          <stop offset="0%"   stopColor="#1C2B3A"/>
-          <stop offset="100%" stopColor="#0D1520"/>
-        </linearGradient>
-        <clipPath id="pmScreen">
-          <rect x="8" y="34" width="184" height="349" rx="4"/>
-        </clipPath>
+        <radialGradient id="cb-fade" cx="50%" cy="55%" r="60%">
+          <stop offset="0%"  stopColor="white" stopOpacity="0.3" />
+          <stop offset="55%" stopColor="white" stopOpacity="1" />
+          <stop offset="100%" stopColor="white" stopOpacity="0" />
+        </radialGradient>
+        <mask id="cb-mask">
+          <rect width="1200" height="800" fill="url(#cb-fade)" />
+        </mask>
       </defs>
-
-      <rect x="1" y="1" width="198" height="398" rx="38" fill="#0D0D0D"/>
-      <rect x="4" y="4" width="192" height="392" rx="35" fill="#1A1612"/>
-      <rect x="72" y="10" width="56" height="12" rx="6" fill="#0A0A0A"/>
-      <circle cx="100" cy="16" r="3.5" fill="#111"/>
-
-      <g clipPath="url(#pmScreen)">
-        <rect x="8" y="34" width="184" height="198" fill="url(#pmMapBg)"/>
-
-        {[70,100,130,160,190,220].map(y => (
-          <line key={`h${y}`} x1="8" y1={y} x2="192" y2={y} stroke="rgba(255,255,255,0.033)" strokeWidth="1"/>
-        ))}
-        {[40,75,110,145,180].map(x => (
-          <line key={`v${x}`} x1={x} y1="34" x2={x} y2="232" stroke="rgba(255,255,255,0.033)" strokeWidth="1"/>
-        ))}
-
-        <path d="M 38 206 C 68 163, 110 122, 150 146 C 168 157, 174 180, 162 188"
-          stroke="rgba(0,0,0,0.4)" strokeWidth="7" fill="none" strokeLinecap="round"/>
-        <path d="M 38 206 C 68 163, 110 122, 150 146 C 168 157, 174 180, 162 188"
-          stroke="url(#pmRoute)" strokeWidth="3" fill="none" strokeLinecap="round" strokeDasharray="7 3"/>
-
-        <circle cx="38"  cy="206" r="12" fill="rgba(196,98,45,0.2)"/>
-        <circle cx="38"  cy="206" r="9"  fill="#C4622D"/>
-        <text x="38"  y="210" textAnchor="middle" fill="white" fontSize="8" fontWeight="700">1</text>
-        <circle cx="116" cy="123" r="12" fill="rgba(45,158,110,0.2)"/>
-        <circle cx="116" cy="123" r="9"  fill="#2D9E6E"/>
-        <text x="116" y="127" textAnchor="middle" fill="white" fontSize="8" fontWeight="700">2</text>
-        <circle cx="162" cy="188" r="12" fill="rgba(91,143,212,0.2)"/>
-        <circle cx="162" cy="188" r="9"  fill="#5B8FD4"/>
-        <text x="162" y="192" textAnchor="middle" fill="white" fontSize="8" fontWeight="700">3</text>
-
-        <rect x="70" y="88" width="60" height="17" rx="8.5" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.14)" strokeWidth="0.75"/>
-        <text x="100" y="100" textAnchor="middle" fill="rgba(255,255,255,0.75)" fontSize="9" fontFamily="monospace">
-          {isHe ? '47 ק"מ' : '47 km'}
-        </text>
-
-        <rect x="8" y="34" width="184" height="40" fill="rgba(8,14,22,0.92)"/>
-        <text x={isHe ? 176 : 22} y="59" textAnchor={isHe ? 'end' : 'start'}
-          fill="rgba(255,255,255,0.9)" fontSize="12" fontWeight="600" fontFamily="Georgia,serif">
-          Triplan
-        </text>
-        <circle cx={isHe ? 22 : 178} cy="54" r="11" fill="rgba(196,98,45,0.2)"/>
-        <circle cx={isHe ? 22 : 178} cy="54" r="8"  fill="#C4622D"/>
-        <text x={isHe ? 22 : 178} y="58" textAnchor="middle" fill="white" fontSize="11" fontWeight="600">+</text>
-
-        <rect x="8" y="232" width="184" height="151" fill="#F2EDE5"/>
-
-        <text x={isHe ? 178 : 20} y="252" textAnchor={isHe ? 'end' : 'start'}
-          fill="#1A1612" fontSize="13" fontWeight="600" fontFamily="Georgia,serif">
-          {isHe ? 'טרק ים-אל-ים 🥾' : 'Yam-le-Yam Trek 🥾'}
-        </text>
-        <text x={isHe ? 178 : 20} y="265" textAnchor={isHe ? 'end' : 'start'}
-          fill="rgba(26,22,18,0.45)" fontSize="9.5">
-          {isHe ? '3 ימים · 12 עצירות' : '3 days · 12 stops'}
-        </text>
-
-        <rect x="20" y="275" width="160" height="3" rx="1.5" fill="rgba(26,22,18,0.1)"/>
-        <rect x="20" y="275" width="100" height="3" rx="1.5" fill="#2D9E6E"/>
-
-        {[
-          { y: 285, col: '#C4622D', label: isHe ? 'יום 1 · נחל כזיב'   : 'Day 1 · Nahal Kziv',  sub: isHe ? '4 עצירות' : '4 stops' },
-          { y: 310, col: '#2D9E6E', label: isHe ? 'יום 2 · פארק גורן'  : 'Day 2 · Goren Park',  sub: isHe ? '4 עצירות' : '4 stops' },
-          { y: 335, col: '#5B8FD4', label: isHe ? 'יום 3 · הכנרת'     : 'Day 3 · Sea of Galilee', sub: isHe ? '4 עצירות' : '4 stops' },
-        ].map(({ y, col, label, sub }) => (
-          <g key={y}>
-            <rect x="16" y={y} width="168" height="21" rx="7" fill="white" stroke="rgba(26,22,18,0.07)" strokeWidth="0.75"/>
-            <rect x={isHe ? 176 : 19} y={y + 6} width="3" height="9" rx="1.5" fill={col}/>
-            <text x={isHe ? 170 : 26} y={y + 14} textAnchor={isHe ? 'end' : 'start'}
-              fill="#1A1612" fontSize="9" fontWeight="500">{label}</text>
-            <text x={isHe ? 26 : 176} y={y + 14} textAnchor={isHe ? 'start' : 'end'}
-              fill="rgba(26,22,18,0.4)" fontSize="8.5">{sub}</text>
-          </g>
-        ))}
-
-        <rect x="72" y="367" width="56" height="3" rx="1.5" fill="rgba(26,22,18,0.18)"/>
+      <g stroke={colour} strokeWidth="1" fill="none" mask="url(#cb-mask)" style={{ opacity }}>
+        <path d="M 100,450 C 180,310 460,260 720,360 C 960,440 1080,540 980,640 C 880,720 540,720 320,660 C 150,610 60,540 100,450 Z" />
+        <path d="M 160,450 C 230,330 470,290 720,380 C 940,450 1030,540 950,620 C 870,680 560,690 360,640 C 200,600 130,540 160,450 Z" />
+        <path d="M 220,450 C 280,360 480,320 720,400 C 920,460 990,540 920,600 C 850,650 580,660 400,620 C 260,590 200,540 220,450 Z" />
+        <path d="M 280,450 C 320,380 490,350 720,420 C 900,470 950,540 890,580 C 830,620 600,630 440,600 C 320,580 270,540 280,450 Z" />
+        <path d="M 340,450 C 370,400 510,380 720,440 C 880,480 910,540 860,560 C 810,580 620,600 480,580 C 380,570 330,540 340,450 Z" />
       </g>
-
-      <rect x="1" y="1" width="198" height="398" rx="38" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="1"/>
+      <g stroke={colour} strokeWidth="0.5" fill="none" mask="url(#cb-mask)" style={{ opacity: opacity * 0.6 }}>
+        <path d="M 60,200 Q 400,140 720,200 T 1140,200" />
+        <path d="M 60,720 Q 400,680 720,720 T 1140,720" />
+      </g>
     </svg>
   )
 }
 
-// ── Lang toggle (pill button, dark surface) ───────────────────────────────────
+// Single trail blaze marker. Square wood block with a painted terracotta stripe.
+function TrailBlaze({ size = 44, stripe = '#C4622D', bg = '#3D332A' }) {
+  const h = Math.round(size * 1.35)
+  return (
+    <svg width={size} height={h} viewBox="0 0 40 54" aria-hidden="true">
+      <rect x="1.5" y="1.5" width="37" height="51" rx="3" fill={bg} stroke="rgba(0,0,0,0.4)" strokeWidth="1" />
+      <rect x="5"   y="18"  width="30" height="18" fill={stripe} />
+      <rect x="5"   y="18"  width="30" height="3"  fill="rgba(255,255,255,0.15)" />
+      <rect x="5"   y="33"  width="30" height="3"  fill="rgba(0,0,0,0.18)" />
+    </svg>
+  )
+}
+
+// Sample-trek map illustration. Hand-drawn topo feel showing the 3-day route.
+function SampleTrekMap({ isHe }) {
+  const pinR = 9
+  return (
+    <svg viewBox="0 0 400 280" style={{ width: '100%', height: 'auto', display: 'block' }} aria-hidden="true">
+      <defs>
+        <linearGradient id="strm-bg" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%"   stopColor="#E8DDC8" />
+          <stop offset="100%" stopColor="#DCCEB0" />
+        </linearGradient>
+        <linearGradient id="strm-route" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%"   stopColor="#C4622D" />
+          <stop offset="55%"  stopColor="#2D9E6E" />
+          <stop offset="100%" stopColor="#5B8FD4" />
+        </linearGradient>
+      </defs>
+
+      {/* Paper-coloured base */}
+      <rect width="400" height="280" fill="url(#strm-bg)" rx="14" />
+
+      {/* Topo contours */}
+      <g stroke="rgba(26,22,18,0.13)" fill="none">
+        <path d="M 50,180 Q 130,140 220,165 T 360,150" strokeWidth="0.9" />
+        <path d="M 50,200 Q 140,170 220,185 T 360,170" strokeWidth="0.9" />
+        <path d="M 50,220 Q 145,195 225,205 T 360,190" strokeWidth="0.9" />
+        <path d="M 60,100 Q 160,70 250,90 T 350,80" strokeWidth="0.9" />
+        <path d="M 60,80  Q 170,55 260,70  T 350,65" strokeWidth="0.9" />
+      </g>
+
+      {/* Coastline / lake suggestion on the right (Kineret) */}
+      <path d="M 330,90 Q 360,120 370,170 Q 378,210 360,250 L 400,250 L 400,80 L 330,80 Z"
+            fill="rgba(91,143,212,0.18)" stroke="rgba(91,143,212,0.4)" strokeWidth="0.6" />
+
+      {/* Trail (route) */}
+      <path d="M 60,200 C 110,150 160,140 200,150 C 250,162 270,210 320,205"
+            stroke="rgba(0,0,0,0.35)" strokeWidth="4.5" fill="none" strokeLinecap="round" />
+      <path d="M 60,200 C 110,150 160,140 200,150 C 250,162 270,210 320,205"
+            stroke="url(#strm-route)" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeDasharray="6 4" />
+
+      {/* Day pins */}
+      <g>
+        <circle cx="60"  cy="200" r={pinR + 5} fill="rgba(196,98,45,0.18)" />
+        <circle cx="60"  cy="200" r={pinR} fill="#C4622D" stroke="#1A1612" strokeWidth="1.2" />
+        <text x="60" y="204" textAnchor="middle" fill="white" fontSize="9" fontWeight="700" fontFamily="ui-monospace, monospace">1</text>
+
+        <circle cx="200" cy="150" r={pinR + 5} fill="rgba(45,158,110,0.18)" />
+        <circle cx="200" cy="150" r={pinR} fill="#2D9E6E" stroke="#1A1612" strokeWidth="1.2" />
+        <text x="200" y="154" textAnchor="middle" fill="white" fontSize="9" fontWeight="700" fontFamily="ui-monospace, monospace">2</text>
+
+        <circle cx="320" cy="205" r={pinR + 5} fill="rgba(91,143,212,0.18)" />
+        <circle cx="320" cy="205" r={pinR} fill="#5B8FD4" stroke="#1A1612" strokeWidth="1.2" />
+        <text x="320" y="209" textAnchor="middle" fill="white" fontSize="9" fontWeight="700" fontFamily="ui-monospace, monospace">3</text>
+      </g>
+
+      {/* Compass rose, lower left */}
+      <g transform="translate(38, 245)" opacity="0.65">
+        <circle r="13" fill="none" stroke="#1A1612" strokeWidth="0.7" />
+        <line x1="0" y1="-10" x2="0" y2="10" stroke="#1A1612" strokeWidth="0.6" />
+        <line x1="-10" y1="0" x2="10" y2="0" stroke="#1A1612" strokeWidth="0.6" />
+        <polygon points="0,-12 -2,-2 0,-5 2,-2" fill="#C4622D" />
+        <text x="0" y="-15" textAnchor="middle" fill="#1A1612" fontSize="6" fontFamily="ui-monospace, monospace">N</text>
+      </g>
+
+      {/* Grid coordinates, decorative */}
+      <text x="370" y="20" textAnchor="end" fill="rgba(26,22,18,0.42)" fontSize="7" fontFamily="ui-monospace, monospace">
+        {isHe ? '33.05°N · 35.10°E' : '33.05°N · 35.10°E'}
+      </text>
+      <text x="370" y="270" textAnchor="end" fill="rgba(26,22,18,0.42)" fontSize="7" fontFamily="ui-monospace, monospace">
+        {isHe ? '32.84°N · 35.52°E' : '32.84°N · 35.52°E'}
+      </text>
+    </svg>
+  )
+}
+
+/* ── Small atoms ───────────────────────────────────────────────────────── */
+
+function MonoLabel({ children, color = 'rgba(245,240,232,0.55)', dot = true, style }) {
+  return (
+    <span className="mono-label" style={{ color, display: 'inline-flex', alignItems: 'center', gap: 8, ...style }}>
+      {dot && <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'currentColor', opacity: 0.7 }} />}
+      {children}
+    </span>
+  )
+}
+
+function SectionNumber({ children, color = 'var(--accent)' }) {
+  return (
+    <span className="mono-label" style={{ color, fontSize: 12, letterSpacing: '0.2em' }}>
+      {children}
+    </span>
+  )
+}
 
 function LangToggleDark({ lang, onToggle }) {
   return (
     <button
       onClick={onToggle}
       title={lang === 'he' ? 'Switch to English' : 'החלף לעברית'}
-      style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.65)', padding: '7px 14px', borderRadius: 20, background: 'rgba(255,255,255,0.09)', border: '1px solid rgba(255,255,255,0.14)', cursor: 'pointer', letterSpacing: '0.02em', fontFamily: 'var(--font-body)', transition: 'background 0.15s' }}
+      className="mono-label"
+      style={{
+        color: 'rgba(245,240,232,0.7)',
+        padding: '7px 12px',
+        borderRadius: 8,
+        background: 'rgba(245,240,232,0.06)',
+        border: '1px solid rgba(245,240,232,0.14)',
+        cursor: 'pointer',
+        fontSize: 11,
+      }}
     >
       {lang === 'he' ? 'EN' : 'עב'}
     </button>
   )
 }
 
-// ── FAQ item with accordion ───────────────────────────────────────────────────
-
-function FAQItem({ q, a, isHe }) {
+function FAQItem({ q, a, isHe, isLast }) {
   const [open, setOpen] = useState(false)
   return (
-    <div style={{ borderBottom: '1px solid var(--border)', padding: '16px 0' }}>
+    <div style={{ borderBottom: isLast ? 'none' : '1px solid rgba(26,22,18,0.10)' }}>
       <button
         onClick={() => setOpen(o => !o)}
         style={{
           width: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 12,
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          gap: 14,
+          padding: '20px 0',
           background: 'transparent',
           border: 'none',
           cursor: 'pointer',
-          padding: 0,
           textAlign: isHe ? 'right' : 'left',
           fontFamily: 'inherit',
+          color: 'var(--ink)',
         }}
+        aria-expanded={open}
       >
-        <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--ink)' }}>{q}</span>
-        <Icon name="chevron_down" size={16} color="var(--ink-muted)"
-          style={{ transition: 'transform 0.2s', transform: open ? 'rotate(180deg)' : 'none', flexShrink: 0 }} />
+        <span style={{ fontFamily: 'var(--font-display)', fontSize: 19, fontWeight: 500, letterSpacing: '-0.005em', lineHeight: 1.2 }}>
+          {q}
+        </span>
+        <Icon
+          name="chevron_down" size={18} color="var(--ink-muted)"
+          style={{ flexShrink: 0, transition: 'transform 0.25s cubic-bezier(0.16,1,0.3,1)', transform: open ? 'rotate(180deg)' : 'rotate(0)' }}
+        />
       </button>
       {open && (
-        <p style={{ marginTop: 10, fontSize: 14, color: 'var(--ink-muted)', lineHeight: 1.65 }}>
+        <p style={{
+          paddingBottom: 20, paddingTop: 0,
+          fontSize: 15, lineHeight: 1.65,
+          color: 'var(--ink-light)',
+          maxWidth: 560,
+        }}>
           {a}
         </p>
       )}
@@ -284,10 +390,10 @@ function FAQItem({ q, a, isHe }) {
   )
 }
 
-// ── Page ──────────────────────────────────────────────────────────────────────
+/* ── Page ──────────────────────────────────────────────────────────────── */
 
 export default function LandingPage() {
-  const navigate       = useNavigate()
+  const navigate = useNavigate()
   const { lang, toggleLang } = useLang()
   const t    = T[lang]
   const isHe = lang === 'he'
@@ -295,179 +401,604 @@ export default function LandingPage() {
 
   const goAuth = () => navigate('/auth')
 
+  /* Common section padding (mobile/desktop responsive via clamp). */
+  const sectionPad = {
+    paddingInline: 'clamp(20px, 5vw, 56px)',
+    paddingBlock:  'clamp(72px, 12vh, 120px)',
+  }
+
   return (
-    <div dir={dir} style={{ background: '#1A1612', overflowY: 'auto', height: '100%' }}>
+    <div dir={dir} style={{ background: '#1A1612', overflowY: 'auto', height: '100%', color: 'var(--cream)' }}>
 
-      {/* ── Hero ── */}
-      <div style={{ minHeight: '100svh', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
+      {/* ───────────── HERO ───────────── */}
+      <section style={{
+        minHeight: '100svh',
+        position: 'relative',
+        display: 'flex', flexDirection: 'column',
+        overflow: 'hidden',
+        paddingInline: 'clamp(20px, 5vw, 56px)',
+      }}>
 
-        {/* Background glows */}
-        <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
-          <div style={{ position: 'absolute', bottom: 0, right: 0, width: '80%', height: '65%',
-            background: 'radial-gradient(ellipse at 85% 100%, rgba(196,98,45,0.28) 0%, transparent 60%)' }}/>
-          <div style={{ position: 'absolute', top: '8%', left: 0, width: '55%', height: '50%',
-            background: 'radial-gradient(ellipse at 10% 25%, rgba(45,107,107,0.18) 0%, transparent 60%)' }}/>
-          {[[18,12],[82,7],[152,20],[172,55],[28,75],[62,42],[134,68],[48,35]].map(([x, y], i) => (
-            <div key={i} style={{ position: 'absolute', left: `${x}%`, top: `${y}%`, width: 1.5, height: 1.5, borderRadius: '50%', background: 'rgba(255,255,255,0.18)' }}/>
-          ))}
+        {/* Atmospheric layers */}
+        <div className="contour-drift" style={{ position: 'absolute', inset: 0, zIndex: 0 }} aria-hidden="true">
+          <ContourBackdrop />
         </div>
+        <div aria-hidden="true" style={{
+          position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none',
+          background: 'radial-gradient(ellipse at 80% 90%, rgba(196,98,45,0.22), transparent 55%), radial-gradient(ellipse at 10% 18%, rgba(45,107,107,0.16), transparent 50%)',
+        }} />
 
         {/* Nav */}
-        <div style={{ padding: 'calc(var(--safe-top) + 16px) 24px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative', zIndex: 1, flexShrink: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ width: 32, height: 32, background: 'var(--accent)', borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Icon name="globe" size={16} color="white" />
+        <div style={{
+          position: 'relative', zIndex: 2,
+          paddingTop: 'calc(var(--safe-top) + 18px)',
+          paddingBottom: 18,
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{
+              width: 30, height: 30,
+              background: 'var(--accent)',
+              borderRadius: 7,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: '0 4px 16px rgba(196,98,45,0.35)',
+            }}>
+              <Icon name="globe" size={15} color="white" />
             </div>
-            <span style={{ fontFamily: 'var(--font-display)', fontSize: 20, color: 'white', letterSpacing: '-0.02em' }}>Triplan</span>
+            <span style={{
+              fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 500,
+              color: 'var(--cream)', letterSpacing: '-0.02em',
+            }}>Triplan</span>
           </div>
+
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <LangToggleDark lang={lang} onToggle={toggleLang} />
-            <button onClick={goAuth} style={{ fontSize: 13, color: 'rgba(255,255,255,0.65)', padding: '8px 16px', borderRadius: 20, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', cursor: 'pointer', fontFamily: 'var(--font-body)' }}>
+            <button onClick={goAuth} className="mono-label"
+              style={{
+                fontSize: 11, color: 'rgba(245,240,232,0.72)',
+                padding: '7px 14px', borderRadius: 8,
+                background: 'transparent', border: '1px solid rgba(245,240,232,0.16)',
+                cursor: 'pointer',
+              }}
+            >
               {t.signIn}
             </button>
           </div>
         </div>
 
-        {/* Trust pill (above the fold) */}
-        <div style={{ padding: '24px 24px 0', position: 'relative', zIndex: 1, display: 'flex', justifyContent: 'center' }}>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.55)', padding: '6px 14px', borderRadius: 100, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)' }}>
-            <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#2D9E6E', display: 'inline-block' }}/>
-            {t.pill}
-          </span>
-        </div>
-
-        {/* Phone */}
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '12px 48px 0', position: 'relative', zIndex: 1, minHeight: 0 }}>
-          <div className="anim-float" style={{ height: 'min(48svh, 300px)', aspectRatio: '1/2' }}>
-            <PhoneMockup isHe={isHe} />
+        {/* Hero body */}
+        <div style={{
+          position: 'relative', zIndex: 2,
+          flex: 1,
+          display: 'flex', flexDirection: 'column', justifyContent: 'center',
+          paddingTop: 'clamp(40px, 6vh, 72px)',
+          paddingBottom: 'clamp(60px, 8vh, 96px)',
+          maxWidth: 760,
+        }}>
+          <div className="rise-in" style={{ '--rise-delay': '0ms', marginBottom: 28 }}>
+            <MonoLabel color="rgba(245,240,232,0.55)">
+              {t.eyebrow}
+              <span aria-hidden="true" style={{ opacity: 0.4 }}>·</span>
+              <span style={{ opacity: 0.75 }}>{t.eyebrowEdition}</span>
+            </MonoLabel>
           </div>
-        </div>
 
-        {/* Hero text + CTA */}
-        <div style={{ padding: '24px 28px calc(var(--safe-bottom) + 36px)', position: 'relative', zIndex: 1, flexShrink: 0 }}>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(28px, 8vw, 36px)', fontWeight: 500, color: 'white', lineHeight: 1.15, marginBottom: 14, letterSpacing: '-0.02em' }}>
+          <h1 className="rise-in" style={{
+            '--rise-delay': '120ms',
+            fontFamily: 'var(--font-display)',
+            fontSize: 'clamp(40px, 9.5vw, 76px)',
+            fontWeight: 500,
+            lineHeight: 1.04,
+            letterSpacing: '-0.03em',
+            color: 'var(--cream)',
+            marginBottom: 28,
+            maxWidth: '14ch',
+          }}>
             {t.heroTitle}
           </h1>
-          <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 15, lineHeight: 1.6, marginBottom: 26 }}>
-            {t.heroSub}
-          </p>
-          <button
-            onClick={goAuth}
-            onTouchStart={e => e.currentTarget.style.transform = 'scale(0.97)'}
-            onTouchEnd={e   => e.currentTarget.style.transform = ''}
-            style={{ width: '100%', padding: '18px 24px', borderRadius: 16, background: 'var(--accent)', color: 'white', fontSize: 17, fontWeight: 700, border: 'none', cursor: 'pointer', boxShadow: '0 8px 32px rgba(196,98,45,0.45)', marginBottom: 10, fontFamily: 'var(--font-body)', transition: 'transform 0.15s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-            {t.ctaPrimary}
-            <Icon name={isHe ? 'arrow_left' : 'arrow_right'} size={18} color="white" />
-          </button>
-          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.32)', textAlign: 'center' }}>{t.ctaFree}</p>
 
-          <div style={{ display: 'flex', justifyContent: 'center', marginTop: 22, gap: 8, alignItems: 'center', opacity: 0.25 }}>
-            <div style={{ width: 1, height: 18, background: 'rgba(255,255,255,0.7)' }}/>
-            <span style={{ fontSize: 9, color: 'white', letterSpacing: '0.14em', textTransform: 'uppercase' }}>{isHe ? 'גלילה' : 'scroll'}</span>
-            <div style={{ width: 1, height: 18, background: 'rgba(255,255,255,0.7)' }}/>
+          <div className="rise-in" style={{
+            '--rise-delay': '240ms',
+            display: 'flex', flexDirection: 'column', gap: 4,
+            fontFamily: 'var(--font-display)',
+            fontSize: 'clamp(20px, 3.6vw, 26px)',
+            fontStyle: 'italic',
+            fontWeight: 400,
+            color: 'rgba(245,240,232,0.75)',
+            lineHeight: 1.35,
+            marginBottom: 40,
+          }}>
+            <span>{t.heroSubA}</span>
+            <span>{t.heroSubB}</span>
+            <span style={{ color: 'var(--accent-light)' }}>{t.heroSubC}</span>
+          </div>
+
+          <div className="rise-in" style={{ '--rise-delay': '360ms', display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+            <button onClick={goAuth} className="lp-cta">
+              {t.ctaPrimary}
+              <Icon name={isHe ? 'arrow_left' : 'arrow_right'} size={16} color="white" />
+            </button>
+            <span style={{ fontSize: 12, color: 'rgba(245,240,232,0.40)', maxWidth: 260, lineHeight: 1.5 }}>
+              {t.ctaMicro}
+            </span>
+          </div>
+
+          {/* Trust strip */}
+          <div className="rise-in" style={{
+            '--rise-delay': '480ms',
+            marginTop: 48,
+            display: 'flex', gap: 'clamp(16px, 3vw, 28px)', flexWrap: 'wrap',
+          }}>
+            {[t.trustA, t.trustB, t.trustC].map((label, i) => (
+              <span key={i} className="mono-label" style={{
+                color: 'rgba(245,240,232,0.42)',
+                fontSize: 10.5,
+                display: 'inline-flex', alignItems: 'center', gap: 8,
+              }}>
+                <span style={{ width: 4, height: 4, borderRadius: '50%', background: 'var(--accent)' }} />
+                {label}
+              </span>
+            ))}
           </div>
         </div>
-      </div>
 
-      {/* ── Pain section (agitate the problem before pitching the solution) ── */}
-      <div dir={dir} style={{ background: 'var(--cream)', padding: '60px 24px 48px' }}>
-        <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 28, fontWeight: 500, color: 'var(--ink)', lineHeight: 1.2, marginBottom: 10, letterSpacing: '-0.01em' }}>
-          {t.painTitle}
-        </h2>
-        <p style={{ color: 'var(--ink-muted)', fontSize: 14, lineHeight: 1.6, marginBottom: 28 }}>
-          {t.painSub}
-        </p>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {t.pains.map((p, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '12px 14px', background: 'var(--white)', borderRadius: 12, border: '1px solid var(--border)' }}>
-              <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'rgba(196,98,45,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
-                <Icon name="close" size={12} color="var(--accent)" />
-              </div>
-              <p style={{ fontSize: 14, color: 'var(--ink-light)', lineHeight: 1.5 }}>{p}</p>
-            </div>
-          ))}
+        {/* Trail blaze marker, lower opposite corner */}
+        <div aria-hidden="true" className="blaze-pulse" style={{
+          position: 'absolute',
+          bottom: 'calc(var(--safe-bottom) + 24px)',
+          [isHe ? 'left' : 'right']: 'clamp(20px, 5vw, 56px)',
+          zIndex: 2,
+        }}>
+          <TrailBlaze size={42} />
         </div>
-      </div>
 
-      {/* ── Solution / features grid ── */}
-      <div dir={dir} style={{ background: 'var(--cream-dark)', padding: '60px 24px 64px' }}>
-        <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--accent)', marginBottom: 8 }}>
-          {t.solutionEyebrow}
-        </p>
-        <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 26, fontWeight: 500, color: 'var(--ink)', lineHeight: 1.2, marginBottom: 32, letterSpacing: '-0.01em' }}>
-          {t.solutionTitle}
-        </h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 12 }}>
-          {t.features.map((f, i) => (
-            <div key={i} style={{ padding: 16, background: 'var(--white)', borderRadius: 14, border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <div style={{ width: 40, height: 40, borderRadius: 11, background: f.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Icon name={f.icon} size={18} color={f.color} />
-              </div>
-              <p style={{ fontWeight: 600, fontSize: 14.5, color: 'var(--ink)' }}>{f.title}</p>
-              <p style={{ fontSize: 12.5, color: 'var(--ink-muted)', lineHeight: 1.55 }}>{f.desc}</p>
-            </div>
-          ))}
+        {/* Scroll hint, bottom centre */}
+        <div aria-hidden="true" style={{
+          position: 'absolute', bottom: 24, left: 0, right: 0,
+          zIndex: 2, display: 'flex', justifyContent: 'center',
+        }}>
+          <span className="mono-label" style={{
+            color: 'rgba(245,240,232,0.35)',
+            fontSize: 10,
+            display: 'inline-flex', alignItems: 'center', gap: 10,
+          }}>
+            <span style={{ width: 12, height: 1, background: 'currentColor' }} />
+            {t.scrollHint}
+            <span aria-hidden="true">/</span>
+            {t.scrollHintTo}
+            <span style={{ width: 12, height: 1, background: 'currentColor' }} />
+          </span>
         </div>
-      </div>
+      </section>
 
-      {/* ── Sample preview (risk reduction: "look what you get") ── */}
-      <div dir={dir} style={{ background: 'var(--cream)', padding: '60px 24px 64px' }}>
-        <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--teal)', marginBottom: 8 }}>
-          {t.sampleEyebrow}
-        </p>
-        <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 26, fontWeight: 500, color: 'var(--ink)', lineHeight: 1.2, marginBottom: 14, letterSpacing: '-0.01em' }}>
-          {t.sampleTitle}
-        </h2>
-        <p style={{ fontSize: 14, color: 'var(--ink-muted)', lineHeight: 1.6, marginBottom: 22 }}>
-          {t.sampleSub}
-        </p>
-        <div style={{ background: 'var(--white)', borderRadius: 14, border: '1px solid var(--border)', padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {t.samplePoints.map((p, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'var(--teal-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <Icon name="check" size={12} color="var(--teal)" />
-              </div>
-              <p style={{ fontSize: 14, color: 'var(--ink-light)' }}>{p}</p>
-            </div>
-          ))}
-        </div>
-      </div>
+      {/* ───────────── § 01 PAIN ───────────── */}
+      <section className="paper-grain" style={{
+        ...sectionPad,
+        background: 'var(--cream)',
+        color: 'var(--ink)',
+        position: 'relative',
+      }}>
+        <div style={{ maxWidth: 920, marginInline: 'auto' }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 14, marginBottom: 28 }}>
+            <SectionNumber color="var(--accent)">{t.s01Number}</SectionNumber>
+            <span className="mono-label" style={{ color: 'var(--ink-muted)' }}>{t.s01Eyebrow}</span>
+          </div>
 
-      {/* ── FAQ (objection handling) ── */}
-      <div dir={dir} style={{ background: 'var(--cream-dark)', padding: '60px 24px 60px' }}>
-        <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 26, fontWeight: 500, color: 'var(--ink)', lineHeight: 1.2, marginBottom: 18, letterSpacing: '-0.01em' }}>
-          {t.faqTitle}
-        </h2>
-        <div style={{ background: 'var(--white)', borderRadius: 14, border: '1px solid var(--border)', padding: '4px 18px' }}>
-          {t.faqs.map((f, i) => (
-            <FAQItem key={i} q={f.q} a={f.a} isHe={isHe} />
-          ))}
-        </div>
-      </div>
-
-      {/* ── Final CTA ── */}
-      <div style={{ background: '#1A1612', padding: '72px 28px calc(var(--safe-bottom) + 44px)', position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 50% 120%, rgba(196,98,45,0.32) 0%, transparent 55%)', pointerEvents: 'none' }}/>
-        <div style={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
-          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 34, color: 'white', fontWeight: 500, marginBottom: 8, lineHeight: 1.2, letterSpacing: '-0.02em' }}>
-            {t.ctaTitle}
+          <h2 style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: 'clamp(30px, 5.5vw, 48px)',
+            fontWeight: 500,
+            lineHeight: 1.1,
+            letterSpacing: '-0.02em',
+            color: 'var(--ink)',
+            marginBottom: 16,
+            maxWidth: '18ch',
+          }}>
+            {t.s01Title}
           </h2>
-          <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 15, marginBottom: 28, lineHeight: 1.5 }}>
-            {t.ctaSubFinal}
+          <p style={{
+            fontSize: 16, color: 'var(--ink-muted)', lineHeight: 1.65,
+            marginBottom: 48, maxWidth: 520,
+          }}>
+            {t.s01Sub}
           </p>
-          <button onClick={goAuth} style={{ padding: '17px 36px', borderRadius: 14, background: 'var(--accent)', color: 'white', fontSize: 16, fontWeight: 700, border: 'none', cursor: 'pointer', boxShadow: '0 8px 32px rgba(196,98,45,0.45)', fontFamily: 'var(--font-body)', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-            {t.ctaBtn}
+
+          <ol style={{
+            display: 'flex', flexDirection: 'column', gap: 0,
+            listStyle: 'none', padding: 0, margin: 0,
+          }}>
+            {t.pains.map((p, i) => (
+              <li key={i} style={{
+                display: 'flex', alignItems: 'flex-start', gap: 20,
+                padding: '22px 0',
+                borderTop: i === 0 ? '1px solid rgba(26,22,18,0.12)' : 'none',
+                borderBottom: '1px solid rgba(26,22,18,0.12)',
+              }}>
+                <span className="mono-label" style={{
+                  color: 'var(--accent)', fontSize: 12,
+                  paddingTop: 4, minWidth: 32, flexShrink: 0,
+                }}>
+                  0{i + 1}
+                </span>
+                <span style={{
+                  fontFamily: 'var(--font-display)',
+                  fontSize: 'clamp(18px, 2.4vw, 22px)',
+                  fontWeight: 400,
+                  lineHeight: 1.4,
+                  color: 'var(--ink)',
+                  letterSpacing: '-0.005em',
+                }}>
+                  {p}
+                </span>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
+      {/* ───────────── § 02 SOLUTION ───────────── */}
+      <section style={{
+        ...sectionPad,
+        background: '#1A1612',
+        color: 'var(--cream)',
+        position: 'relative',
+        overflow: 'hidden',
+      }}>
+        <div aria-hidden="true" style={{
+          position: 'absolute', inset: 0, opacity: 0.4, zIndex: 0,
+        }} className="pan-x">
+          <ContourBackdrop opacity={0.06} />
+        </div>
+
+        <div style={{ maxWidth: 1080, marginInline: 'auto', position: 'relative', zIndex: 1 }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 14, marginBottom: 28 }}>
+            <SectionNumber color="var(--accent-light)">{t.s02Number}</SectionNumber>
+            <span className="mono-label" style={{ color: 'rgba(245,240,232,0.5)' }}>{t.s02Eyebrow}</span>
+          </div>
+
+          <h2 style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: 'clamp(30px, 5.5vw, 52px)',
+            fontWeight: 500,
+            lineHeight: 1.08,
+            letterSpacing: '-0.02em',
+            color: 'var(--cream)',
+            marginBottom: 16,
+            maxWidth: '17ch',
+          }}>
+            {t.s02Title}
+          </h2>
+          <p style={{
+            fontSize: 16, color: 'rgba(245,240,232,0.6)', lineHeight: 1.65,
+            marginBottom: 56, maxWidth: 540,
+          }}>
+            {t.s02Sub}
+          </p>
+
+          {/* Asymmetric feature layout: 2 hero cards, then 4 standard */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(min(420px, 100%), 1fr))',
+              gap: 14,
+            }}>
+              {t.features.slice(0, 2).map((f, i) => (
+                <FeatureCard key={i} f={f} size="lg" />
+              ))}
+            </div>
+
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(min(260px, 100%), 1fr))',
+              gap: 14,
+            }}>
+              {t.features.slice(2).map((f, i) => (
+                <FeatureCard key={i} f={f} size="sm" />
+              ))}
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* ───────────── § 03 SAMPLE TREK ───────────── */}
+      <section className="paper-grain" style={{
+        ...sectionPad,
+        background: 'var(--cream)',
+        color: 'var(--ink)',
+        position: 'relative',
+      }}>
+        <div style={{ maxWidth: 1080, marginInline: 'auto' }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 14, marginBottom: 28 }}>
+            <SectionNumber color="var(--accent)">{t.s03Number}</SectionNumber>
+            <span className="mono-label" style={{ color: 'var(--ink-muted)' }}>{t.s03Eyebrow}</span>
+          </div>
+
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'minmax(0, 1fr)',
+            gap: 'clamp(32px, 5vw, 56px)',
+            alignItems: 'center',
+          }}>
+
+            <div>
+              <h2 style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: 'clamp(30px, 5vw, 44px)',
+                fontWeight: 500,
+                lineHeight: 1.1,
+                letterSpacing: '-0.02em',
+                color: 'var(--ink)',
+                marginBottom: 16,
+                maxWidth: '20ch',
+              }}>
+                {t.s03Title}
+              </h2>
+              <p style={{
+                fontSize: 16, color: 'var(--ink-muted)', lineHeight: 1.65,
+                marginBottom: 32, maxWidth: 560,
+              }}>
+                {t.s03Sub}
+              </p>
+
+              {/* Trek card */}
+              <div style={{
+                background: '#1A1612', color: 'var(--cream)',
+                borderRadius: 16,
+                padding: 'clamp(20px, 4vw, 32px)',
+                marginBottom: 24,
+                position: 'relative',
+                overflow: 'hidden',
+              }}>
+                {/* Map illustration */}
+                <div style={{ marginBottom: 24, borderRadius: 12, overflow: 'hidden' }}>
+                  <SampleTrekMap isHe={isHe} />
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 16 }}>
+                  <div>
+                    <p className="mono-label" style={{ color: 'rgba(245,240,232,0.5)', marginBottom: 4 }}>
+                      {t.s03TrekSub}
+                    </p>
+                    <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 28, fontWeight: 500, color: 'var(--cream)', letterSpacing: '-0.01em' }}>
+                      {t.s03Trek}
+                    </h3>
+                  </div>
+
+                  {/* Stats */}
+                  <div style={{ display: 'flex', gap: 18 }}>
+                    {t.s03Stats.map((s, i) => (
+                      <div key={i} style={{ textAlign: isHe ? 'right' : 'left' }}>
+                        <div style={{
+                          fontFamily: 'var(--font-display)',
+                          fontSize: 22, fontWeight: 500, color: 'var(--accent-light)',
+                          lineHeight: 1,
+                        }}>
+                          {s.k}
+                        </div>
+                        <div className="mono-label" style={{ color: 'rgba(245,240,232,0.45)', fontSize: 10, marginTop: 4 }}>
+                          {s.v}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(3, 1fr)',
+                  gap: 10,
+                  borderTop: '1px solid rgba(245,240,232,0.12)',
+                  paddingTop: 18,
+                }}>
+                  {t.s03Days.map((d, i) => {
+                    const colours = ['#C4622D', '#2D9E6E', '#5B8FD4']
+                    return (
+                      <div key={i} style={{ minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                          <span style={{ width: 8, height: 8, borderRadius: '50%', background: colours[i] }} />
+                          <span className="mono-label" style={{ color: 'rgba(245,240,232,0.55)', fontSize: 10 }}>
+                            {isHe ? 'יום' : 'Day'} {d.n}
+                          </span>
+                        </div>
+                        <div style={{
+                          fontSize: 13, color: 'var(--cream)', fontWeight: 500,
+                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                        }}>
+                          {d.name}
+                        </div>
+                        <div style={{ fontSize: 11, color: 'rgba(245,240,232,0.4)', marginTop: 2 }}>
+                          {d.stops} {isHe ? 'עצירות' : 'stops'}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+
+              <button onClick={goAuth} className="lp-cta">
+                {t.ctaPrimary}
+                <Icon name={isHe ? 'arrow_left' : 'arrow_right'} size={16} color="white" />
+              </button>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* ───────────── § 04 FAQ ───────────── */}
+      <section className="paper-grain" style={{
+        ...sectionPad,
+        background: 'var(--cream-dark)',
+        color: 'var(--ink)',
+      }}>
+        <div style={{ maxWidth: 760, marginInline: 'auto' }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 14, marginBottom: 24 }}>
+            <SectionNumber color="var(--accent)">{t.s04Number}</SectionNumber>
+            <span className="mono-label" style={{ color: 'var(--ink-muted)' }}>{t.s04Eyebrow}</span>
+          </div>
+          <h2 style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: 'clamp(28px, 4.5vw, 40px)',
+            fontWeight: 500,
+            lineHeight: 1.15,
+            letterSpacing: '-0.015em',
+            color: 'var(--ink)',
+            marginBottom: 36,
+            maxWidth: '20ch',
+          }}>
+            {t.s04Title}
+          </h2>
+
+          <div>
+            {t.faqs.map((f, i) => (
+              <FAQItem key={i} q={f.q} a={f.a} isHe={isHe} isLast={i === t.faqs.length - 1} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ───────────── FINAL CTA ───────────── */}
+      <section style={{
+        ...sectionPad,
+        paddingBlock: 'clamp(96px, 16vh, 160px)',
+        background: '#1A1612',
+        color: 'var(--cream)',
+        position: 'relative',
+        overflow: 'hidden',
+        textAlign: 'center',
+      }}>
+        <div aria-hidden="true" style={{
+          position: 'absolute', inset: 0,
+          background: 'radial-gradient(ellipse at 50% 130%, rgba(196,98,45,0.30), transparent 55%)',
+          pointerEvents: 'none',
+        }} />
+        <div aria-hidden="true" style={{ position: 'absolute', inset: 0, opacity: 0.5 }} className="pan-x">
+          <ContourBackdrop opacity={0.07} />
+        </div>
+
+        <div style={{ position: 'relative', zIndex: 1, maxWidth: 720, marginInline: 'auto' }}>
+          <div style={{ marginBottom: 20 }}>
+            <MonoLabel color="var(--accent-light)" dot={false}>
+              <span style={{ width: 18, height: 1, background: 'currentColor', opacity: 0.7, display: 'inline-block' }} />
+              {t.finalEyebrow}
+              <span style={{ width: 18, height: 1, background: 'currentColor', opacity: 0.7, display: 'inline-block' }} />
+            </MonoLabel>
+          </div>
+
+          <h2 style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: 'clamp(36px, 7vw, 64px)',
+            fontWeight: 500,
+            lineHeight: 1.05,
+            letterSpacing: '-0.025em',
+            color: 'var(--cream)',
+            marginBottom: 18,
+          }}>
+            {t.finalTitle}
+          </h2>
+          <p style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: 'clamp(18px, 2.6vw, 22px)',
+            fontStyle: 'italic',
+            color: 'rgba(245,240,232,0.65)',
+            marginBottom: 40,
+          }}>
+            {t.finalSub}
+          </p>
+
+          <button onClick={goAuth} className="lp-cta" style={{ padding: '18px 36px', fontSize: 16 }}>
+            {t.finalCta}
             <Icon name={isHe ? 'arrow_left' : 'arrow_right'} size={16} color="white" />
           </button>
-          <p style={{ marginTop: 16, fontSize: 12, color: 'rgba(255,255,255,0.32)' }}>{t.ctaFooter}</p>
-          <div style={{ marginTop: 44, display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <a href="/privacy" style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', textDecoration: 'underline' }}>{t.privacy}</a>
-            <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.15)' }}>·</span>
-            <a href="/terms" style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', textDecoration: 'underline' }}>{t.terms}</a>
+          <p style={{ marginTop: 18, fontSize: 12, color: 'rgba(245,240,232,0.40)' }}>
+            {t.finalMicro}
+          </p>
+        </div>
+
+        {/* Footer */}
+        <div style={{
+          marginTop: 'clamp(72px, 12vh, 120px)',
+          position: 'relative', zIndex: 1,
+          maxWidth: 720, marginInline: 'auto',
+        }}>
+          <div className="lp-rule" style={{ color: 'rgba(245,240,232,0.30)', marginBottom: 24 }}>
+            <Icon name="globe" size={14} color="rgba(245,240,232,0.40)" />
           </div>
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            gap: 16, flexWrap: 'wrap',
+          }}>
+            <span className="mono-label" style={{ color: 'rgba(245,240,232,0.35)', fontSize: 10 }}>
+              {t.madeWith}
+            </span>
+            <div style={{ display: 'flex', gap: 18, alignItems: 'center' }}>
+              <a href="/privacy" className="mono-label" style={{ color: 'rgba(245,240,232,0.35)', fontSize: 10, textDecoration: 'none' }}>{t.privacy}</a>
+              <a href="/terms"   className="mono-label" style={{ color: 'rgba(245,240,232,0.35)', fontSize: 10, textDecoration: 'none' }}>{t.terms}</a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  )
+}
+
+/* ── Feature card ──────────────────────────────────────────────────────── */
+
+function FeatureCard({ f, size = 'sm' }) {
+  const [hover, setHover] = useState(false)
+  const lg = size === 'lg'
+  return (
+    <div
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      style={{
+        position: 'relative',
+        padding: lg ? 'clamp(22px, 3vw, 30px)' : 'clamp(20px, 2.6vw, 24px)',
+        background: 'rgba(245,240,232,0.03)',
+        border: '1px solid rgba(245,240,232,0.10)',
+        borderRadius: 14,
+        transition: 'background 0.2s, border-color 0.2s, transform 0.2s',
+        ...(hover ? {
+          background: 'rgba(245,240,232,0.05)',
+          borderColor: 'rgba(245,240,232,0.18)',
+          transform: 'translateY(-2px)',
+        } : null),
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: lg ? 28 : 20 }}>
+        <span className="mono-label" style={{ color: 'rgba(245,240,232,0.45)', fontSize: 11 }}>
+          {f.n}
+        </span>
+        <div style={{
+          width: lg ? 42 : 36, height: lg ? 42 : 36,
+          borderRadius: 10,
+          background: `${f.accent}1F`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <Icon name={f.icon} size={lg ? 19 : 16} color={f.accent} />
         </div>
       </div>
 
+      <h3 style={{
+        fontFamily: 'var(--font-display)',
+        fontSize: lg ? 'clamp(22px, 2.6vw, 26px)' : 'clamp(18px, 2vw, 20px)',
+        fontWeight: 500,
+        letterSpacing: '-0.01em',
+        color: 'var(--cream)',
+        marginBottom: 8,
+        lineHeight: 1.2,
+      }}>
+        {f.title}
+      </h3>
+      <p style={{
+        fontSize: lg ? 14.5 : 13,
+        lineHeight: 1.6,
+        color: 'rgba(245,240,232,0.58)',
+      }}>
+        {f.body}
+      </p>
     </div>
   )
 }
