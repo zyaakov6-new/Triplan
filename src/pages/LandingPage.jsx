@@ -35,8 +35,6 @@ const T = {
     trustA:        'חינם תמיד',
     trustB:        'עברית מלאה',
     trustC:        'עובד בלב שטח',
-    scrollHint:    'גלילה',
-    scrollHintTo:  'סצנה ראשונה',
 
     // § 01
     s01Eyebrow:    'סצנה',
@@ -119,8 +117,6 @@ const T = {
     trustA:        'Free forever',
     trustB:        'Hebrew + English',
     trustC:        'Works offline',
-    scrollHint:    'Scroll',
-    scrollHintTo:  'first scene',
 
     s01Eyebrow:    'Scene',
     s01Number:     '§ 01',
@@ -486,31 +482,36 @@ export default function LandingPage() {
           <h1 className="rise-in" style={{
             '--rise-delay': '120ms',
             fontFamily: 'var(--font-display)',
-            fontSize: 'clamp(40px, 9.5vw, 76px)',
-            fontWeight: 500,
-            lineHeight: 1.04,
-            letterSpacing: '-0.03em',
+            // Hebrew display serifs need room to breathe. Latin can tighten.
+            fontSize: 'clamp(38px, 8.6vw, 70px)',
+            fontWeight: 700,
+            lineHeight: 1.1,
+            letterSpacing: isHe ? '-0.005em' : '-0.02em',
             color: 'var(--cream)',
-            marginBottom: 28,
-            maxWidth: '14ch',
+            marginBottom: 32,
+            maxWidth: '15ch',
           }}>
             {t.heroTitle}
           </h1>
 
+          {/* Sub: serif removed in favour of a clean body-weight stack.
+              Hebrew has no real italic, so synthesised italic looked off.
+              Heebo / DM Sans light-weight reads cleanly at this size and
+              gives the headline more space. */}
           <div className="rise-in" style={{
             '--rise-delay': '240ms',
-            display: 'flex', flexDirection: 'column', gap: 4,
-            fontFamily: 'var(--font-display)',
-            fontSize: 'clamp(20px, 3.6vw, 26px)',
-            fontStyle: 'italic',
-            fontWeight: 400,
-            color: 'rgba(245,240,232,0.75)',
-            lineHeight: 1.35,
+            display: 'flex', flexDirection: 'column', gap: 2,
+            fontFamily: 'var(--font-body)',
+            fontSize: 'clamp(18px, 2.6vw, 22px)',
+            fontWeight: 300,
+            color: 'rgba(245,240,232,0.78)',
+            lineHeight: 1.45,
             marginBottom: 40,
+            letterSpacing: isHe ? '-0.002em' : 0,
           }}>
             <span>{t.heroSubA}</span>
             <span>{t.heroSubB}</span>
-            <span style={{ color: 'var(--accent-light)' }}>{t.heroSubC}</span>
+            <span style={{ color: 'var(--accent-light)', fontWeight: 400 }}>{t.heroSubC}</span>
           </div>
 
           <div className="rise-in" style={{ '--rise-delay': '360ms', display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
@@ -552,23 +553,6 @@ export default function LandingPage() {
           <TrailBlaze size={42} />
         </div>
 
-        {/* Scroll hint, bottom centre */}
-        <div aria-hidden="true" style={{
-          position: 'absolute', bottom: 24, left: 0, right: 0,
-          zIndex: 2, display: 'flex', justifyContent: 'center',
-        }}>
-          <span className="mono-label" style={{
-            color: 'rgba(245,240,232,0.35)',
-            fontSize: 10,
-            display: 'inline-flex', alignItems: 'center', gap: 10,
-          }}>
-            <span style={{ width: 12, height: 1, background: 'currentColor' }} />
-            {t.scrollHint}
-            <span aria-hidden="true">/</span>
-            {t.scrollHintTo}
-            <span style={{ width: 12, height: 1, background: 'currentColor' }} />
-          </span>
-        </div>
       </section>
 
       {/* ───────────── § 01 PAIN ───────────── */}
@@ -675,29 +659,13 @@ export default function LandingPage() {
             {t.s02Sub}
           </p>
 
-          {/* Asymmetric feature layout: 2 hero cards, then 4 standard */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(min(420px, 100%), 1fr))',
-              gap: 14,
-            }}>
-              {t.features.slice(0, 2).map((f, i) => (
-                <FeatureCard key={i} f={f} size="lg" />
-              ))}
-            </div>
-
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(min(260px, 100%), 1fr))',
-              gap: 14,
-            }}>
-              {t.features.slice(2).map((f, i) => (
-                <FeatureCard key={i} f={f} size="sm" />
-              ))}
-            </div>
-
+          {/* Uniform 6-card grid. Driven by .lp-features-grid in CSS so we
+              can use a real media query (clean 3 / 2 / 1 column breakpoints,
+              no auto-fit edge cases that left the 6th card alone on a row). */}
+          <div className="lp-features-grid">
+            {t.features.map((f, i) => (
+              <FeatureCard key={i} f={f} />
+            ))}
           </div>
         </div>
       </section>
@@ -946,20 +914,21 @@ export default function LandingPage() {
 
 /* ── Feature card ──────────────────────────────────────────────────────── */
 
-function FeatureCard({ f, size = 'sm' }) {
+function FeatureCard({ f }) {
   const [hover, setHover] = useState(false)
-  const lg = size === 'lg'
   return (
     <div
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
       style={{
         position: 'relative',
-        padding: lg ? 'clamp(22px, 3vw, 30px)' : 'clamp(20px, 2.6vw, 24px)',
+        padding: 'clamp(20px, 2.6vw, 26px)',
         background: 'rgba(245,240,232,0.03)',
         border: '1px solid rgba(245,240,232,0.10)',
         borderRadius: 14,
         transition: 'background 0.2s, border-color 0.2s, transform 0.2s',
+        height: '100%',
+        display: 'flex', flexDirection: 'column',
         ...(hover ? {
           background: 'rgba(245,240,232,0.05)',
           borderColor: 'rgba(245,240,232,0.18)',
@@ -967,33 +936,33 @@ function FeatureCard({ f, size = 'sm' }) {
         } : null),
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: lg ? 28 : 20 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22 }}>
         <span className="mono-label" style={{ color: 'rgba(245,240,232,0.45)', fontSize: 11 }}>
           {f.n}
         </span>
         <div style={{
-          width: lg ? 42 : 36, height: lg ? 42 : 36,
+          width: 38, height: 38,
           borderRadius: 10,
           background: `${f.accent}1F`,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          <Icon name={f.icon} size={lg ? 19 : 16} color={f.accent} />
+          <Icon name={f.icon} size={17} color={f.accent} />
         </div>
       </div>
 
       <h3 style={{
         fontFamily: 'var(--font-display)',
-        fontSize: lg ? 'clamp(22px, 2.6vw, 26px)' : 'clamp(18px, 2vw, 20px)',
+        fontSize: 'clamp(19px, 2.1vw, 22px)',
         fontWeight: 500,
         letterSpacing: '-0.01em',
         color: 'var(--cream)',
         marginBottom: 8,
-        lineHeight: 1.2,
+        lineHeight: 1.22,
       }}>
         {f.title}
       </h3>
       <p style={{
-        fontSize: lg ? 14.5 : 13,
+        fontSize: 13.5,
         lineHeight: 1.6,
         color: 'rgba(245,240,232,0.58)',
       }}>

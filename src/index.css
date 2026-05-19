@@ -634,3 +634,20 @@ textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; 
   content: ''; flex: 1; height: 1px;
   background: currentColor; opacity: 0.18;
 }
+
+/* Features grid. Three real breakpoints so 6 cards always lay out cleanly:
+   - >= 960px : 3 columns (2 rows of 3)
+   - >= 640px : 2 columns (3 rows of 2)
+   - <  640px : 1 column  (6 rows of 1)
+   No auto-fit gymnastics, no orphan cards. */
+.lp-features-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 640px) {
+  .lp-features-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 960px) {
+  .lp-features-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
